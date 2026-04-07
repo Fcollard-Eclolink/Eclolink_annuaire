@@ -1,0 +1,30 @@
+/* ── Inputs ───────────────────────────────────────────────────── */
+input[type=text], input[type=password] { height: 36px; padding: 0 12px; border: 0.5px solid var(--border-input); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 14px; }
+#search      { flex: 1; min-width: 160px; width: 100%; }
+input:focus  { outline: none; border-color: #888; }
+
+/* ── Boutons ──────────────────────────────────────────────────── */
+.btn         { height: 36px; padding: 0 14px; border: 0.5px solid var(--border-input); border-radius: 8px; background: transparent; color: var(--text); cursor: pointer; font-size: 13px; white-space: nowrap; }
+.btn:hover   { background: var(--hover); }
+.btn.primary         { background: var(--btn-primary-bg); color: var(--btn-primary-color); border-color: var(--btn-primary-bg); }
+.btn.primary:hover   { opacity: 0.85; }
+
+/* ── Boutons icône ────────────────────────────────────────────── */
+.icon-btn      { width: 28px; height: 28px; border: 0.5px solid var(--border-input); border-radius: 8px; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--text-muted); }
+.icon-btn:hover          { background: var(--hover); color: var(--text); }
+.icon-btn.del:hover      { background: var(--del-hover-bg); color: var(--del-hover-color); border-color: var(--del-hover-border); }
+
+/* ── Lien icône (URL externe, GitLab…) ───────────────────────── */
+.icon-link       { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border: 0.5px solid var(--border); border-radius: 6px; color: var(--text-muted); text-decoration: none; flex-shrink: 0; transition: background .15s, color .15s; }
+.icon-link:hover { background: var(--hover); color: var(--text); }
+
+/* ── Tags & badges ────────────────────────────────────────────── */
+.tag        { background: var(--tag-bg); padding: 1px 7px; border-radius: 20px; border: 0.5px solid var(--border); }
+.tech-badge { display: inline-flex; align-items: center; gap: 4px; background: var(--tag-bg); border: 0.5px solid var(--border); border-radius: 20px; padding: 2px 7px; font-size: 11px; color: var(--text); white-space: nowrap; }
+
+/* ── Toast ────────────────────────────────────────────────────── */
+.toast { position: fixed; bottom: 20px; right: 20px; background: var(--toast-bg); color: var(--toast-color); padding: 8px 16px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 999; }
+
+/* ── Spinner ──────────────────────────────────────────────────── */
+.spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--btn-primary-color); border-top-color: transparent; border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 6px; }
+@keyframes spin { to { transform: rotate(360deg); } }

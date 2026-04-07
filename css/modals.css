@@ -1,0 +1,36 @@
+/* ── Overlay ──────────────────────────────────────────────────── */
+.overlay      { display: none; position: fixed; inset: 0; background: var(--overlay-bg); z-index: 100; align-items: center; justify-content: center; padding: 24px; }
+.overlay.open { display: flex; }
+
+/* ── Fenêtre modale ───────────────────────────────────────────── */
+.modal    { background: var(--surface); border-radius: 12px; border: 0.5px solid var(--border-input); padding: 1.25rem; width: 360px; max-width: 100%; }
+.modal h3 { font-size: 15px; font-weight: 500; margin-bottom: 1rem; }
+
+/* ── Champs de formulaire ─────────────────────────────────────── */
+.field                    { margin-bottom: 12px; }
+.field label              { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+.field input[type=text], .field select, .field textarea { width: 100%; padding: 0 10px; border: 0.5px solid var(--border-input); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 13px; }
+.field input[type=text], .field select { height: 36px; }
+.field textarea           { padding: 8px 10px; resize: vertical; min-height: 56px; font-family: inherit; line-height: 1.5; }
+.field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: #888; }
+
+.modal-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1rem; }
+
+/* ── Écran de connexion ───────────────────────────────────────── */
+#login-screen  { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1.5rem; }
+.login-card    { background: var(--surface); border: 0.5px solid var(--border); border-radius: 16px; padding: 2rem; width: 100%; max-width: 360px; }
+.login-title   { font-size: 17px; font-weight: 500; color: var(--text); margin-bottom: 1.5rem; }
+.login-error   { font-size: 13px; color: #a32d2d; background: var(--del-hover-bg); border: 0.5px solid var(--del-hover-border); border-radius: 8px; padding: 8px 12px; margin-bottom: 1rem; }
+
+/* ── Sélecteur de technologies ────────────────────────────────── */
+.tech-select     { position: relative; }
+.tech-select-box { min-height: 36px; padding: 4px 10px; border: 0.5px solid var(--border-input); border-radius: 8px; background: var(--surface); cursor: pointer; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.tech-placeholder { font-size: 13px; color: var(--text-muted); }
+
+.tech-dropdown      { display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: var(--surface); border: 0.5px solid var(--border-input); border-radius: 8px; z-index: 50; box-shadow: 0 4px 16px rgba(0,0,0,.12); max-height: 220px; overflow-y: auto; }
+.tech-dropdown.open { display: block; }
+
+.tech-option        { display: flex; align-items: center; gap: 10px; padding: 9px 14px; cursor: pointer; font-size: 13px; color: var(--text); user-select: none; }
+.tech-option:hover  { background: var(--hover); }
+.tech-option input  { accent-color: var(--link); cursor: pointer; flex-shrink: 0; }
+.tech-option img    { flex-shrink: 0; }
