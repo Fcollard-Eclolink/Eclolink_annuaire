@@ -6,10 +6,12 @@ function render() {
 
   const filtered = sites.filter(s => {
     if (!q) return true;
-    return (s.name   || '').toLowerCase().includes(q)
-        || (s.url    || '').toLowerCase().includes(q)
-        || (s.server || '').toLowerCase().includes(q)
-        || (s.notes  || '').toLowerCase().includes(q);
+    const g = groups.find(g => g.id === s.groupId);
+    return (s.name        || '').toLowerCase().includes(q)
+        || (s.url         || '').toLowerCase().includes(q)
+        || (s.server      || '').toLowerCase().includes(q)
+        || (s.notes       || '').toLowerCase().includes(q)
+        || (g ? g.name    : '').toLowerCase().includes(q);
   });
 
   if (q) {
