@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Annuaire Serveurs — Eclolink</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ══ LOGIN ══════════════════════════════════════════════════════ -->
+<div id="login-screen" style="display:none">
+  <div class="login-card">
+    <h2 class="login-title">Annuaire Eclolink</h2>
+    <div id="login-error" class="login-error" style="display:none">Email ou mot de passe incorrect.</div>
+    <div class="field">
+      <label>Email</label>
+      <input type="text" id="login-email" placeholder="prenom@eclolink.fr" onkeydown="if(event.key==='Enter')submitLogin()">
+    </div>
+    <div class="field">
+      <label>Mot de passe</label>
+      <input type="password" id="login-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')submitLogin()">
+    </div>
+    <button class="btn primary" id="login-btn" style="width:100%" onclick="submitLogin()">Accéder</button>
+  </div>
+</div>
+
+<!-- ══ APPLICATION ════════════════════════════════════════════════ -->
+<div id="app" style="display:none">
+<div class="wrap" id="wrap">
+
+  <!-- Modale formulaire -->
+  <div id="modal-wrap" class="overlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <h3 id="modal-title">Ajouter</h3>
+      <div id="modal-body"></div>
+      <div class="modal-btns">
+        <button class="btn" onclick="closeModal()">Annuler</button>
+        <button class="btn primary" id="save-btn" onclick="saveModal()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modale confirmation suppression -->
+  <div id="confirm-wrap" class="overlay" onclick="if(event.target===this)closeConfirm()">
+    <div class="modal" style="width:320px">
+      <h3 style="color:#a32d2d">Confirmer la suppression</h3>
+      <p id="confirm-msg" style="font-size:13px;color:#555;margin:10px 0 1.25rem;line-height:1.5"></p>
+      <div class="modal-btns">
+        <button class="btn" onclick="closeConfirm()">Annuler</button>
+        <button class="btn" onclick="executeDelete()" style="background:#a32d2d;color:#fff;border-color:#a32d2d">Supprimer</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+    <h1 style="margin:0">Annuaire des serveurs</h1>
+    <div style="display:flex;gap:8px">
+      <button class="btn" id="theme-btn" onclick="toggleTheme()" title="Changer le thème"></button>
+      <button class="btn" onclick="logout()">Déconnexion</button>
+    </div>
+  </div>
+  <div class="top">
+    <input type="text" id="search" placeholder="Rechercher un site, URL, serveur..." oninput="render()">
+    <button class="btn" onclick="load(true)" title="Actualiser" style="padding:0 11px;font-size:16px">&#8635;</button>
+    <button class="btn" onclick="openGroupModal()">+ Groupe</button>
+    <button class="btn primary" onclick="openSiteModal()">+ Site</button>
+  </div>
+  <div id="list"><div style="padding:2rem;text-align:center;color:#777;font-size:14px">Chargement...</div></div>
+  <div class="toast" id="toast"></div>
+
+</div>
+</div>
+
+<script src="config.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
