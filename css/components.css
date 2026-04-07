@@ -1,7 +1,12 @@
 /* ── Inputs ───────────────────────────────────────────────────── */
 input[type=text], input[type=password] { height: 36px; padding: 0 12px; border: 0.5px solid var(--border-input); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 14px; }
-#search      { flex: 1; min-width: 160px; width: 100%; }
 input:focus  { outline: none; border-color: #888; }
+
+/* ── Barre de recherche ───────────────────────────────────────── */
+.search-wrap          { position: relative; flex: 1; min-width: 160px; }
+.search-wrap #search  { width: 100%; box-sizing: border-box; padding-right: 32px; }
+.search-clear         { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; border: none; background: none; cursor: pointer; color: var(--text-muted); font-size: 11px; display: flex; align-items: center; justify-content: center; border-radius: 4px; padding: 0; }
+.search-clear:hover   { background: var(--hover); color: var(--text); }
 
 /* ── Boutons ──────────────────────────────────────────────────── */
 .btn         { height: 36px; padding: 0 14px; border: 0.5px solid var(--border-input); border-radius: 8px; background: transparent; color: var(--text); cursor: pointer; font-size: 13px; white-space: nowrap; }

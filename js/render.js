@@ -103,6 +103,21 @@ function rowHTML(s, q, grpLabel) {
     </div>`;
 }
 
+// ── Barre de recherche ────────────────────────────────────────────
+function onSearchInput() {
+  render();
+  const hasValue = !!document.getElementById('search').value;
+  const btn = document.getElementById('search-clear');
+  if (btn) btn.style.display = hasValue ? 'flex' : 'none';
+}
+
+function clearSearch() {
+  const input = document.getElementById('search');
+  input.value = '';
+  onSearchInput();
+  input.focus();
+}
+
 function toggleGroup(id) {
   collapsed[id] = !collapsed[id];
   saveCollapsed();
