@@ -98,6 +98,23 @@ mark{background:var(--mark-bg);color:var(--mark-color);padding:0 2px;border-radi
 .modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:1rem}
 .spinner{display:inline-block;width:12px;height:12px;border:2px solid var(--btn-primary-color);border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Icônes liens ─────────────────────────────────────────────── */
+.icon-link{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:0.5px solid var(--border);border-radius:6px;color:var(--text-muted);text-decoration:none;flex-shrink:0;transition:background .15s,color .15s}
+.icon-link:hover{background:var(--hover);color:var(--text)}
+
+/* ── Tech badges ──────────────────────────────────────────────── */
+.tech-badge{display:inline-flex;align-items:center;gap:4px;background:var(--tag-bg);border:0.5px solid var(--border);border-radius:20px;padding:2px 7px;font-size:11px;color:var(--text);white-space:nowrap}
+
+/* ── Tech select ──────────────────────────────────────────────── */
+.tech-select{position:relative}
+.tech-select-box{min-height:36px;padding:4px 10px;border:0.5px solid var(--border-input);border-radius:8px;background:var(--surface);cursor:pointer;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.tech-placeholder{font-size:13px;color:var(--text-muted)}
+.tech-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface);border:0.5px solid var(--border-input);border-radius:8px;z-index:50;box-shadow:0 4px 16px rgba(0,0,0,.12);overflow:hidden}
+.tech-dropdown.open{display:block}
+.tech-option{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;font-size:13px;color:var(--text);user-select:none}
+.tech-option:hover{background:var(--hover)}
+.tech-option input{accent-color:var(--link);cursor:pointer}
 #login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1.5rem}
 .login-card{background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:2rem;width:100%;max-width:360px}
 .login-title{font-size:17px;font-weight:500;color:var(--text);margin-bottom:1.5rem}

@@ -106,6 +106,18 @@ function toggleTheme(){
   applyTheme(current==='dark'?'light':'dark');
 }
 
+// ── Technologies ───────────────────────────────────────────────────
+const TECHS=[
+  {id:'wordpress',   label:'WordPress',   slug:'wordpress'},
+  {id:'divi',        label:'Divi',        slug:'divi'},
+  {id:'elementor',   label:'Elementor',   slug:'elementor'},
+  {id:'wpbakery',    label:'WP Bakery',   slug:'wpbakery'},
+  {id:'prestashop',  label:'PrestaShop',  slug:'prestashop'},
+  {id:'woocommerce', label:'WooCommerce', slug:'woocommerce'},
+];
+const SI='https://cdn.simpleicons.org';
+const SVG_EXT=`<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
+const SVG_GL=`<img src="${SI}/gitlab/FC6D26" width="12" height="12" alt="GitLab" style="display:block">`;
 
 // ── Init ───────────────────────────────────────────────────────────
 initTheme();
@@ -146,7 +158,7 @@ async function load(showToast){
   try{
     [groups,sites]=await Promise.all([sbGet('eclolink_groups'),sbGet('eclolink_sites')]);
     // normaliser group_id → groupId
-    sites=sites.map(s=>({...s,groupId:s.group_id}));
+    sites=sites.map(s=>({...s,groupId:s.group_id,gitlab_url:s.gitlab_url||'',technologies:tryParseJSON(s.technologies)}));
     render();
     if(showToast)toast('Données actualisées');
   }catch(e){
@@ -162,6 +174,7 @@ function hl(text,q){
   return esc(text).replace(re,'<mark>$1</mark>');
 }
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2)}
+function tryParseJSON(str){try{const v=JSON.parse(str);return Array.isArray(v)?v:[];}catch{return [];}}
 function toast(msg){
   const el=document.getElementById('toast');
   el.textContent=msg;el.style.opacity='1';
@@ -226,13 +239,19 @@ function render(){
 }
 
 function rowHTML(s,q,grpLabel){
+  const techBadges=(s.technologies||[]).map(tid=>{
+    const t=TECHS.find(x=>x.id===tid);
+    return t?`<span class="tech-badge"><img src="${SI}/${t.slug}" width="12" height="12" alt="" onerror="this.style.display='none'">${esc(t.label)}</span>`:'';
+  }).join('');
   return `<div class="site-row">
     <div class="site-info">
       <div class="site-name">${hl(s.name,q)}</div>
       <div class="site-meta">
-        ${s.url?`<a class="site-url" href="${esc(s.url)}" target="_blank">${hl(s.url,q)}</a>`:''}
+        ${s.url?`<a class="icon-link" href="${esc(s.url)}" target="_blank" title="${esc(s.url)}">${SVG_EXT}</a>`:''}
+        ${s.gitlab_url?`<a class="icon-link" href="${esc(s.gitlab_url)}" target="_blank" title="GitLab">${SVG_GL}</a>`:''}
         ${s.server?`<span class="tag">${hl(s.server,q)}</span>`:''}
         ${grpLabel?`<span class="tag" style="color:#999">${esc(grpLabel)}</span>`:''}
+        ${techBadges}
         ${s.notes?`<span>${hl(s.notes,q)}</span>`:''}
       </div>
     </div>
@@ -270,11 +289,31 @@ function openSiteModal(id,pgid){
   document.getElementById('modal-body').innerHTML=`
     <div class="field"><label>Nom du site *</label><input id="f-name" type="text" value="${esc(s?s.name:'')}" placeholder="Ex : Hôtel Mercure Dijon"></div>
     <div class="field"><label>URL</label><input id="f-url" type="text" value="${esc(s?s.url:'')}" placeholder="https://..."></div>
+    <div class="field"><label>GitLab</label><input id="f-gitlab" type="text" value="${esc(s?s.gitlab_url||'':'')}" placeholder="https://gitlab.com/..."></div>
     <div class="field"><label>Serveur / hébergeur</label><input id="f-server" type="text" value="${esc(s?s.server:'')}" placeholder="Ex : OVH-VPS-123, Infomaniak..."></div>
     <div class="field"><label>Groupe</label><select id="f-group"><option value="">— Sans groupe —</option>${opts}</select></div>
+    <div class="field"><label>Technologies</label>
+      <div class="tech-select" id="tech-select">
+        <div class="tech-select-box" id="tech-box" onclick="toggleTechDropdown()">
+          <span class="tech-placeholder">Sélectionner...</span>
+        </div>
+        <div class="tech-dropdown" id="tech-dropdown">
+          ${TECHS.map(t=>`<label class="tech-option"><input type="checkbox" value="${t.id}" onchange="updateTechBox()"><img src="${SI}/${t.slug}" width="15" height="15" alt="" onerror="this.style.display='none'">${esc(t.label)}</label>`).join('')}
+        </div>
+      </div>
+    </div>
     <div class="field"><label>Notes</label><textarea id="f-notes" placeholder="Infos utiles, WP-Admin, FTP...">${esc(s?s.notes:'')}</textarea></div>`;
   openOverlay('modal-wrap');
-  setTimeout(()=>{const el=document.getElementById('f-name');if(el)el.focus();},60);
+  setTimeout(()=>{
+    const el=document.getElementById('f-name');if(el)el.focus();
+    if(s&&s.technologies&&s.technologies.length){
+      s.technologies.forEach(tid=>{
+        const cb=document.querySelector(`#tech-dropdown input[value="${tid}"]`);
+        if(cb)cb.checked=true;
+      });
+      updateTechBox();
+    }
+  },60);
 }
 
 async function saveModal(){
@@ -295,20 +334,23 @@ async function saveModal(){
     } else if(modalMode==='site'){
       const name=(document.getElementById('f-name').value||'').trim();
       if(!name)return;
+      const techs=getSelectedTechs();
       const obj={
         name,
         url:(document.getElementById('f-url').value||'').trim(),
+        gitlab_url:(document.getElementById('f-gitlab').value||'').trim(),
         server:(document.getElementById('f-server').value||'').trim(),
         group_id:document.getElementById('f-group').value||null,
+        technologies:JSON.stringify(techs),
         notes:(document.getElementById('f-notes').value||'').trim()
       };
       if(editId){
         await sbUpdate('eclolink_sites',editId,obj);
-        sites=sites.map(s=>s.id===editId?{...s,...obj,groupId:obj.group_id}:s);
+        sites=sites.map(s=>s.id===editId?{...s,...obj,groupId:obj.group_id,technologies:techs}:s);
       } else {
         const id=uid();
         await sbInsert('eclolink_sites',{id,...obj});
-        sites.push({id,...obj,groupId:obj.group_id});
+        sites.push({id,...obj,groupId:obj.group_id,technologies:techs});
       }
     }
     closeModal();render();toast('Enregistré ✓');
@@ -349,6 +391,31 @@ async function executeDelete(){
     render();
   }catch(e){toast('Erreur : '+e.message);}
 }
+
+// ── Tech select ───────────────────────────────────────────────────
+function toggleTechDropdown(){
+  document.getElementById('tech-dropdown')?.classList.toggle('open');
+}
+function updateTechBox(){
+  const checked=Array.from(document.querySelectorAll('#tech-dropdown input:checked'));
+  const box=document.getElementById('tech-box');
+  if(!box)return;
+  if(!checked.length){
+    box.innerHTML='<span class="tech-placeholder">Sélectionner...</span>';
+  }else{
+    box.innerHTML=checked.map(cb=>{
+      const t=TECHS.find(x=>x.id===cb.value);
+      return t?`<span class="tech-badge"><img src="${SI}/${t.slug}" width="12" height="12" alt="" onerror="this.style.display='none'">${esc(t.label)}</span>`:'';
+    }).join('');
+  }
+}
+function getSelectedTechs(){
+  return Array.from(document.querySelectorAll('#tech-dropdown input:checked')).map(cb=>cb.value);
+}
+document.addEventListener('click',e=>{
+  const sel=document.getElementById('tech-select');
+  if(sel&&!sel.contains(e.target))document.getElementById('tech-dropdown')?.classList.remove('open');
+});
 
 // ── Clavier ────────────────────────────────────────────────────────
 document.addEventListener('keydown',e=>{
