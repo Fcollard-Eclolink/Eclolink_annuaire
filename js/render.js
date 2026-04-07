@@ -2,7 +2,7 @@
 function render() {
   const q          = (document.getElementById('search').value || '').trim().toLowerCase();
   const list       = document.getElementById('list');
-  const hasFilters = activeFilters.servers.length > 0 || activeFilters.techs.length > 0;
+  const hasFilters = activeFilters.groups.length > 0 || activeFilters.techs.length > 0;
   let html         = '';
 
   const filtered = sites.filter(s => {
