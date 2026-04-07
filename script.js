@@ -114,6 +114,12 @@ const TECHS=[
   {id:'wpbakery',    label:'WP Bakery',   slug:'wpbakery'},
   {id:'prestashop',  label:'PrestaShop',  slug:'prestashop'},
   {id:'woocommerce', label:'WooCommerce', slug:'woocommerce'},
+  {id:'drupal',      label:'Drupal',      slug:'drupal'},
+  {id:'symfony',     label:'Symfony',     slug:'symfony'},
+  {id:'laravel',     label:'Laravel',     slug:'laravel'},
+  {id:'nuxt',        label:'Nuxt',        slug:'nuxtdotjs'},
+  {id:'vue',         label:'Vue',         slug:'vuedotjs'},
+  {id:'directus',    label:'Directus',    slug:'directus'},
 ];
 const SI='https://cdn.simpleicons.org';
 const SVG_EXT=`<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
