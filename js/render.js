@@ -115,6 +115,7 @@ function rowHTML(s, q, grpLabel) {
 // ── Barre de recherche ────────────────────────────────────────────
 function onSearchInput() {
   render();
+  refreshOpenDropdowns();
   const hasValue = !!document.getElementById('search').value;
   const btn = document.getElementById('search-clear');
   if (btn) btn.style.display = hasValue ? 'flex' : 'none';
