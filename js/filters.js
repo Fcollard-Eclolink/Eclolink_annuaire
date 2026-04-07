@@ -38,7 +38,7 @@ function renderFilterDropdown(type) {
       const checked = activeFilters.techs.includes(t.id);
       html += `<label class="filter-dd-item${checked ? ' checked' : ''}">
         <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleFilter('techs','${t.id}')">
-        <img src="${SI}/${t.slug}" width="13" height="13" alt="" onerror="this.style.display='none'">
+        ${techIconHTML(t, 13)}
         ${esc(t.label)}
       </label>`;
     });
@@ -94,7 +94,7 @@ function renderFilterChips() {
   activeFilters.techs.forEach(tid => {
     const t = TECHS.find(x => x.id === tid);
     if (!t) return;
-    chips.push(`<span class="filter-chip"><img src="${SI}/${t.slug}" width="11" height="11" alt="" onerror="this.style.display='none'">${esc(t.label)}<button onclick="removeFilter('techs','${tid}')" title="Retirer">&#10005;</button></span>`);
+    chips.push(`<span class="filter-chip">${techIconHTML(t, 11)}${esc(t.label)}<button onclick="removeFilter('techs','${tid}')" title="Retirer">&#10005;</button></span>`);
   });
 
   if (chips.length) {

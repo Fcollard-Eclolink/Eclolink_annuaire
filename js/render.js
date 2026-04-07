@@ -89,9 +89,7 @@ function render() {
 function rowHTML(s, q, grpLabel) {
   const techBadges = (s.technologies || []).map(tid => {
     const t = TECHS.find(x => x.id === tid);
-    return t
-      ? `<span class="tech-badge"><img src="${SI}/${t.slug}" width="12" height="12" alt="" onerror="this.style.display='none'">${esc(t.label)}</span>`
-      : '';
+    return t ? `<span class="tech-badge">${techIconHTML(t, 12)}${esc(t.label)}</span>` : '';
   }).join('');
 
   return `
