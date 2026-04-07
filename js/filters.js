@@ -1,15 +1,11 @@
 // ── Filtres ───────────────────────────────────────────────────────
 
-function getUniqueServers() {
-  return [...new Set(sites.map(s => s.server).filter(Boolean))].sort();
-}
-
 // Ouvre / ferme un dropdown de filtre
 function toggleFilterDropdown(type) {
   const dd = document.getElementById(`filter-dd-${type}`);
   const isOpen = dd?.classList.contains('open');
   // ferme tous les autres
-  ['server', 'tech'].forEach(t =>
+  ['group', 'tech'].forEach(t =>
     document.getElementById(`filter-dd-${t}`)?.classList.remove('open')
   );
   if (!isOpen) {
@@ -24,17 +20,16 @@ function renderFilterDropdown(type) {
   if (!dd) return;
   let html = '';
 
-  if (type === 'server') {
-    const servers = getUniqueServers();
-    if (!servers.length) {
-      dd.innerHTML = '<div class="filter-dd-empty">Aucun serveur enregistré</div>';
+  if (type === 'group') {
+    if (!groups.length) {
+      dd.innerHTML = '<div class="filter-dd-empty">Aucun groupe créé</div>';
       return;
     }
-    servers.forEach(srv => {
-      const checked = activeFilters.servers.includes(srv);
+    groups.forEach(g => {
+      const checked = activeFilters.groups.includes(g.id);
       html += `<label class="filter-dd-item${checked ? ' checked' : ''}">
-        <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleFilter('servers','${esc(srv)}')">
-        ${esc(srv)}
+        <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleFilter('groups','${g.id}')">
+        ${esc(g.name)}
       </label>`;
     });
 
@@ -58,7 +53,7 @@ function toggleFilter(key, value) {
   if (idx === -1) arr.push(value);
   else arr.splice(idx, 1);
 
-  const type = key === 'servers' ? 'server' : 'tech';
+  const type = key === 'groups' ? 'group' : 'tech';
   renderFilterDropdown(type);
   renderFilterChips();
   updateFilterBtnState();
@@ -77,8 +72,8 @@ function removeFilter(key, value) {
 
 // Efface tous les filtres
 function clearAllFilters() {
-  activeFilters.servers = [];
-  activeFilters.techs   = [];
+  activeFilters.groups = [];
+  activeFilters.techs  = [];
   renderFilterChips();
   updateFilterBtnState();
   render();
@@ -90,8 +85,10 @@ function renderFilterChips() {
   if (!container) return;
   const chips = [];
 
-  activeFilters.servers.forEach(srv => {
-    chips.push(`<span class="filter-chip">${esc(srv)}<button onclick="removeFilter('servers','${esc(srv)}')" title="Retirer">&#10005;</button></span>`);
+  activeFilters.groups.forEach(gid => {
+    const g = groups.find(x => x.id === gid);
+    if (!g) return;
+    chips.push(`<span class="filter-chip">${esc(g.name)}<button onclick="removeFilter('groups','${gid}')" title="Retirer">&#10005;</button></span>`);
   });
 
   activeFilters.techs.forEach(tid => {
@@ -105,20 +102,20 @@ function renderFilterChips() {
       `<button class="filter-clear-all" onclick="clearAllFilters()">Tout effacer</button>`;
     container.style.display = 'flex';
   } else {
-    container.innerHTML   = '';
+    container.innerHTML    = '';
     container.style.display = 'none';
   }
 }
 
 // Met en surbrillance les boutons de filtre quand actifs
 function updateFilterBtnState() {
-  document.getElementById('filter-btn-server')?.classList.toggle('active', activeFilters.servers.length > 0);
-  document.getElementById('filter-btn-tech')?.classList.toggle('active',   activeFilters.techs.length   > 0);
+  document.getElementById('filter-btn-group')?.classList.toggle('active', activeFilters.groups.length > 0);
+  document.getElementById('filter-btn-tech')?.classList.toggle('active',  activeFilters.techs.length  > 0);
 }
 
 // Fermeture des dropdowns au clic extérieur
 document.addEventListener('click', e => {
-  ['server', 'tech'].forEach(type => {
+  ['group', 'tech'].forEach(type => {
     const wrap = document.getElementById(`filter-wrap-${type}`);
     if (wrap && !wrap.contains(e.target))
       document.getElementById(`filter-dd-${type}`)?.classList.remove('open');

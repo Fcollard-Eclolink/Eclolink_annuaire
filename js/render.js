@@ -16,8 +16,8 @@ function render() {
                  || (g ? g.name : '').toLowerCase().includes(q);
       if (!match) return false;
     }
-    // filtre serveurs
-    if (activeFilters.servers.length && !activeFilters.servers.includes(s.server)) return false;
+    // filtre groupes
+    if (activeFilters.groups.length && !activeFilters.groups.includes(s.groupId)) return false;
     // filtre technos (au moins une techno sélectionnée présente sur le site)
     if (activeFilters.techs.length && !activeFilters.techs.some(t => (s.technologies || []).includes(t))) return false;
     return true;
