@@ -18,9 +18,14 @@ const TECHS = [
   { id: 'drupal',      label: 'Drupal',      slug: 'drupal'      },
   { id: 'symfony',     label: 'Symfony',     slug: 'symfony'     },
   { id: 'laravel',     label: 'Laravel',     slug: 'laravel'     },
-  { id: 'nuxt',        label: 'Nuxt',        slug: 'nuxtdotjs'   },
+  {
+    id: 'nuxt', label: 'Nuxt',
+    svg: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13.468 3.809L8.35 12.68 6.423 9.505 2 17.5h5.957c.07 1.128.993 2 2.116 2 1.12 0 2.044-.872 2.116-2H22L13.468 3.809zM7.957 16H5.08l3.662-6.34.98 1.699L7.957 16zm4.116 0H9.43l2.043-3.539L13.516 16h-1.443zm2.578 0 2.276-3.942.98-1.698L21.206 16h-6.555z" fill="#00DC82"/></svg>`
+  },
   { id: 'vue',         label: 'Vue',         slug: 'vuedotjs'    },
   { id: 'directus',    label: 'Directus',    slug: 'directus'    },
+  { id: 'next',        label: 'Next.js',     slug: 'nextdotjs'   },
+  { id: 'react',       label: 'React',       slug: 'react'       },
 ];
 
 const SI      = 'https://cdn.simpleicons.org';
