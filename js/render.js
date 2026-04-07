@@ -1,22 +1,31 @@
 // ── Rendu de la liste ─────────────────────────────────────────────
 function render() {
-  const q    = (document.getElementById('search').value || '').trim().toLowerCase();
-  const list = document.getElementById('list');
-  let html   = '';
+  const q          = (document.getElementById('search').value || '').trim().toLowerCase();
+  const list       = document.getElementById('list');
+  const hasFilters = activeFilters.servers.length > 0 || activeFilters.techs.length > 0;
+  let html         = '';
 
   const filtered = sites.filter(s => {
-    if (!q) return true;
-    const g = groups.find(g => g.id === s.groupId);
-    return (s.name        || '').toLowerCase().includes(q)
-        || (s.url         || '').toLowerCase().includes(q)
-        || (s.server      || '').toLowerCase().includes(q)
-        || (s.notes       || '').toLowerCase().includes(q)
-        || (g ? g.name    : '').toLowerCase().includes(q);
+    // filtre texte
+    if (q) {
+      const g = groups.find(g => g.id === s.groupId);
+      const match = (s.name     || '').toLowerCase().includes(q)
+                 || (s.url      || '').toLowerCase().includes(q)
+                 || (s.server   || '').toLowerCase().includes(q)
+                 || (s.notes    || '').toLowerCase().includes(q)
+                 || (g ? g.name : '').toLowerCase().includes(q);
+      if (!match) return false;
+    }
+    // filtre serveurs
+    if (activeFilters.servers.length && !activeFilters.servers.includes(s.server)) return false;
+    // filtre technos (au moins une techno sélectionnée présente sur le site)
+    if (activeFilters.techs.length && !activeFilters.techs.some(t => (s.technologies || []).includes(t))) return false;
+    return true;
   });
 
-  if (q) {
+  if (q || hasFilters) {
     if (!filtered.length) {
-      html = `<div class="no-result">Aucun résultat pour "${esc(q)}"</div>`;
+      html = `<div class="no-result">Aucun résultat${q ? ` pour "${esc(q)}"` : ''}</div>`;
     } else {
       html += `<div class="group-card"><div class="group-body">`;
       filtered.forEach(s => {

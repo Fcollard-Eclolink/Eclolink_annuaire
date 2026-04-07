@@ -6,6 +6,7 @@ let modalMode    = null;
 let editId       = null;
 let preGroupId   = null;
 let pendingDelete= null;
+let activeFilters = { servers: [], techs: [] };
 
 // ── Persistance de l'état des groupes ouverts/fermés ─────────────
 const SK_C = 'eclolink_collapsed';
