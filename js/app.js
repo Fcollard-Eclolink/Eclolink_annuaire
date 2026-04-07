@@ -27,7 +27,7 @@ document.addEventListener('keydown', e => {
   if (!isConfirm && !isModal) {
     if (ctrl && e.key === 'k') { e.preventDefault(); document.getElementById('search')?.focus(); return; }
     if (ctrl && e.shiftKey && e.key === 'G') { e.preventDefault(); openGroupModal(); return; }
-    if (ctrl && e.shiftKey && e.key === 'N') { e.preventDefault(); openSiteModal();  return; }
+    if (ctrl && e.shiftKey && e.key === 'S') { e.preventDefault(); openSiteModal();  return; }
   }
 
   if (isConfirm) {
