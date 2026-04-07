@@ -267,9 +267,18 @@ function toggleGroup(id){collapsed[id]=!collapsed[id];saveCollapsed();render();}
 // ── Modales ───────────────────────────────────────────────────────
 function openOverlay(id){
   document.getElementById(id).classList.add('open');
+  document.body.classList.add('modal-open');
 }
-function closeModal(){document.getElementById('modal-wrap').classList.remove('open');modalMode=null;editId=null;preGroupId=null;}
-function closeConfirm(){document.getElementById('confirm-wrap').classList.remove('open');pendingDelete=null;}
+function closeModal(){
+  document.getElementById('modal-wrap').classList.remove('open');
+  if(!document.getElementById('confirm-wrap').classList.contains('open'))document.body.classList.remove('modal-open');
+  modalMode=null;editId=null;preGroupId=null;
+}
+function closeConfirm(){
+  document.getElementById('confirm-wrap').classList.remove('open');
+  if(!document.getElementById('modal-wrap').classList.contains('open'))document.body.classList.remove('modal-open');
+  pendingDelete=null;
+}
 
 function openGroupModal(id){
   modalMode='group';editId=id||null;
