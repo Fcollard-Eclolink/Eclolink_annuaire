@@ -28,17 +28,17 @@ function render() {
       html = `<div class="no-result">Aucun résultat${q ? ` pour "${esc(q)}"` : ''}</div>`;
     } else {
       html += `<div class="group-card"><div class="group-body">`;
-      filtered.forEach(s => {
+      [...filtered].sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true })).forEach(s => {
         const g = groups.find(g => g.id === s.groupId);
         html += rowHTML(s, q, g ? g.name : '');
       });
       html += `</div></div>`;
     }
   } else {
-    const ungrouped = sites.filter(s => !s.groupId || !groups.find(g => g.id === s.groupId));
+    const ungrouped = sites.filter(s => !s.groupId || !groups.find(g => g.id === s.groupId)).sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true }));
 
     [...groups].sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true })).forEach(g => {
-      const gs   = sites.filter(s => s.groupId === g.id);
+      const gs   = sites.filter(s => s.groupId === g.id).sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true }));
       const open = !collapsed[g.id];
       html += `
         <div class="group-card">
