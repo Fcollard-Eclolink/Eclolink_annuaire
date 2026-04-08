@@ -23,7 +23,7 @@
 
 /* ── Thème sombre ─────────────────────────────────────────────── */
 [data-theme="dark"] {
-  --bg              : #2e2e2e;
+  --bg              : #18181b;
   --surface         : #242428;
   --border          : #38383e;
   --border-input    : #46464e;

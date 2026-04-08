@@ -41,7 +41,7 @@ function openSiteModal(id, pgid) {
   const techOpts = TECHS.map(t => `
     <label class="tech-option">
       <input type="checkbox" value="${t.id}" onchange="updateTechBox()">
-      <img src="${SI}/${t.slug}" width="15" height="15" alt="" onerror="this.style.display='none'">
+      ${techIconHTML(t, 15)}
       ${esc(t.label)}
     </label>`).join('');
 
@@ -102,7 +102,7 @@ async function saveModal() {
   try {
     if (modalMode === 'group') {
       const name = (document.getElementById('f-name').value || '').trim();
-      if (!name) return;
+      if (!name) { btn.disabled = false; btn.textContent = 'Enregistrer'; return; }
       if (editId) {
         await sbUpdate('eclolink_groups', editId, { name });
         groups = groups.map(g => g.id === editId ? { ...g, name } : g);
@@ -113,7 +113,7 @@ async function saveModal() {
       }
     } else if (modalMode === 'site') {
       const name = (document.getElementById('f-name').value || '').trim();
-      if (!name) return;
+      if (!name) { btn.disabled = false; btn.textContent = 'Enregistrer'; return; }
       const techs = getSelectedTechs();
       const obj = {
         name,

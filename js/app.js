@@ -1,6 +1,6 @@
 // ── Chargement des données ────────────────────────────────────────
 async function load(showToast) {
-  document.getElementById('list').innerHTML = '<div style="padding:2rem;text-align:center;color:#777;font-size:14px">Chargement...</div>';
+  document.getElementById('list').innerHTML = '<div class="no-result">Chargement…</div>';
   loadCollapsed();
   try {
     [groups, sites] = await Promise.all([sbGet('eclolink_groups'), sbGet('eclolink_sites')]);
@@ -13,7 +13,7 @@ async function load(showToast) {
     render();
     if (showToast) toast('Données actualisées');
   } catch(e) {
-    document.getElementById('list').innerHTML = `<div style="padding:2rem;text-align:center;color:#a32d2d;font-size:13px">Erreur de connexion à Supabase.<br>${esc(e.message)}</div>`;
+    document.getElementById('list').innerHTML = `<div class="load-error">Erreur de connexion à Supabase.<br>${esc(e.message)}</div>`;
   }
 }
 
@@ -27,7 +27,7 @@ document.addEventListener('keydown', e => {
   if (!isConfirm && !isModal) {
     if (ctrl && e.key === 'k') { e.preventDefault(); document.getElementById('search')?.focus(); return; }
     if (ctrl && e.shiftKey && e.key === 'G') { e.preventDefault(); openGroupModal(); return; }
-    if (ctrl && e.shiftKey && e.key === 'S') { e.preventDefault(); openSiteModal();  return; }
+    if (ctrl && e.shiftKey && e.key === 'N') { e.preventDefault(); openSiteModal();  return; }
   }
 
   if (isConfirm) {
