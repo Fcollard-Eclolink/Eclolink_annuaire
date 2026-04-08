@@ -23,13 +23,110 @@
     width: 360px;
     max-width: 100%;
     max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+
+    h3 { font-size: 15px; font-weight: 500; margin-bottom: 1rem; flex-shrink: 0; }
+}
+
+#modal-body { flex: 1; overflow-y: auto; padding-right: 2px; }
+
+.modal-btns { flex-shrink: 0; }
+
+/* ── Select custom ────────────────────────────────────────────── */
+/* ── Champ date custom ────────────────────────────────────────── */
+.date-wrap {
+    position: relative;
+    width: 100%;
+
+    input[type=date] {
+        width: 100%;
+        height: 36px;
+        padding: 0 36px 0 10px;
+        border: 0.5px solid var(--border-input);
+        border-radius: 8px;
+        background: var(--surface);
+        color: var(--text);
+        font-size: 13px;
+        font-family: inherit;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+
+        &:focus  { outline: none; border-color: #888; }
+        &:hover  { border-color: #888; }
+
+        &::-webkit-calendar-picker-indicator {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+    }
+
+    .date-icon {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 14px;
+        pointer-events: none;
+        color: var(--text-muted);
+    }
+}
+
+/* ── Select custom ────────────────────────────────────────────── */
+.custom-select { position: relative; width: 100%; }
+
+.custom-select-box {
+    height: 36px;
+    padding: 0 10px;
+    border: 0.5px solid var(--border-input);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    user-select: none;
+
+    &:hover { border-color: #888; }
+    &.open  { border-color: #888; }
+}
+
+.custom-select-placeholder { color: var(--text-muted); }
+.custom-select-caret { font-size: 10px; color: var(--text-muted); flex-shrink: 0; }
+
+.custom-select-dd {
+    display: none;
+    position: fixed;
+    background: var(--surface);
+    border: 0.5px solid var(--border-input);
+    border-radius: 8px;
+    padding: 4px;
+    z-index: 500;
+    box-shadow: 0 4px 16px rgba(0,0,0,.14);
+    max-height: 200px;
     overflow-y: auto;
 
-    h3 {
-        font-size: 15px;
-        font-weight: 500;
-        margin-bottom: 1rem;
-    }
+    &.open { display: block; }
+}
+
+.custom-select-opt {
+    padding: 7px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text);
+
+    &:hover    { background: var(--hover); }
+    &.selected { font-weight: 500; color: var(--btn-primary-bg); }
 }
 
 /* ── Champs de formulaire ─────────────────────────────────────── */
@@ -56,7 +153,6 @@
     }
 
     input[type=text],
-    input[type=date],
     select {
         height: 36px;
     }

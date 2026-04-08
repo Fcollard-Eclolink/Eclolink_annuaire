@@ -43,11 +43,21 @@ document.addEventListener('keydown', e => {
   }
 });
 
-// ── Fermeture du dropdown techno au clic extérieur ────────────────
+// ── Fermeture des dropdowns au clic extérieur ────────────────────
 document.addEventListener('click', e => {
+  // tech dropdown (modal)
   const sel = document.getElementById('tech-select');
   if (sel && !sel.contains(e.target))
     document.getElementById('tech-dropdown')?.classList.remove('open');
+
+  // custom selects
+  document.querySelectorAll('.custom-select-dd.open').forEach(dd => {
+    const wrap = dd.closest('.custom-select');
+    if (wrap && !wrap.contains(e.target)) {
+      dd.classList.remove('open');
+      wrap.querySelector('.custom-select-box')?.classList.remove('open');
+    }
+  });
 });
 
 // ── Point d'entrée ────────────────────────────────────────────────

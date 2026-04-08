@@ -1,3 +1,55 @@
+// ── Select custom ─────────────────────────────────────────────────
+function customSelectHTML(inputId, options, selectedValue, placeholder) {
+  const selectedLabel = options.find(o => o.value === selectedValue)?.label || '';
+  const optsHTML = options.map(o => `
+    <div class="custom-select-opt${o.value === selectedValue ? ' selected' : ''}" data-value="${esc(o.value)}" onclick="pickCustomSelect('${inputId}', this)">
+      ${esc(o.label)}
+    </div>`).join('');
+  return `
+    <div class="custom-select" id="csel-${inputId}">
+      <div class="custom-select-box" id="csel-box-${inputId}" onclick="toggleCustomSelect('${inputId}')">
+        <span id="csel-val-${inputId}">${selectedLabel ? esc(selectedLabel) : `<span class="custom-select-placeholder">${esc(placeholder)}</span>`}</span>
+        <span class="custom-select-caret">&#9662;</span>
+      </div>
+      <div class="custom-select-dd" id="csel-dd-${inputId}">${optsHTML}</div>
+    </div>
+    <input type="hidden" id="${inputId}" value="${esc(selectedValue || '')}">`;
+}
+
+function toggleCustomSelect(inputId) {
+  const dd  = document.getElementById(`csel-dd-${inputId}`);
+  const box = document.getElementById(`csel-box-${inputId}`);
+  if (!dd || !box) return;
+  const wasOpen = dd.classList.contains('open');
+  // ferme tous les autres
+  document.querySelectorAll('.custom-select-dd.open').forEach(el => el.classList.remove('open'));
+  document.querySelectorAll('.custom-select-box.open').forEach(el => el.classList.remove('open'));
+  if (!wasOpen) {
+    const rect = box.getBoundingClientRect();
+    dd.style.top   = (rect.bottom + 4) + 'px';
+    dd.style.left  = rect.left + 'px';
+    dd.style.width = rect.width + 'px';
+    dd.classList.add('open');
+    box.classList.add('open');
+  }
+}
+
+function pickCustomSelect(inputId, el) {
+  const value = el.dataset.value;
+  const label = el.textContent.trim();
+  document.getElementById(inputId).value = value;
+  const valEl = document.getElementById(`csel-val-${inputId}`);
+  if (valEl) valEl.innerHTML = value
+    ? esc(label)
+    : `<span class="custom-select-placeholder">— Aucune —</span>`;
+  const dd = document.getElementById(`csel-dd-${inputId}`);
+  if (dd) {
+    dd.querySelectorAll('.custom-select-opt').forEach(o => o.classList.toggle('selected', o.dataset.value === value));
+    dd.classList.remove('open');
+  }
+  document.getElementById(`csel-box-${inputId}`)?.classList.remove('open');
+}
+
 // ── Overlay ───────────────────────────────────────────────────────
 function openOverlay(id) {
   document.getElementById(id).classList.add('open');
@@ -37,14 +89,17 @@ function openSiteModal(id, pgid) {
   modalMode = 'site'; editId = id || null; preGroupId = pgid || null;
   const s    = id ? sites.find(s => s.id === id) : null;
   const sel  = s ? s.groupId : pgid;
-  const opts = groups
-    .sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true }))
-    .map(g => `<option value="${g.id}"${sel === g.id ? ' selected' : ''}>${esc(g.name)}</option>`)
-    .join('');
+  const serverOptions = [
+    { value: '', label: '— Sans serveur —' },
+    ...groups
+      .sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true }))
+      .map(g => ({ value: g.id, label: g.name }))
+  ];
 
-  const agencyOpts = AGENCIES.map(ag =>
-    `<option value="${ag}"${(s?.agency || '') === ag ? ' selected' : ''}>${esc(ag)}</option>`
-  ).join('');
+  const agencyOptions = [
+    { value: '', label: '— Aucune —' },
+    ...AGENCIES.map(ag => ({ value: ag, label: ag }))
+  ];
 
   const techOpts = TECHS.map(t => `
     <label class="tech-option">
@@ -73,18 +128,18 @@ function openSiteModal(id, pgid) {
     </div>
     <div class="field">
       <label>Agence</label>
-      <select id="f-agency">
-        <option value="">— Aucune —</option>
-        ${agencyOpts}
-      </select>
+      ${customSelectHTML('f-agency', agencyOptions, s?.agency || '', '— Aucune —')}
     </div>
     <div class="field">
       <label>Date de mise en ligne</label>
-      <input id="f-date" type="date" value="${esc(s ? s.go_live_date || '' : '')}">
+      <div class="date-wrap">
+        <input id="f-date" type="date" value="${esc(s ? s.go_live_date || '' : '')}">
+        <span class="date-icon">&#128197;</span>
+      </div>
     </div>
     <div class="field">
       <label>Serveur</label>
-      <select id="f-group"><option value="">— Sans serveur —</option>${opts}</select>
+      ${customSelectHTML('f-group', serverOptions, sel || '', '— Sans serveur —')}
     </div>
     <div class="field">
       <label>Technologies</label>
