@@ -123,6 +123,9 @@
     padding: 2rem;
     width: 100%;
     max-width: 360px;
+
+    input { width: 100%; }
+    .btn  { width: 100%; }
 }
 
 .login-title {
