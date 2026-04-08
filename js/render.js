@@ -37,7 +37,7 @@ function render() {
   } else {
     const ungrouped = sites.filter(s => !s.groupId || !groups.find(g => g.id === s.groupId));
 
-    groups.forEach(g => {
+    [...groups].sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true })).forEach(g => {
       const gs   = sites.filter(s => s.groupId === g.id);
       const open = !collapsed[g.id];
       html += `
