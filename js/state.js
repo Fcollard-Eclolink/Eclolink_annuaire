@@ -6,7 +6,15 @@ let modalMode    = null;
 let editId       = null;
 let preGroupId   = null;
 let pendingDelete= null;
-let activeFilters = { groups: [], techs: [] };
+let activeFilters = { servers: [], techs: [], agencies: [] };
+
+// ── Utilitaire date ───────────────────────────────────────────────
+function formatDate(str) {
+  if (!str) return '';
+  const [y, m, d] = str.split('-');
+  if (!y || !m || !d) return str;
+  return `${d}/${m}/${y}`;
+}
 
 // ── Persistance de l'état des groupes ouverts/fermés ─────────────
 const SK_C = 'eclolink_collapsed';

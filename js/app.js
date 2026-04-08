@@ -7,7 +7,10 @@ async function load(showToast) {
     sites = sites.map(s => ({
       ...s,
       groupId     : s.group_id,
-      gitlab_url  : s.gitlab_url || '',
+      gitlab_url  : s.gitlab_url   || '',
+      php_version : s.php_version  || '',
+      agency      : s.agency       || '',
+      go_live_date: s.go_live_date || '',
       technologies: tryParseJSON(s.technologies)
     }));
     render();
@@ -19,15 +22,14 @@ async function load(showToast) {
 
 // ── Raccourcis clavier ────────────────────────────────────────────
 document.addEventListener('keydown', e => {
-  const ctrl     = e.ctrlKey || e.metaKey;
+  const ctrl      = e.ctrlKey || e.metaKey;
   const isConfirm = document.getElementById('confirm-wrap').classList.contains('open');
   const isModal   = document.getElementById('modal-wrap').classList.contains('open');
 
-  // Raccourcis globaux (hors modale ouverte)
   if (!isConfirm && !isModal) {
-    if (ctrl && e.key === 'k') { e.preventDefault(); document.getElementById('search')?.focus(); return; }
-    if (ctrl && e.shiftKey && e.key === 'G') { e.preventDefault(); openGroupModal(); return; }
-    if (ctrl && e.shiftKey && e.key === 'S') { e.preventDefault(); openSiteModal();  return; }
+    if (ctrl && e.key === 'k')                    { e.preventDefault(); document.getElementById('search')?.focus(); return; }
+    if (ctrl && e.shiftKey && e.key === 'G')      { e.preventDefault(); openServerModal(); return; }
+    if (ctrl && e.shiftKey && e.key === 'S')      { e.preventDefault(); openSiteModal();   return; }
   }
 
   if (isConfirm) {

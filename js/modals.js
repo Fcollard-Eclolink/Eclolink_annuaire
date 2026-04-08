@@ -18,18 +18,18 @@ function closeConfirm() {
   pendingDelete = null;
 }
 
-// ── Modal groupe ──────────────────────────────────────────────────
-function openGroupModal(id) {
-  modalMode = 'group'; editId = id || null;
+// ── Modal serveur ─────────────────────────────────────────────────
+function openServerModal(id) {
+  modalMode = 'server'; editId = id || null;
   const g = id ? groups.find(g => g.id === id) : null;
-  document.getElementById('modal-title').textContent = id ? 'Renommer le groupe' : 'Nouveau groupe';
+  document.getElementById('modal-title').textContent = id ? 'Renommer le serveur' : 'Nouveau serveur';
   document.getElementById('modal-body').innerHTML = `
     <div class="field">
-      <label>Nom du groupe</label>
-      <input id="f-name" type="text" value="${esc(g ? g.name : '')}" placeholder="Ex : Hôtels, E-commerce...">
+      <label>Nom du serveur</label>
+      <input id="f-name" type="text" value="${esc(g ? g.name : '')}" placeholder="Ex : Serveur 1, OVH-VPS...">
     </div>`;
   openOverlay('modal-wrap');
-  setTimeout(() => { document.getElementById('f-name')?.focus(); }, 60);
+  setTimeout(() => document.getElementById('f-name')?.focus(), 60);
 }
 
 // ── Modal site ────────────────────────────────────────────────────
@@ -37,7 +37,15 @@ function openSiteModal(id, pgid) {
   modalMode = 'site'; editId = id || null; preGroupId = pgid || null;
   const s    = id ? sites.find(s => s.id === id) : null;
   const sel  = s ? s.groupId : pgid;
-  const opts = groups.map(g => `<option value="${g.id}"${sel === g.id ? ' selected' : ''}>${esc(g.name)}</option>`).join('');
+  const opts = groups
+    .sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true }))
+    .map(g => `<option value="${g.id}"${sel === g.id ? ' selected' : ''}>${esc(g.name)}</option>`)
+    .join('');
+
+  const agencyOpts = AGENCIES.map(ag =>
+    `<option value="${ag}"${(s?.agency || '') === ag ? ' selected' : ''}>${esc(ag)}</option>`
+  ).join('');
+
   const techOpts = TECHS.map(t => `
     <label class="tech-option">
       <input type="checkbox" value="${t.id}" onchange="updateTechBox()">
@@ -60,12 +68,23 @@ function openSiteModal(id, pgid) {
       <input id="f-gitlab" type="text" value="${esc(s ? s.gitlab_url || '' : '')}" placeholder="https://gitlab.com/...">
     </div>
     <div class="field">
-      <label>Serveur / hébergeur</label>
-      <input id="f-server" type="text" value="${esc(s ? s.server : '')}" placeholder="Ex : OVH-VPS-123, Infomaniak...">
+      <label>Version PHP</label>
+      <input id="f-php" type="text" value="${esc(s ? s.php_version || '' : '')}" placeholder="Ex : PHP 8.1, PHP 8.2...">
     </div>
     <div class="field">
-      <label>Groupe</label>
-      <select id="f-group"><option value="">— Sans groupe —</option>${opts}</select>
+      <label>Agence</label>
+      <select id="f-agency">
+        <option value="">— Aucune —</option>
+        ${agencyOpts}
+      </select>
+    </div>
+    <div class="field">
+      <label>Date de mise en ligne</label>
+      <input id="f-date" type="date" value="${esc(s ? s.go_live_date || '' : '')}">
+    </div>
+    <div class="field">
+      <label>Serveur</label>
+      <select id="f-group"><option value="">— Sans serveur —</option>${opts}</select>
     </div>
     <div class="field">
       <label>Technologies</label>
@@ -100,7 +119,7 @@ async function saveModal() {
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Enregistrement...';
   try {
-    if (modalMode === 'group') {
+    if (modalMode === 'server') {
       const name = (document.getElementById('f-name').value || '').trim();
       if (!name) { btn.disabled = false; btn.textContent = 'Enregistrer'; return; }
       if (editId) {
@@ -114,19 +133,25 @@ async function saveModal() {
     } else if (modalMode === 'site') {
       const name = (document.getElementById('f-name').value || '').trim();
       if (!name) { btn.disabled = false; btn.textContent = 'Enregistrer'; return; }
-      const techs = getSelectedTechs();
+      const techs     = getSelectedTechs();
+      const dateVal   = document.getElementById('f-date').value || null;
+      const agencyVal = document.getElementById('f-agency').value || null;
       const obj = {
         name,
-        url        : (document.getElementById('f-url').value    || '').trim(),
-        gitlab_url : (document.getElementById('f-gitlab').value || '').trim(),
-        server     : (document.getElementById('f-server').value || '').trim(),
-        group_id   : document.getElementById('f-group').value   || null,
+        url         : (document.getElementById('f-url').value    || '').trim(),
+        gitlab_url  : (document.getElementById('f-gitlab').value || '').trim(),
+        php_version : (document.getElementById('f-php').value    || '').trim(),
+        agency      : agencyVal,
+        go_live_date: dateVal,
+        group_id    : document.getElementById('f-group').value   || null,
         technologies: JSON.stringify(techs),
-        notes      : (document.getElementById('f-notes').value  || '').trim()
+        notes       : (document.getElementById('f-notes').value  || '').trim()
       };
       if (editId) {
         await sbUpdate('eclolink_sites', editId, obj);
-        sites = sites.map(s => s.id === editId ? { ...s, ...obj, groupId: obj.group_id, technologies: techs } : s);
+        sites = sites.map(s => s.id === editId
+          ? { ...s, ...obj, groupId: obj.group_id, technologies: techs }
+          : s);
       } else {
         const id = uid();
         await sbInsert('eclolink_sites', { id, ...obj });
@@ -139,13 +164,13 @@ async function saveModal() {
 }
 
 // ── Suppression ───────────────────────────────────────────────────
-function deleteGroup(id) {
-  pendingDelete = { type: 'group', id };
-  document.getElementById('confirm-msg').textContent = 'Supprimer ce groupe ? Les sites seront déplacés dans "Sans groupe".';
+function deleteServer(id) {
+  pendingDelete = { type: 'server', id };
+  document.getElementById('confirm-msg').textContent = 'Supprimer ce serveur ? Les sites seront déplacés dans "Sans serveur".';
   openOverlay('confirm-wrap');
 }
 
-function deleteGroup_site(id) {
+function deleteSite(id) {
   pendingDelete = { type: 'site', id };
   document.getElementById('confirm-msg').textContent = 'Supprimer ce site définitivement ?';
   openOverlay('confirm-wrap');
@@ -156,13 +181,13 @@ async function executeDelete() {
   const { type, id } = pendingDelete;
   closeConfirm();
   try {
-    if (type === 'group') {
+    if (type === 'server') {
       await sbDelete('eclolink_groups', id);
       const orphans = sites.filter(s => s.groupId === id);
       await Promise.all(orphans.map(s => sbUpdate('eclolink_sites', s.id, { group_id: null })));
       groups = groups.filter(g => g.id !== id);
       sites  = sites.map(s => s.groupId === id ? { ...s, groupId: null, group_id: null } : s);
-      toast('Groupe supprimé');
+      toast('Serveur supprimé');
     } else {
       await sbDelete('eclolink_sites', id);
       sites = sites.filter(s => s.id !== id);

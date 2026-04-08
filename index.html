@@ -70,23 +70,29 @@
       <button class="search-clear" id="search-clear" onclick="clearSearch()" style="display:none" title="Effacer">&#10005;</button>
     </div>
     <button class="btn" onclick="load(true)" title="Actualiser" style="padding:0 11px;font-size:16px">&#8635;</button>
-    <button class="btn" onclick="openGroupModal()" title="Nouveau groupe (Ctrl+Shift+G)">+ Groupe</button>
+    <button class="btn" onclick="openServerModal()" title="Nouveau serveur (Ctrl+Shift+G)">+ Serveur</button>
     <button class="btn primary" onclick="openSiteModal()" title="Nouveau site (Ctrl+Shift+S)">+ Site</button>
   </div>
 
   <!-- Barre de filtres -->
   <div class="filter-bar">
-    <div class="filter-wrap" id="filter-wrap-group">
-      <button class="btn filter-btn" id="filter-btn-group" onclick="toggleFilterDropdown('group')">
-        Groupe <span class="filter-caret">&#9662;</span>
+    <div class="filter-wrap" id="filter-wrap-server">
+      <button class="btn filter-btn" id="filter-btn-server" onclick="toggleFilterDropdown('server')">
+        Serveur <span class="filter-caret">&#9662;</span>
       </button>
-      <div class="filter-dd" id="filter-dd-group"></div>
+      <div class="filter-dd" id="filter-dd-server"></div>
     </div>
     <div class="filter-wrap" id="filter-wrap-tech">
       <button class="btn filter-btn" id="filter-btn-tech" onclick="toggleFilterDropdown('tech')">
         Technologie <span class="filter-caret">&#9662;</span>
       </button>
       <div class="filter-dd" id="filter-dd-tech"></div>
+    </div>
+    <div class="filter-wrap" id="filter-wrap-agency">
+      <button class="btn filter-btn" id="filter-btn-agency" onclick="toggleFilterDropdown('agency')">
+        Agence <span class="filter-caret">&#9662;</span>
+      </button>
+      <div class="filter-dd" id="filter-dd-agency"></div>
     </div>
   </div>
 
@@ -107,6 +113,7 @@
 <script src="js/techs.js"></script>
 <script src="js/state.js"></script>
 <script src="js/render.js"></script>
+<script src="js/agencies.js"></script>
 <script src="js/filters.js"></script>
 <script src="js/modals.js"></script>
 <script src="js/app.js"></script>

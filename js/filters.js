@@ -6,15 +6,17 @@ function getAvailableSites(excludeKey) {
   return sites.filter(s => {
     if (q) {
       const g = groups.find(g => g.id === s.groupId);
-      const match = (s.name   || '').toLowerCase().includes(q)
-                 || (s.url    || '').toLowerCase().includes(q)
-                 || (s.server || '').toLowerCase().includes(q)
-                 || (s.notes  || '').toLowerCase().includes(q)
-                 || (g ? g.name : '').toLowerCase().includes(q);
+      const match = (s.name        || '').toLowerCase().includes(q)
+                 || (s.url         || '').toLowerCase().includes(q)
+                 || (s.php_version || '').toLowerCase().includes(q)
+                 || (s.agency      || '').toLowerCase().includes(q)
+                 || (s.notes       || '').toLowerCase().includes(q)
+                 || (g ? g.name    : '').toLowerCase().includes(q);
       if (!match) return false;
     }
-    if (excludeKey !== 'groups' && activeFilters.groups.length && !activeFilters.groups.includes(s.groupId)) return false;
-    if (excludeKey !== 'techs'  && activeFilters.techs.length  && !activeFilters.techs.some(t => (s.technologies || []).includes(t))) return false;
+    if (excludeKey !== 'servers'  && activeFilters.servers.length  && !activeFilters.servers.includes(s.groupId)) return false;
+    if (excludeKey !== 'techs'    && activeFilters.techs.length    && !activeFilters.techs.some(t => (s.technologies || []).includes(t))) return false;
+    if (excludeKey !== 'agencies' && activeFilters.agencies.length && !activeFilters.agencies.includes(s.agency)) return false;
     return true;
   });
 }
@@ -23,7 +25,7 @@ function getAvailableSites(excludeKey) {
 function toggleFilterDropdown(type) {
   const dd = document.getElementById(`filter-dd-${type}`);
   const isOpen = dd?.classList.contains('open');
-  ['group', 'tech'].forEach(t =>
+  ['server', 'tech', 'agency'].forEach(t =>
     document.getElementById(`filter-dd-${t}`)?.classList.remove('open')
   );
   if (!isOpen) {
@@ -38,43 +40,52 @@ function renderFilterDropdown(type) {
   if (!dd) return;
   let html = '';
 
-  if (type === 'group') {
-    if (!groups.length) {
-      dd.innerHTML = '<div class="filter-dd-empty">Aucun groupe créé</div>';
-      return;
-    }
-    const available = getAvailableSites('groups');
-    const availableGroupIds = new Set(available.map(s => s.groupId));
-
+  if (type === 'server') {
+    if (!groups.length) { dd.innerHTML = '<div class="filter-dd-empty">Aucun serveur créé</div>'; return; }
+    const available = getAvailableSites('servers');
+    const availableIds = new Set(available.map(s => s.groupId));
     [...groups].sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true })).forEach(g => {
-      const checked   = activeFilters.groups.includes(g.id);
-      const hasResult = checked || availableGroupIds.has(g.id);
+      const checked   = activeFilters.servers.includes(g.id);
+      const hasResult = checked || availableIds.has(g.id);
       html += `<label class="filter-dd-item${checked ? ' checked' : ''}${!hasResult ? ' disabled' : ''}">
-        <input type="checkbox" ${checked ? 'checked' : ''} ${!hasResult ? 'disabled' : ''} onchange="toggleFilter('groups','${g.id}')">
+        <input type="checkbox" ${checked ? 'checked' : ''} ${!hasResult ? 'disabled' : ''} onchange="toggleFilter('servers','${g.id}')">
         ${esc(g.name)}
       </label>`;
     });
 
-  } else {
-    const available     = getAvailableSites('techs');
-    const availableTechIds = new Set(available.flatMap(s => s.technologies || []));
-
+  } else if (type === 'tech') {
+    const available   = getAvailableSites('techs');
+    const availableIds = new Set(available.flatMap(s => s.technologies || []));
     [...TECHS].sort((a, b) => a.label.localeCompare(b.label, 'fr', { numeric: true })).forEach(t => {
       const checked   = activeFilters.techs.includes(t.id);
-      const hasResult = checked || availableTechIds.has(t.id);
+      const hasResult = checked || availableIds.has(t.id);
       html += `<label class="filter-dd-item${checked ? ' checked' : ''}${!hasResult ? ' disabled' : ''}">
         <input type="checkbox" ${checked ? 'checked' : ''} ${!hasResult ? 'disabled' : ''} onchange="toggleFilter('techs','${t.id}')">
         ${techIconHTML(t, 13)}
         ${esc(t.label)}
       </label>`;
     });
+
+  } else if (type === 'agency') {
+    const available    = getAvailableSites('agencies');
+    const availableAgs = new Set(available.map(s => s.agency).filter(Boolean));
+    [...AGENCIES].sort((a, b) => a.localeCompare(b, 'fr', { numeric: true })).forEach(ag => {
+      const checked   = activeFilters.agencies.includes(ag);
+      const hasResult = checked || availableAgs.has(ag);
+      html += `<label class="filter-dd-item${checked ? ' checked' : ''}${!hasResult ? ' disabled' : ''}">
+        <input type="checkbox" ${checked ? 'checked' : ''} ${!hasResult ? 'disabled' : ''} onchange="toggleFilter('agencies','${esc(ag)}')">
+        ${esc(ag)}
+      </label>`;
+    });
+    if (!html) html = '<div class="filter-dd-empty">Aucune agence configurée</div>';
   }
+
   dd.innerHTML = html;
 }
 
 // Re-render les dropdowns ouverts
 function refreshOpenDropdowns() {
-  ['group', 'tech'].forEach(type => {
+  ['server', 'tech', 'agency'].forEach(type => {
     const dd = document.getElementById(`filter-dd-${type}`);
     if (dd?.classList.contains('open')) renderFilterDropdown(type);
   });
@@ -88,8 +99,7 @@ function toggleFilter(key, value) {
   else arr.splice(idx, 1);
 
   render();
-  // re-render les deux dropdowns si ouverts (les dispo changent)
-  ['group', 'tech'].forEach(type => {
+  ['server', 'tech', 'agency'].forEach(type => {
     const dd = document.getElementById(`filter-dd-${type}`);
     if (dd?.classList.contains('open')) renderFilterDropdown(type);
   });
@@ -110,8 +120,9 @@ function removeFilter(key, value) {
 
 // Efface tous les filtres
 function clearAllFilters() {
-  activeFilters.groups = [];
-  activeFilters.techs  = [];
+  activeFilters.servers  = [];
+  activeFilters.techs    = [];
+  activeFilters.agencies = [];
   render();
   refreshOpenDropdowns();
   renderFilterChips();
@@ -124,16 +135,20 @@ function renderFilterChips() {
   if (!container) return;
   const chips = [];
 
-  activeFilters.groups.forEach(gid => {
+  activeFilters.servers.forEach(gid => {
     const g = groups.find(x => x.id === gid);
     if (!g) return;
-    chips.push(`<span class="filter-chip">${esc(g.name)}<button onclick="removeFilter('groups','${gid}')" title="Retirer">&#10005;</button></span>`);
+    chips.push(`<span class="filter-chip">${esc(g.name)}<button onclick="removeFilter('servers','${gid}')" title="Retirer">&#10005;</button></span>`);
   });
 
   activeFilters.techs.forEach(tid => {
     const t = TECHS.find(x => x.id === tid);
     if (!t) return;
     chips.push(`<span class="filter-chip">${techIconHTML(t, 11)}${esc(t.label)}<button onclick="removeFilter('techs','${tid}')" title="Retirer">&#10005;</button></span>`);
+  });
+
+  activeFilters.agencies.forEach(ag => {
+    chips.push(`<span class="filter-chip">${esc(ag)}<button onclick="removeFilter('agencies','${esc(ag)}')" title="Retirer">&#10005;</button></span>`);
   });
 
   if (chips.length) {
@@ -148,13 +163,14 @@ function renderFilterChips() {
 
 // Met en surbrillance les boutons de filtre quand actifs
 function updateFilterBtnState() {
-  document.getElementById('filter-btn-group')?.classList.toggle('active', activeFilters.groups.length > 0);
-  document.getElementById('filter-btn-tech')?.classList.toggle('active',  activeFilters.techs.length  > 0);
+  document.getElementById('filter-btn-server')?.classList.toggle('active',  activeFilters.servers.length  > 0);
+  document.getElementById('filter-btn-tech')?.classList.toggle('active',    activeFilters.techs.length    > 0);
+  document.getElementById('filter-btn-agency')?.classList.toggle('active',  activeFilters.agencies.length > 0);
 }
 
 // Fermeture des dropdowns au clic extérieur
 document.addEventListener('click', e => {
-  ['group', 'tech'].forEach(type => {
+  ['server', 'tech', 'agency'].forEach(type => {
     const wrap = document.getElementById(`filter-wrap-${type}`);
     if (wrap && !wrap.contains(e.target))
       document.getElementById(`filter-dd-${type}`)?.classList.remove('open');
