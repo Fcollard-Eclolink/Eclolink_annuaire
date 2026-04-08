@@ -2,5 +2,7 @@
 // Modifier cette liste pour ajouter / retirer des agences
 const AGENCIES = [
   'Eclolink',
-  'Agence externe',
+  'Mister Harry',
+  'I-Com',
+  'Album'
 ];
