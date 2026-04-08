@@ -46,7 +46,7 @@ function renderFilterDropdown(type) {
     const available = getAvailableSites('groups');
     const availableGroupIds = new Set(available.map(s => s.groupId));
 
-    groups.forEach(g => {
+    [...groups].sort((a, b) => a.name.localeCompare(b.name, 'fr')).forEach(g => {
       const checked   = activeFilters.groups.includes(g.id);
       const hasResult = checked || availableGroupIds.has(g.id);
       html += `<label class="filter-dd-item${checked ? ' checked' : ''}${!hasResult ? ' disabled' : ''}">
@@ -59,7 +59,7 @@ function renderFilterDropdown(type) {
     const available     = getAvailableSites('techs');
     const availableTechIds = new Set(available.flatMap(s => s.technologies || []));
 
-    TECHS.forEach(t => {
+    [...TECHS].sort((a, b) => a.label.localeCompare(b.label, 'fr')).forEach(t => {
       const checked   = activeFilters.techs.includes(t.id);
       const hasResult = checked || availableTechIds.has(t.id);
       html += `<label class="filter-dd-item${checked ? ' checked' : ''}${!hasResult ? ' disabled' : ''}">
