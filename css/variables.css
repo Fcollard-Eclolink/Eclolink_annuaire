@@ -8,6 +8,7 @@
   --text-muted      : #777;
   --hover           : #f0f0ee;
   --tag-bg          : #f0f0ee;
+  --tag-border      : #d8d8d4;
   --link            : #185fa5;
   --mark-bg         : #faeeda;
   --mark-color      : #633806;
@@ -30,7 +31,8 @@
   --text            : #e4e4e7;
   --text-muted      : #8b8b96;
   --hover           : #2e2e33;
-  --tag-bg          : #2e2e33;
+  --tag-bg          : #38383e;
+  --tag-border      : #4e4e58;
   --link            : #7eb8f7;
   --mark-bg         : #3a2e0a;
   --mark-color      : #f0c060;

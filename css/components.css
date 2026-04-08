@@ -128,9 +128,10 @@ input[type=password] {
 /* ── Tags & badges ────────────────────────────────────────────── */
 .tag {
     background: var(--tag-bg);
+    color: var(--text);
     padding: 1px 7px;
     border-radius: 20px;
-    border: 0.5px solid var(--border);
+    border: 0.5px solid var(--tag-border);
 }
 
 .tech-badge {
@@ -138,7 +139,7 @@ input[type=password] {
     align-items: center;
     gap: 4px;
     background: var(--tag-bg);
-    border: 0.5px solid var(--border);
+    border: 0.5px solid var(--tag-border);
     border-radius: 20px;
     padding: 2px 7px;
     font-size: 11px;

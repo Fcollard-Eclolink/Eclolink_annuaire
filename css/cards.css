@@ -97,8 +97,8 @@
 .empty-group { padding: 12px 16px; font-size: 13px; color: var(--text-muted); }
 .site-notes  { font-size: 12px; color: var(--text-muted); }
 
-.tag-agency { color: var(--link); border-color: var(--link); }
-.tag-date   { font-size: 11px; }
+.tag-agency { color: var(--link); border-color: var(--link); background: transparent; }
+.tag-date   { font-size: 11px; color: var(--text-muted); }
 .tag-server { color: var(--text-muted); }
 
 .site-meta {
