@@ -30,7 +30,7 @@
     h3 { font-size: 15px; font-weight: 500; margin-bottom: 1rem; flex-shrink: 0; }
 }
 
-#modal-body { flex: 1; overflow-y: auto; padding-right: 2px; }
+#modal-body { flex: 1; overflow-y: auto; overflow-x: hidden; padding-right: 2px; }
 
 .modal-btns { flex-shrink: 0; }
 
