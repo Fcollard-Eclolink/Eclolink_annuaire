@@ -25,13 +25,16 @@
     }
 }
 
+.group-head-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+
 .group-name {
     font-weight: 500;
     font-size: 15px;
-    flex: 1;
 
     &.muted { color: var(--text-muted); }
 }
+
+.group-meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 
 .group-count {
     font-size: 12px;
@@ -100,6 +103,8 @@
 .tag-agency { color: var(--link); border-color: var(--link); background: transparent; }
 .tag-date   { font-size: 11px; color: var(--text-muted); }
 .tag-server { color: var(--text-muted); }
+.tag-ip     { font-size: 11px; font-family: monospace; letter-spacing: 0.02em; }
+.tag-ws     { font-size: 11px; display: inline-flex; align-items: center; }
 
 .site-meta {
     font-size: 12px;

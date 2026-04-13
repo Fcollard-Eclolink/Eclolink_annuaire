@@ -3,8 +3,14 @@ async function load(showToast) {
   document.getElementById('list').innerHTML = '<div class="no-result">Chargement…</div>';
   loadCollapsed();
   try {
-    [groups, sites] = await Promise.all([sbGet('eclolink_groups'), sbGet('eclolink_sites')]);
-    sites = sites.map(s => ({
+    const [groupsRaw, sitesRaw] = await Promise.all([sbGet('eclolink_groups'), sbGet('eclolink_sites')]);
+    groups = groupsRaw.map(g => ({
+      ...g,
+      ip_local  : g.ip_local   || '',
+      ip_public : g.ip_public  || '',
+      web_server: g.web_server || ''
+    }));
+    sites = sitesRaw.map(s => ({
       ...s,
       groupId     : s.group_id,
       gitlab_url  : s.gitlab_url   || '',

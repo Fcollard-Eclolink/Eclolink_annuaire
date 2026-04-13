@@ -74,11 +74,30 @@ function closeConfirm() {
 function openServerModal(id) {
   modalMode = 'server'; editId = id || null;
   const g = id ? groups.find(g => g.id === id) : null;
-  document.getElementById('modal-title').textContent = id ? 'Renommer le serveur' : 'Nouveau serveur';
+
+  const wsOptions = [
+    { value: '',       label: '— Aucun —' },
+    { value: 'nginx',  label: 'Nginx'     },
+    { value: 'apache', label: 'Apache'    },
+  ];
+
+  document.getElementById('modal-title').textContent = id ? 'Modifier le serveur' : 'Nouveau serveur';
   document.getElementById('modal-body').innerHTML = `
     <div class="field">
       <label>Nom du serveur</label>
       <input id="f-name" type="text" value="${esc(g ? g.name : '')}" placeholder="Ex : Serveur 1, OVH-VPS...">
+    </div>
+    <div class="field">
+      <label>IP locale</label>
+      <input id="f-ip-local" type="text" value="${esc(g ? g.ip_local || '' : '')}" placeholder="192.168.1.10">
+    </div>
+    <div class="field">
+      <label>IP publique</label>
+      <input id="f-ip-public" type="text" value="${esc(g ? g.ip_public || '' : '')}" placeholder="5.5.5.5">
+    </div>
+    <div class="field">
+      <label>Serveur web</label>
+      ${customSelectHTML('f-webserver', wsOptions, g?.web_server || '', '— Aucun —')}
     </div>`;
   openOverlay('modal-wrap');
   setTimeout(() => document.getElementById('f-name')?.focus(), 60);
@@ -177,13 +196,19 @@ async function saveModal() {
     if (modalMode === 'server') {
       const name = (document.getElementById('f-name').value || '').trim();
       if (!name) { btn.disabled = false; btn.textContent = 'Enregistrer'; return; }
+      const obj = {
+        name,
+        ip_local  : (document.getElementById('f-ip-local').value  || '').trim(),
+        ip_public : (document.getElementById('f-ip-public').value || '').trim(),
+        web_server: document.getElementById('f-webserver')?.value || null,
+      };
       if (editId) {
-        await sbUpdate('eclolink_groups', editId, { name });
-        groups = groups.map(g => g.id === editId ? { ...g, name } : g);
+        await sbUpdate('eclolink_groups', editId, obj);
+        groups = groups.map(g => g.id === editId ? { ...g, ...obj } : g);
       } else {
         const id = uid();
-        await sbInsert('eclolink_groups', { id, name });
-        groups.push({ id, name });
+        await sbInsert('eclolink_groups', { id, ...obj });
+        groups.push({ id, ...obj });
       }
     } else if (modalMode === 'site') {
       const name = (document.getElementById('f-name').value || '').trim();

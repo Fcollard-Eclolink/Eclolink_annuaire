@@ -43,11 +43,23 @@ function render() {
     [...groups].sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true })).forEach(g => {
       const gs   = sites.filter(s => s.groupId === g.id).sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true }));
       const open = !collapsed[g.id];
+      const wsMeta = g.web_server
+        ? `<span class="tag tag-ws"><img src="${SI}/${g.web_server}" width="11" height="11" alt="" onerror="this.style.display='none'" style="display:inline-block;vertical-align:middle;margin-right:3px">${esc(g.web_server)}</span>`
+        : '';
+      const serverMeta = [
+        g.ip_local  ? `<span class="tag tag-ip">&#x1F4BB; ${esc(g.ip_local)}</span>`  : '',
+        g.ip_public ? `<span class="tag tag-ip">&#x1F310; ${esc(g.ip_public)}</span>` : '',
+        wsMeta,
+      ].filter(Boolean).join('');
+
       html += `
         <div class="group-card">
           <div class="group-head" onclick="toggleGroup('${g.id}')">
             <span class="chevron ${open ? 'open' : ''}">&#9654;</span>
-            <span class="group-name">${esc(g.name)}</span>
+            <div class="group-head-info">
+              <span class="group-name">${esc(g.name)}</span>
+              ${serverMeta ? `<div class="group-meta">${serverMeta}</div>` : ''}
+            </div>
             <span class="group-count">${gs.length}</span>
             <div class="group-actions" onclick="event.stopPropagation()">
               <button class="icon-btn" onclick="openServerModal('${g.id}')" title="Renommer">&#9998;</button>
