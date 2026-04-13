@@ -70,6 +70,12 @@ document.addEventListener('click', e => {
   });
 });
 
+// ── Ouvrir tous les URLs d'un serveur ────────────────────────────
+function openAllSiteUrls(gid) {
+  const urls = sites.filter(s => s.groupId === gid && s.url).map(s => s.url);
+  urls.forEach(url => window.open(url, '_blank'));
+}
+
 // ── Point d'entrée ────────────────────────────────────────────────
 initTheme();
 initAuth();

@@ -54,6 +54,7 @@ function render() {
             <div class="group-actions" onclick="event.stopPropagation()">
               <div class="group-actions-info">
                 ${hasInfo ? `<button class="icon-btn" onclick="toggleServerInfo('${g.id}',this)" title="Informations">&#x2139;</button>` : ''}
+                ${gs.some(s => s.url) ? `<button class="icon-btn" onclick="openAllSiteUrls('${g.id}')" title="Ouvrir tous les sites">${SVG_EXT}</button>` : ''}
               </div>
               <div class="group-actions-crud">
                 <button class="icon-btn" onclick="openServerModal('${g.id}')" title="Modifier">&#9998;</button>
