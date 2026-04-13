@@ -26,6 +26,7 @@ const TECHS = [
   { id: 'directus',    label: 'Directus',    slug: 'directus'    },
   { id: 'next',        label: 'Next.js',     slug: 'nextdotjs'   },
   { id: 'react',       label: 'React',       slug: 'react'       },
+  { id: 'docker',      label: 'Docker',      slug: 'docker'      },
 ];
 
 const SI      = 'https://cdn.simpleicons.org';
