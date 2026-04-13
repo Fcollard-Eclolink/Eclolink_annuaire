@@ -64,7 +64,11 @@ function closeModal() {
 }
 
 function closeConfirm() {
-  document.getElementById('confirm-wrap').classList.remove('open');
+  const wrap = document.getElementById('confirm-wrap');
+  wrap.classList.remove('open');
+  delete wrap.dataset.action;
+  delete wrap.dataset.urls;
+  wrap.querySelector('.btn-danger').textContent = 'Supprimer';
   if (!document.getElementById('modal-wrap').classList.contains('open'))
     document.body.classList.remove('modal-open');
   pendingDelete = null;
@@ -77,8 +81,8 @@ function openServerModal(id) {
 
   const wsOptions = [
     { value: '',       label: '— Aucun —' },
-    { value: 'nginx',  label: 'Nginx'     },
     { value: 'apache', label: 'Apache'    },
+    { value: 'nginx',  label: 'Nginx'     },
   ];
 
   document.getElementById('modal-title').textContent = id ? 'Modifier le serveur' : 'Nouveau serveur';
@@ -257,6 +261,13 @@ function deleteSite(id) {
 }
 
 async function executeDelete() {
+  const wrap = document.getElementById('confirm-wrap');
+  if (wrap.dataset.action === 'open-urls') {
+    const urls = JSON.parse(wrap.dataset.urls || '[]');
+    closeConfirm();
+    executeOpenUrls(urls);
+    return;
+  }
   if (!pendingDelete) return;
   const { type, id } = pendingDelete;
   closeConfirm();

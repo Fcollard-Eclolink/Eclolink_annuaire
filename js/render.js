@@ -98,10 +98,12 @@ function render() {
 
 // ── Ligne d'un site ───────────────────────────────────────────────
 function rowHTML(s, q, srvLabel) {
-  const techBadges = (s.technologies || []).map(tid => {
-    const t = TECHS.find(x => x.id === tid);
-    return t ? `<span class="tech-badge">${techIconHTML(t, 12)}${esc(t.label)}</span>` : '';
-  }).join('');
+  const techBadges = (s.technologies || [])
+    .map(tid => TECHS.find(x => x.id === tid))
+    .filter(Boolean)
+    .sort((a, b) => a.label.localeCompare(b.label, 'fr'))
+    .map(t => `<span class="tech-badge">${techIconHTML(t, 12)}${esc(t.label)}</span>`)
+    .join('');
 
   const dateStr = formatDate(s.go_live_date);
 

@@ -72,8 +72,26 @@ document.addEventListener('click', e => {
 
 // ── Ouvrir tous les URLs d'un serveur ────────────────────────────
 function openAllSiteUrls(gid) {
+  const g    = groups.find(x => x.id === gid);
   const urls = sites.filter(s => s.groupId === gid && s.url).map(s => s.url);
-  urls.forEach(url => window.open(url, '_blank'));
+  if (!urls.length) return;
+  pendingDelete = null; // ne pas interférer avec la suppression
+  document.getElementById('confirm-msg').textContent =
+    `Ouvrir les ${urls.length} site${urls.length > 1 ? 's' : ''} du serveur "${g ? g.name : ''}" dans de nouveaux onglets ?`;
+  document.getElementById('confirm-wrap').dataset.action = 'open-urls';
+  document.getElementById('confirm-wrap').dataset.urls   = JSON.stringify(urls);
+  document.querySelector('#confirm-wrap .btn-danger').textContent = 'Ouvrir';
+  openOverlay('confirm-wrap');
+}
+
+function executeOpenUrls(urls) {
+  urls.forEach((url, i) => {
+    setTimeout(() => {
+      const a = document.createElement('a');
+      a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }, i * 150);
+  });
 }
 
 // ── Point d'entrée ────────────────────────────────────────────────
