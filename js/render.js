@@ -43,26 +43,17 @@ function render() {
     [...groups].sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true })).forEach(g => {
       const gs   = sites.filter(s => s.groupId === g.id).sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true }));
       const open = !collapsed[g.id];
-      const wsMeta = g.web_server
-        ? `<span class="tag tag-ws"><img src="${SI}/${g.web_server}" width="11" height="11" alt="" onerror="this.style.display='none'" style="display:inline-block;vertical-align:middle;margin-right:3px">${esc(g.web_server)}</span>`
-        : '';
-      const serverMeta = [
-        g.ip_local  ? `<span class="tag tag-ip">&#x1F4BB; ${esc(g.ip_local)}</span>`  : '',
-        g.ip_public ? `<span class="tag tag-ip">&#x1F310; ${esc(g.ip_public)}</span>` : '',
-        wsMeta,
-      ].filter(Boolean).join('');
+      const hasInfo = g.ip_local || g.ip_public || g.web_server;
 
       html += `
         <div class="group-card">
           <div class="group-head" onclick="toggleGroup('${g.id}')">
             <span class="chevron ${open ? 'open' : ''}">&#9654;</span>
-            <div class="group-head-info">
-              <span class="group-name">${esc(g.name)}</span>
-              ${serverMeta ? `<div class="group-meta">${serverMeta}</div>` : ''}
-            </div>
+            <span class="group-name">${esc(g.name)}</span>
             <span class="group-count">${gs.length}</span>
             <div class="group-actions" onclick="event.stopPropagation()">
-              <button class="icon-btn" onclick="openServerModal('${g.id}')" title="Renommer">&#9998;</button>
+              ${hasInfo ? `<button class="icon-btn" onclick="toggleServerInfo('${g.id}',this)" title="Informations">&#x2139;</button>` : ''}
+              <button class="icon-btn" onclick="openServerModal('${g.id}')" title="Modifier">&#9998;</button>
               <button class="icon-btn del" onclick="deleteServer('${g.id}')" title="Supprimer">&#10005;</button>
             </div>
           </div>`;
@@ -145,6 +136,42 @@ function clearSearch() {
   input.value = '';
   onSearchInput();
   input.focus();
+}
+
+// ── Popover infos serveur ─────────────────────────────────────────
+function toggleServerInfo(gid, btn) {
+  const tt = document.getElementById('server-tooltip');
+  if (!tt) return;
+  if (tt.dataset.gid === gid && tt.classList.contains('open')) {
+    hideServerInfo(); return;
+  }
+  const g = groups.find(x => x.id === gid);
+  if (!g) return;
+
+  const rows = [];
+  if (g.ip_local)   rows.push(`<div class="sti-row"><span class="sti-label">IP locale</span><span class="sti-val">${esc(g.ip_local)}</span></div>`);
+  if (g.ip_public)  rows.push(`<div class="sti-row"><span class="sti-label">IP publique</span><span class="sti-val">${esc(g.ip_public)}</span></div>`);
+  if (g.web_server) rows.push(`<div class="sti-row"><span class="sti-label">Serveur web</span><span class="sti-val"><img src="${SI}/${g.web_server}" width="12" height="12" alt="" onerror="this.style.display='none'" style="vertical-align:middle;margin-right:4px">${esc(g.web_server)}</span></div>`);
+  if (!rows.length) return;
+
+  tt.innerHTML = rows.join('');
+  tt.dataset.gid = gid;
+  tt.classList.add('open');
+
+  const rect = btn.getBoundingClientRect();
+  const ttW  = 220;
+  const left = Math.min(rect.left, window.innerWidth - ttW - 8);
+  tt.style.left = left + 'px';
+  // position en dessous, ou au-dessus si pas de place
+  const spaceBelow = window.innerHeight - rect.bottom;
+  tt.style.top = spaceBelow >= 100
+    ? (rect.bottom + 6) + 'px'
+    : (rect.top - tt.offsetHeight - 6) + 'px';
+}
+
+function hideServerInfo() {
+  const tt = document.getElementById('server-tooltip');
+  if (tt) { tt.classList.remove('open'); delete tt.dataset.gid; }
 }
 
 function toggleGroup(id) {

@@ -56,6 +56,10 @@ document.addEventListener('click', e => {
   if (sel && !sel.contains(e.target))
     document.getElementById('tech-dropdown')?.classList.remove('open');
 
+  // server info tooltip
+  const tt = document.getElementById('server-tooltip');
+  if (tt && tt.classList.contains('open') && !tt.contains(e.target)) hideServerInfo();
+
   // custom selects
   document.querySelectorAll('.custom-select-dd.open').forEach(dd => {
     const wrap = dd.closest('.custom-select');
