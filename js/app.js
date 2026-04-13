@@ -76,6 +76,7 @@ function openAllSiteUrls(gid) {
   const urls = sites.filter(s => s.groupId === gid && s.url).map(s => s.url);
   if (!urls.length) return;
   pendingDelete = null; // ne pas interférer avec la suppression
+  document.getElementById('confirm-title').textContent = 'Ouvrir tous les sites';
   document.getElementById('confirm-msg').textContent =
     `Ouvrir les ${urls.length} site${urls.length > 1 ? 's' : ''} du serveur "${g ? g.name : ''}" dans de nouveaux onglets ?`;
   document.getElementById('confirm-wrap').dataset.action = 'open-urls';

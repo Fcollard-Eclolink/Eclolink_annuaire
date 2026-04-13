@@ -68,6 +68,7 @@ function closeConfirm() {
   wrap.classList.remove('open');
   delete wrap.dataset.action;
   delete wrap.dataset.urls;
+  document.getElementById('confirm-title').textContent = 'Confirmer la suppression';
   wrap.querySelector('.btn-danger').textContent = 'Supprimer';
   if (!document.getElementById('modal-wrap').classList.contains('open'))
     document.body.classList.remove('modal-open');
