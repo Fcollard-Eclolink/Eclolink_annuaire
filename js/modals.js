@@ -88,12 +88,12 @@ function openServerModal(id) {
       <input id="f-name" type="text" value="${esc(g ? g.name : '')}" placeholder="Ex : Serveur 1, OVH-VPS...">
     </div>
     <div class="field">
-      <label>IP locale</label>
-      <input id="f-ip-local" type="text" value="${esc(g ? g.ip_local || '' : '')}" placeholder="192.168.1.10">
-    </div>
-    <div class="field">
       <label>IP publique</label>
       <input id="f-ip-public" type="text" value="${esc(g ? g.ip_public || '' : '')}" placeholder="5.5.5.5">
+    </div>
+    <div class="field">
+      <label>IP locale</label>
+      <input id="f-ip-local" type="text" value="${esc(g ? g.ip_local || '' : '')}" placeholder="192.168.1.10">
     </div>
     <div class="field">
       <label>Serveur web</label>

@@ -52,9 +52,13 @@ function render() {
             <span class="group-name">${esc(g.name)}</span>
             <span class="group-count">${gs.length}</span>
             <div class="group-actions" onclick="event.stopPropagation()">
-              ${hasInfo ? `<button class="icon-btn" onclick="toggleServerInfo('${g.id}',this)" title="Informations">&#x2139;</button>` : ''}
-              <button class="icon-btn" onclick="openServerModal('${g.id}')" title="Modifier">&#9998;</button>
-              <button class="icon-btn del" onclick="deleteServer('${g.id}')" title="Supprimer">&#10005;</button>
+              <div class="group-actions-info">
+                ${hasInfo ? `<button class="icon-btn" onclick="toggleServerInfo('${g.id}',this)" title="Informations">&#x2139;</button>` : ''}
+              </div>
+              <div class="group-actions-crud">
+                <button class="icon-btn" onclick="openServerModal('${g.id}')" title="Modifier">&#9998;</button>
+                <button class="icon-btn del" onclick="deleteServer('${g.id}')" title="Supprimer">&#10005;</button>
+              </div>
             </div>
           </div>`;
       if (open) {
@@ -149,8 +153,8 @@ function toggleServerInfo(gid, btn) {
   if (!g) return;
 
   const rows = [];
-  if (g.ip_local)   rows.push(`<div class="sti-row"><span class="sti-label">IP locale</span><span class="sti-val">${esc(g.ip_local)}</span></div>`);
   if (g.ip_public)  rows.push(`<div class="sti-row"><span class="sti-label">IP publique</span><span class="sti-val">${esc(g.ip_public)}</span></div>`);
+  if (g.ip_local)   rows.push(`<div class="sti-row"><span class="sti-label">IP locale</span><span class="sti-val">${esc(g.ip_local)}</span></div>`);
   if (g.web_server) rows.push(`<div class="sti-row"><span class="sti-label">Serveur web</span><span class="sti-val"><img src="${SI}/${g.web_server}" width="12" height="12" alt="" onerror="this.style.display='none'" style="vertical-align:middle;margin-right:4px">${esc(g.web_server)}</span></div>`);
   if (!rows.length) return;
 
