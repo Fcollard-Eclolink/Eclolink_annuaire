@@ -1,6 +1,10 @@
 // ── Supabase REST helpers ─────────────────────────────────────────
 async function handleResponse(r) {
-  if (r.status === 401) { clearSession(); showLogin(); throw new Error('Session expirée'); }
+  if (r.status === 401) {
+    const refreshed = await tryRefreshToken();
+    if (!refreshed) { clearSession(); showLogin(); }
+    throw new Error('Session expirée');
+  }
   if (!r.ok) throw new Error(await r.text());
 }
 

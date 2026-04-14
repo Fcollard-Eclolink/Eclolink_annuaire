@@ -88,6 +88,12 @@ function copyToClipboard(text, btn) {
 
 // ── Auto-synchronisation toutes les 5 minutes ────────────────────
 async function silentRefresh() {
+  const s = getSession();
+  if (!s) return;
+  if (s.expires_at && Date.now() / 1000 > s.expires_at - 60) {
+    const ok = await tryRefreshToken();
+    if (!ok) return; // skip sans déconnecter
+  }
   try {
     const [groupsRaw, sitesRaw] = await Promise.all([sbGet('eclolink_groups'), sbGet('eclolink_sites')]);
     groups = groupsRaw.map(g => ({
