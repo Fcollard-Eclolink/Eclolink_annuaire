@@ -202,8 +202,8 @@
     border-color: var(--del-hover-color);
 
     &:hover {
-        background-color: var(--del-hover-bg);
-        border-color: var(--del-hover-bg);
+        background-color: var(--del-popup-hover-bg);
+        border-color: var(--del-popup-hover-bg);
     }
 }
 
