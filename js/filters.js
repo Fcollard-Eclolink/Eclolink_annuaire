@@ -6,12 +6,9 @@ function getAvailableSites(excludeKey) {
   return sites.filter(s => {
     if (q) {
       const g = groups.find(g => g.id === s.groupId);
-      const match = (s.name        || '').toLowerCase().includes(q)
-                 || (s.url         || '').toLowerCase().includes(q)
-                 || (s.php_version || '').toLowerCase().includes(q)
-                 || (s.agency      || '').toLowerCase().includes(q)
-                 || (s.notes       || '').toLowerCase().includes(q)
-                 || (g ? g.name    : '').toLowerCase().includes(q);
+      const match = (s.name     || '').toLowerCase().includes(q)
+                 || (s.url      || '').toLowerCase().includes(q)
+                 || (g ? g.name : '').toLowerCase().includes(q);
       if (!match) return false;
     }
     if (excludeKey !== 'servers'  && activeFilters.servers.length  && !activeFilters.servers.includes(s.groupId)) return false;
