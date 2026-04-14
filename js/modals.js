@@ -200,7 +200,7 @@ async function saveModal() {
   try {
     if (modalMode === 'server') {
       const name = (document.getElementById('f-name').value || '').trim();
-      if (!name) { btn.disabled = false; btn.textContent = 'Enregistrer'; return; }
+      if (!name) { btn.disabled = false; btn.textContent = 'Enregistrer'; toast('Le nom du serveur est requis'); return; }
       const obj = {
         name,
         ip_local  : (document.getElementById('f-ip-local').value  || '').trim(),
@@ -217,7 +217,7 @@ async function saveModal() {
       }
     } else if (modalMode === 'site') {
       const name = (document.getElementById('f-name').value || '').trim();
-      if (!name) { btn.disabled = false; btn.textContent = 'Enregistrer'; return; }
+      if (!name) { btn.disabled = false; btn.textContent = 'Enregistrer'; toast('Le nom du site est requis'); return; }
       const techs     = getSelectedTechs();
       const dateVal   = document.getElementById('f-date').value || null;
       const agencyVal = document.getElementById('f-agency').value || null;
@@ -244,8 +244,11 @@ async function saveModal() {
       }
     }
     closeModal(); render(); toast('Enregistré ✓');
-  } catch(e) { toast('Erreur : ' + e.message); }
-  finally { btn.disabled = false; btn.textContent = 'Enregistrer'; }
+  } catch(e) {
+    const detail = e.details || e.hint || e.code;
+    toast('Erreur : ' + e.message + (detail ? ` (${detail})` : ''));
+    console.error('[saveModal]', e);
+  } finally { btn.disabled = false; btn.textContent = 'Enregistrer'; }
 }
 
 // ── Suppression ───────────────────────────────────────────────────
