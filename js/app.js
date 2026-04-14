@@ -62,6 +62,10 @@ document.addEventListener('click', e => {
   const tt = document.getElementById('server-tooltip');
   if (tt && tt.classList.contains('open') && !tt.contains(e.target)) hideServerInfo();
 
+  // site info tooltip
+  const stt = document.getElementById('site-tooltip');
+  if (stt && stt.classList.contains('open') && !stt.contains(e.target)) hideSiteInfo();
+
   // custom selects
   document.querySelectorAll('.custom-select-dd.open').forEach(dd => {
     const wrap = dd.closest('.custom-select');

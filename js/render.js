@@ -105,7 +105,8 @@ function rowHTML(s, q, srvLabel) {
     .map(t => `<span class="tech-badge">${techIconHTML(t, 12)}${esc(t.label)}</span>`)
     .join('');
 
-  const dateStr = formatDate(s.go_live_date);
+  const dateStr  = formatDate(s.go_live_date);
+  const hasInfo  = s.php_version || s.dns_zone;
 
   return `
     <div class="site-row">
@@ -115,11 +116,10 @@ function rowHTML(s, q, srvLabel) {
           ${s.url         ? `<a class="icon-link" href="${esc(s.url)}" target="_blank" title="${esc(s.url)}">${SVG_SITE}</a>` : ''}
           ${s.bo_url      ? `<a class="icon-link" href="${esc(s.bo_url)}" target="_blank" title="Back-office">${SVG_BO}</a>` : ''}
           ${s.gitlab_url  ? `<a class="icon-link" href="${esc(s.gitlab_url)}" target="_blank" title="GitLab">${SVG_GL}</a>` : ''}
-          ${s.php_version ? `<span class="tag">${hl(s.php_version, q)}</span>` : ''}
+          ${hasInfo       ? `<button class="icon-btn icon-btn-sm" onclick="toggleSiteInfo('${s.id}',this)" title="Informations">&#x2139;</button>` : ''}
           ${s.agency      ? `<span class="tag tag-agency">${hl(s.agency, q)}</span>` : ''}
           ${dateStr       ? `<span class="tag tag-date">&#128197; ${esc(dateStr)}</span>` : ''}
           ${srvLabel      ? `<span class="tag tag-server">${esc(srvLabel)}</span>` : ''}
-          ${s.dns_zone    ? `<span class="tag tag-dns"><img src="${SI}/${esc(s.dns_zone)}" width="12" height="12" alt="" onerror="this.style.display='none'" style="display:inline-block;vertical-align:middle;margin-right:4px;flex-shrink:0">${esc((DNS_PROVIDERS.find(d => d.value === s.dns_zone) || {label: s.dns_zone}).label)}</span>` : ''}
           ${techBadges}
           ${s.notes       ? `<span class="site-notes">${hl(s.notes, q)}</span>` : ''}
         </div>
@@ -181,6 +181,43 @@ function toggleServerInfo(gid, btn) {
 function hideServerInfo() {
   const tt = document.getElementById('server-tooltip');
   if (tt) { tt.classList.remove('open'); delete tt.dataset.gid; }
+}
+
+// ── Popover infos site ────────────────────────────────────────────
+function toggleSiteInfo(sid, btn) {
+  const tt = document.getElementById('site-tooltip');
+  if (!tt) return;
+  if (tt.dataset.sid === sid && tt.classList.contains('open')) {
+    hideSiteInfo(); return;
+  }
+  const s = sites.find(x => x.id === sid);
+  if (!s) return;
+
+  const rows = [];
+  if (s.php_version) rows.push(`<div class="sti-row"><span class="sti-label">Version PHP</span><span class="sti-val">${esc(s.php_version)}</span></div>`);
+  if (s.dns_zone) {
+    const dns = DNS_PROVIDERS.find(d => d.value === s.dns_zone);
+    rows.push(`<div class="sti-row"><span class="sti-label">Zone DNS</span><span class="sti-val"><img src="${SI}/${esc(s.dns_zone)}" width="12" height="12" alt="" onerror="this.style.display='none'" style="vertical-align:middle;margin-right:4px;flex-shrink:0">${esc(dns ? dns.label : s.dns_zone)}</span></div>`);
+  }
+  if (!rows.length) return;
+
+  tt.innerHTML = rows.join('');
+  tt.dataset.sid = sid;
+  tt.classList.add('open');
+
+  const rect = btn.getBoundingClientRect();
+  const ttW  = 220;
+  const left = Math.min(rect.left, window.innerWidth - ttW - 8);
+  tt.style.left = left + 'px';
+  const spaceBelow = window.innerHeight - rect.bottom;
+  tt.style.top = spaceBelow >= 100
+    ? (rect.bottom + 6) + 'px'
+    : (rect.top - tt.offsetHeight - 6) + 'px';
+}
+
+function hideSiteInfo() {
+  const tt = document.getElementById('site-tooltip');
+  if (tt) { tt.classList.remove('open'); delete tt.dataset.sid; }
 }
 
 function toggleGroup(id) {
