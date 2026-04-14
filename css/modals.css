@@ -140,6 +140,29 @@
         margin-bottom: 4px;
     }
 
+    &.field-checkbox {
+        margin-bottom: 4px;
+    }
+}
+
+.checkbox-label {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 13px !important;
+    color: var(--text) !important;
+    margin-bottom: 0 !important;
+
+    input[type=checkbox] {
+        width: 15px;
+        height: 15px;
+        accent-color: var(--btn-primary-bg);
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+}
+
     input[type=text],
     select,
     textarea {

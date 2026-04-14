@@ -119,6 +119,7 @@ function rowHTML(s, q, srvLabel) {
           ${s.agency      ? `<span class="tag tag-agency">${hl(s.agency, q)}</span>` : ''}
           ${dateStr       ? `<span class="tag tag-date">&#128197; ${esc(dateStr)}</span>` : ''}
           ${srvLabel      ? `<span class="tag tag-server">${esc(srvLabel)}</span>` : ''}
+          ${s.dns_zone    ? `<span class="tag tag-dns"><img src="${SI}/${esc(s.dns_zone)}" width="12" height="12" alt="" onerror="this.style.display='none'" style="display:inline-block;vertical-align:middle;margin-right:4px;flex-shrink:0">${esc((DNS_PROVIDERS.find(d => d.value === s.dns_zone) || {label: s.dns_zone}).label)}</span>` : ''}
           ${techBadges}
           ${s.notes       ? `<span class="site-notes">${hl(s.notes, q)}</span>` : ''}
         </div>

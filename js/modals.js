@@ -1,14 +1,15 @@
 // ── Select custom ─────────────────────────────────────────────────
 function customSelectHTML(inputId, options, selectedValue, placeholder) {
-  const selectedLabel = options.find(o => o.value === selectedValue)?.label || '';
+  const selOpt      = options.find(o => o.value === selectedValue);
+  const selDisplay  = selOpt ? (selOpt.icon || '') + esc(selOpt.label) : '';
   const optsHTML = options.map(o => `
-    <div class="custom-select-opt${o.value === selectedValue ? ' selected' : ''}" data-value="${esc(o.value)}" onclick="pickCustomSelect('${inputId}', this)">
-      ${esc(o.label)}
+    <div class="custom-select-opt${o.value === selectedValue ? ' selected' : ''}" data-value="${esc(o.value)}" data-label="${esc(o.label)}" onclick="pickCustomSelect('${inputId}', this)">
+      ${o.icon || ''}${esc(o.label)}
     </div>`).join('');
   return `
     <div class="custom-select" id="csel-${inputId}">
-      <div class="custom-select-box" id="csel-box-${inputId}" onclick="toggleCustomSelect('${inputId}')">
-        <span id="csel-val-${inputId}">${selectedLabel ? esc(selectedLabel) : `<span class="custom-select-placeholder">${esc(placeholder)}</span>`}</span>
+      <div class="custom-select-box" id="csel-box-${inputId}" onclick="toggleCustomSelect('${inputId}')" data-placeholder="${esc(placeholder)}">
+        <span id="csel-val-${inputId}">${selDisplay || `<span class="custom-select-placeholder">${esc(placeholder)}</span>`}</span>
         <span class="custom-select-caret">&#9662;</span>
       </div>
       <div class="custom-select-dd" id="csel-dd-${inputId}">${optsHTML}</div>
@@ -36,18 +37,27 @@ function toggleCustomSelect(inputId) {
 
 function pickCustomSelect(inputId, el) {
   const value = el.dataset.value;
-  const label = el.textContent.trim();
   document.getElementById(inputId).value = value;
   const valEl = document.getElementById(`csel-val-${inputId}`);
+  const box   = document.getElementById(`csel-box-${inputId}`);
+  const ph    = box?.dataset.placeholder || '— Sélectionner —';
   if (valEl) valEl.innerHTML = value
-    ? esc(label)
-    : `<span class="custom-select-placeholder">— Aucune —</span>`;
+    ? el.innerHTML
+    : `<span class="custom-select-placeholder">${esc(ph)}</span>`;
   const dd = document.getElementById(`csel-dd-${inputId}`);
   if (dd) {
     dd.querySelectorAll('.custom-select-opt').forEach(o => o.classList.toggle('selected', o.dataset.value === value));
     dd.classList.remove('open');
   }
   document.getElementById(`csel-box-${inputId}`)?.classList.remove('open');
+}
+
+function toggleDnsField() {
+  const checked = document.getElementById('f-dns-check')?.checked;
+  const wrap    = document.getElementById('f-dns-wrap');
+  if (!wrap) return;
+  wrap.style.display = checked ? '' : 'none';
+  if (!checked) document.getElementById('f-dns').value = '';
 }
 
 // ── Overlay ───────────────────────────────────────────────────────
@@ -169,6 +179,23 @@ function openSiteModal(id, pgid) {
       <label>Serveur</label>
       ${customSelectHTML('f-group', serverOptions, sel || '', '— Sans serveur —')}
     </div>
+    <div class="field field-checkbox">
+      <label class="checkbox-label">
+        <input type="checkbox" id="f-dns-check" onchange="toggleDnsField()" ${s?.dns_zone ? 'checked' : ''}>
+        Zone DNS
+      </label>
+    </div>
+    <div class="field" id="f-dns-wrap" style="${s?.dns_zone ? '' : 'display:none'}">
+      <label>Fournisseur DNS</label>
+      ${customSelectHTML('f-dns', [
+        { value: '', label: '— Sélectionner —' },
+        ...DNS_PROVIDERS.map(d => ({
+          value: d.value,
+          label: d.label,
+          icon: `<img src="${SI}/${d.slug}" width="13" height="13" alt="" onerror="this.style.display='none'" style="display:inline-block;vertical-align:middle;margin-right:5px;flex-shrink:0">`
+        }))
+      ], s?.dns_zone || '', '— Sélectionner —')}
+    </div>
     <div class="field">
       <label>Technologies</label>
       <div class="tech-select" id="tech-select">
@@ -225,6 +252,9 @@ async function saveModal() {
       const techs     = getSelectedTechs();
       const dateVal   = document.getElementById('f-date').value || null;
       const agencyVal = document.getElementById('f-agency').value || null;
+      const dnsVal    = document.getElementById('f-dns-check')?.checked
+        ? (document.getElementById('f-dns').value || null)
+        : null;
       const obj = {
         name,
         url         : (document.getElementById('f-url').value    || '').trim(),
@@ -233,6 +263,7 @@ async function saveModal() {
         php_version : (document.getElementById('f-php').value    || '').trim(),
         agency      : agencyVal,
         go_live_date: dateVal,
+        dns_zone    : dnsVal,
         group_id    : document.getElementById('f-group').value   || null,
         technologies: JSON.stringify(techs),
         notes       : (document.getElementById('f-notes').value  || '').trim()
