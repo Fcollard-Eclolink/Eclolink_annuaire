@@ -116,7 +116,6 @@ function rowHTML(s, q, srvLabel) {
           ${s.url         ? `<a class="icon-link" href="${esc(s.url)}" target="_blank" title="${esc(s.url)}">${SVG_SITE}</a>` : ''}
           ${s.bo_url      ? `<a class="icon-link" href="${esc(s.bo_url)}" target="_blank" title="Back-office">${SVG_BO}</a>` : ''}
           ${s.gitlab_url  ? `<a class="icon-link" href="${esc(s.gitlab_url)}" target="_blank" title="GitLab">${SVG_GL}</a>` : ''}
-          ${hasInfo       ? `<button class="icon-btn icon-btn-sm" onclick="toggleSiteInfo('${s.id}',this)" title="Informations">&#x2139;</button>` : ''}
           ${s.agency      ? `<span class="tag tag-agency">${hl(s.agency, q)}</span>` : ''}
           ${dateStr       ? `<span class="tag tag-date">&#128197; ${esc(dateStr)}</span>` : ''}
           ${srvLabel      ? `<span class="tag tag-server">${esc(srvLabel)}</span>` : ''}
@@ -125,6 +124,7 @@ function rowHTML(s, q, srvLabel) {
         </div>
       </div>
       <div class="row-actions">
+        ${hasInfo ? `<button class="icon-btn" onclick="toggleSiteInfo('${s.id}',this)" title="Informations">&#x2139;</button>` : ''}
         <button class="icon-btn" onclick="openSiteModal('${s.id}')" title="Modifier">&#9998;</button>
         <button class="icon-btn del" onclick="deleteSite('${s.id}')" title="Supprimer">&#10005;</button>
       </div>
