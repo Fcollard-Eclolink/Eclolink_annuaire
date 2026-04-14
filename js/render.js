@@ -113,11 +113,11 @@ function rowHTML(s, q, srvLabel) {
           ${s.url         ? `<a class="icon-link" href="${esc(s.url)}" target="_blank" title="${esc(s.url)}">${SVG_SITE}</a>` : ''}
           ${s.bo_url      ? `<a class="icon-link" href="${esc(s.bo_url)}" target="_blank" title="Back-office">${SVG_BO}</a>` : ''}
           ${s.gitlab_url  ? `<a class="icon-link" href="${esc(s.gitlab_url)}" target="_blank" title="GitLab">${SVG_GL}</a>` : ''}
-          ${s.agency      ? `<span class="tag tag-agency">${hl(s.agency, q)}</span>` : ''}
+          ${s.agency      ? `<span class="tag tag-agency">${esc(s.agency)}</span>` : ''}
           ${dateStr       ? `<span class="tag tag-date">&#128197; ${esc(dateStr)}</span>` : ''}
           ${srvLabel      ? `<span class="tag tag-server">${esc(srvLabel)}</span>` : ''}
           ${techBadges}
-          ${s.notes       ? `<span class="site-notes">${hl(s.notes, q)}</span>` : ''}
+          ${s.notes       ? `<span class="site-notes">${esc(s.notes)}</span>` : ''}
         </div>
       </div>
       <div class="row-actions">
