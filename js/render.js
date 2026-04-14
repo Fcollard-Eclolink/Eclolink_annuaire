@@ -124,7 +124,7 @@ function rowHTML(s, q, srvLabel) {
         </div>
       </div>
       <div class="row-actions">
-        ${hasInfo ? `<button class="icon-btn" onclick="toggleSiteInfo('${s.id}',this)" title="Informations">&#x2139;</button>` : ''}
+        ${hasInfo ? `<button class="icon-btn" onclick="toggleSiteInfo('${s.id}',this);event.stopPropagation()" title="Informations">&#x2139;</button>` : ''}
         <button class="icon-btn" onclick="openSiteModal('${s.id}')" title="Modifier">&#9998;</button>
         <button class="icon-btn del" onclick="deleteSite('${s.id}')" title="Supprimer">&#10005;</button>
       </div>
