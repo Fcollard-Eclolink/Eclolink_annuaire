@@ -132,10 +132,10 @@ function openSiteModal(id, pgid) {
 
   const agencyOptions = [
     { value: '', label: '— Aucune —' },
-    ...AGENCIES.map(ag => ({ value: ag, label: ag }))
+    ...[...AGENCIES].sort((a, b) => a.localeCompare(b, 'fr')).map(ag => ({ value: ag, label: ag }))
   ];
 
-  const techOpts = TECHS.map(t => `
+  const techOpts = [...TECHS].sort((a, b) => a.label.localeCompare(b.label, 'fr')).map(t => `
     <label class="tech-option">
       <input type="checkbox" value="${t.id}" onchange="updateTechBox()">
       ${techIconHTML(t, 15)}
