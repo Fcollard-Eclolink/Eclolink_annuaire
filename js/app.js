@@ -13,10 +13,11 @@ async function load(showToast) {
     sites = sitesRaw.map(s => ({
       ...s,
       groupId     : s.group_id,
-      gitlab_url  : s.gitlab_url   || '',
-      php_version : s.php_version  || '',
-      agency      : s.agency       || '',
-      go_live_date: s.go_live_date || '',
+      bo_url      : s.bo_url        || '',
+      gitlab_url  : s.gitlab_url    || '',
+      php_version : s.php_version   || '',
+      agency      : s.agency        || '',
+      go_live_date: s.go_live_date  || '',
       technologies: tryParseJSON(s.technologies)
     }));
     render();

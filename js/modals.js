@@ -139,8 +139,12 @@ function openSiteModal(id, pgid) {
       <input id="f-name" type="text" value="${esc(s ? s.name : '')}" placeholder="Ex : Hôtel Mercure Dijon">
     </div>
     <div class="field">
-      <label>URL</label>
+      <label>URL du site</label>
       <input id="f-url" type="text" value="${esc(s ? s.url : '')}" placeholder="https://...">
+    </div>
+    <div class="field">
+      <label>URL back-office</label>
+      <input id="f-bo-url" type="text" value="${esc(s ? s.bo_url || '' : '')}" placeholder="https://.../wp-admin">
     </div>
     <div class="field">
       <label>GitLab</label>
@@ -224,6 +228,7 @@ async function saveModal() {
       const obj = {
         name,
         url         : (document.getElementById('f-url').value    || '').trim(),
+        bo_url      : (document.getElementById('f-bo-url').value || '').trim(),
         gitlab_url  : (document.getElementById('f-gitlab').value || '').trim(),
         php_version : (document.getElementById('f-php').value    || '').trim(),
         agency      : agencyVal,

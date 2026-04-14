@@ -112,7 +112,8 @@ function rowHTML(s, q, srvLabel) {
       <div class="site-info">
         <div class="site-name">${hl(s.name, q)}</div>
         <div class="site-meta">
-          ${s.url         ? `<a class="icon-link" href="${esc(s.url)}" target="_blank" title="${esc(s.url)}">${SVG_EXT}</a>` : ''}
+          ${s.url         ? `<a class="icon-link" href="${esc(s.url)}" target="_blank" title="${esc(s.url)}">${SVG_SITE}</a>` : ''}
+          ${s.bo_url      ? `<a class="icon-link" href="${esc(s.bo_url)}" target="_blank" title="Back-office">${SVG_BO}</a>` : ''}
           ${s.gitlab_url  ? `<a class="icon-link" href="${esc(s.gitlab_url)}" target="_blank" title="GitLab">${SVG_GL}</a>` : ''}
           ${s.php_version ? `<span class="tag">${hl(s.php_version, q)}</span>` : ''}
           ${s.agency      ? `<span class="tag tag-agency">${hl(s.agency, q)}</span>` : ''}
