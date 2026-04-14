@@ -202,7 +202,8 @@
     border-color: var(--del-hover-color);
 
     &:hover {
-        opacity: .85;
+        background-color: var(--del-hover-bg);
+        border-color: var(--del-hover-bg);
     }
 }
 
