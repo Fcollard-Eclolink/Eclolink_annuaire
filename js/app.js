@@ -86,6 +86,33 @@ function copyToClipboard(text, btn) {
   }).catch(() => toast('Impossible de copier'));
 }
 
+// ── Auto-synchronisation toutes les 5 minutes ────────────────────
+async function silentRefresh() {
+  try {
+    const [groupsRaw, sitesRaw] = await Promise.all([sbGet('eclolink_groups'), sbGet('eclolink_sites')]);
+    groups = groupsRaw.map(g => ({
+      ...g,
+      ip_local  : g.ip_local   || '',
+      ip_public : g.ip_public  || '',
+      web_server: g.web_server || ''
+    }));
+    sites = sitesRaw.map(s => ({
+      ...s,
+      groupId     : s.group_id,
+      bo_url      : s.bo_url        || '',
+      gitlab_url  : s.gitlab_url    || '',
+      php_version : s.php_version   || '',
+      agency      : s.agency        || '',
+      go_live_date: s.go_live_date  || '',
+      dns_zone    : s.dns_zone      || '',
+      technologies: tryParseJSON(s.technologies)
+    }));
+    render();
+  } catch(e) { /* silencieux */ }
+}
+
+setInterval(silentRefresh, 5 * 60 * 1000);
+
 // ── Ouvrir tous les URLs d'un serveur ────────────────────────────
 function openAllSiteUrls(gid) {
   const g    = groups.find(x => x.id === gid);
