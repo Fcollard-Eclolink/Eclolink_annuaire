@@ -157,8 +157,8 @@ function toggleServerInfo(gid, btn) {
   if (!g) return;
 
   const rows = [];
-  if (g.ip_public)  rows.push(`<div class="sti-row"><span class="sti-label">IP publique</span><span class="sti-val">${esc(g.ip_public)}</span></div>`);
-  if (g.ip_local)   rows.push(`<div class="sti-row"><span class="sti-label">IP locale</span><span class="sti-val">${esc(g.ip_local)}</span></div>`);
+  if (g.ip_public)  rows.push(`<div class="sti-row"><span class="sti-label">IP publique</span><span class="sti-val">${esc(g.ip_public)}<button class="sti-copy" onclick="copyToClipboard('${esc(g.ip_public)}',this)" title="Copier">${SVG_COPY}</button></span></div>`);
+  if (g.ip_local)   rows.push(`<div class="sti-row"><span class="sti-label">IP locale</span><span class="sti-val">${esc(g.ip_local)}<button class="sti-copy" onclick="copyToClipboard('${esc(g.ip_local)}',this)" title="Copier">${SVG_COPY}</button></span></div>`);
   if (g.web_server) rows.push(`<div class="sti-row"><span class="sti-label">Serveur web</span><span class="sti-val"><img src="${SI}/${g.web_server}" width="12" height="12" alt="" onerror="this.style.display='none'" style="vertical-align:middle;margin-right:4px">${esc(g.web_server)}</span></div>`);
   if (!rows.length) return;
 

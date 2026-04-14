@@ -71,6 +71,16 @@ document.addEventListener('click', e => {
   });
 });
 
+// ── Copier dans le presse-papier ─────────────────────────────────
+function copyToClipboard(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const prev = btn.innerHTML;
+    btn.innerHTML = '✓';
+    btn.style.color = 'var(--accent, #4caf50)';
+    setTimeout(() => { btn.innerHTML = prev; btn.style.color = ''; }, 1500);
+  }).catch(() => toast('Impossible de copier'));
+}
+
 // ── Ouvrir tous les URLs d'un serveur ────────────────────────────
 function openAllSiteUrls(gid) {
   const g    = groups.find(x => x.id === gid);

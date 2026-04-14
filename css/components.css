@@ -352,6 +352,30 @@ input[type=password] {
     font-size: 12px;
     text-align: right;
     word-break: break-all;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.sti-copy {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    font-size: 11px;
+
+    &:hover {
+        background: var(--hover);
+        color: var(--text);
+    }
 }
 
 /* ── Spinner ──────────────────────────────────────────────────── */
