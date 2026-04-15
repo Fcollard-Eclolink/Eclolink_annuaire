@@ -88,20 +88,21 @@ function refreshOpenDropdowns() {
   });
 }
 
+// Applique les effets visuels après toute mutation de filtre
+function applyFilterChange() {
+  render();
+  refreshOpenDropdowns();
+  renderFilterChips();
+  updateFilterBtnState();
+}
+
 // Coche / décoche un filtre
 function toggleFilter(key, value) {
   const arr = activeFilters[key];
   const idx = arr.indexOf(value);
   if (idx === -1) arr.push(value);
   else arr.splice(idx, 1);
-
-  render();
-  ['server', 'tech', 'agency'].forEach(type => {
-    const dd = document.getElementById(`filter-dd-${type}`);
-    if (dd?.classList.contains('open')) renderFilterDropdown(type);
-  });
-  renderFilterChips();
-  updateFilterBtnState();
+  applyFilterChange();
 }
 
 // Retire un filtre depuis un chip
@@ -109,10 +110,7 @@ function removeFilter(key, value) {
   const arr = activeFilters[key];
   const idx = arr.indexOf(value);
   if (idx !== -1) arr.splice(idx, 1);
-  render();
-  refreshOpenDropdowns();
-  renderFilterChips();
-  updateFilterBtnState();
+  applyFilterChange();
 }
 
 // Efface tous les filtres
@@ -120,10 +118,7 @@ function clearAllFilters() {
   activeFilters.servers  = [];
   activeFilters.techs    = [];
   activeFilters.agencies = [];
-  render();
-  refreshOpenDropdowns();
-  renderFilterChips();
-  updateFilterBtnState();
+  applyFilterChange();
 }
 
 // Met à jour les chips actifs sous la barre

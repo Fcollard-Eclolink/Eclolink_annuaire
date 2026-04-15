@@ -1,26 +1,34 @@
+// ── Normalisation des données Supabase ────────────────────────────
+function normalizeGroup(g) {
+  return { ...g, ip_local: g.ip_local || '', ip_public: g.ip_public || '', web_server: g.web_server || '' };
+}
+
+function normalizeSite(s) {
+  return {
+    ...s,
+    groupId     : s.group_id,
+    bo_url      : s.bo_url       || '',
+    gitlab_url  : s.gitlab_url   || '',
+    php_version : s.php_version  || '',
+    agency      : s.agency       || '',
+    go_live_date: s.go_live_date || '',
+    dns_zone    : s.dns_zone     || '',
+    technologies: tryParseJSON(s.technologies)
+  };
+}
+
+async function fetchData() {
+  const [groupsRaw, sitesRaw] = await Promise.all([sbGet('eclolink_groups'), sbGet('eclolink_sites')]);
+  groups = groupsRaw.map(normalizeGroup);
+  sites  = sitesRaw.map(normalizeSite);
+}
+
 // ── Chargement des données ────────────────────────────────────────
 async function load(showToast) {
   document.getElementById('list').innerHTML = '<div class="no-result">Chargement…</div>';
   loadCollapsed();
   try {
-    const [groupsRaw, sitesRaw] = await Promise.all([sbGet('eclolink_groups'), sbGet('eclolink_sites')]);
-    groups = groupsRaw.map(g => ({
-      ...g,
-      ip_local  : g.ip_local   || '',
-      ip_public : g.ip_public  || '',
-      web_server: g.web_server || ''
-    }));
-    sites = sitesRaw.map(s => ({
-      ...s,
-      groupId     : s.group_id,
-      bo_url      : s.bo_url        || '',
-      gitlab_url  : s.gitlab_url    || '',
-      php_version : s.php_version   || '',
-      agency      : s.agency        || '',
-      go_live_date: s.go_live_date  || '',
-      dns_zone    : s.dns_zone      || '',
-      technologies: tryParseJSON(s.technologies)
-    }));
+    await fetchData();
     render();
     if (showToast) toast('Données actualisées');
   } catch(e) {
@@ -35,9 +43,9 @@ document.addEventListener('keydown', e => {
   const isModal   = document.getElementById('modal-wrap').classList.contains('open');
 
   if (!isConfirm && !isModal) {
-    if (ctrl && e.key === 'k')                    { e.preventDefault(); document.getElementById('search')?.focus(); return; }
-    if (ctrl && e.shiftKey && e.key === 'G')      { e.preventDefault(); openServerModal(); return; }
-    if (ctrl && e.shiftKey && e.key === 'S')      { e.preventDefault(); openSiteModal();   return; }
+    if (ctrl && e.key === 'k')               { e.preventDefault(); document.getElementById('search')?.focus(); return; }
+    if (ctrl && e.shiftKey && e.key === 'G') { e.preventDefault(); openServerModal(); return; }
+    if (ctrl && e.shiftKey && e.key === 'S') { e.preventDefault(); openSiteModal();   return; }
   }
 
   if (isConfirm) {
@@ -53,20 +61,16 @@ document.addEventListener('keydown', e => {
 
 // ── Fermeture des dropdowns au clic extérieur ────────────────────
 document.addEventListener('click', e => {
-  // tech dropdown (modal)
   const sel = document.getElementById('tech-select');
   if (sel && !sel.contains(e.target))
     document.getElementById('tech-dropdown')?.classList.remove('open');
 
-  // server info tooltip
   const tt = document.getElementById('server-tooltip');
   if (tt && tt.classList.contains('open') && !tt.contains(e.target)) hideServerInfo();
 
-  // site info tooltip
   const stt = document.getElementById('site-tooltip');
   if (stt && stt.classList.contains('open') && !stt.contains(e.target)) hideSiteInfo();
 
-  // custom selects
   document.querySelectorAll('.custom-select-dd.open').forEach(dd => {
     const wrap = dd.closest('.custom-select');
     if (wrap && !wrap.contains(e.target)) {
@@ -91,30 +95,9 @@ async function silentRefresh() {
   const s = getSession();
   if (!s) return;
   if (s.expires_at && Date.now() / 1000 > s.expires_at - 60) {
-    const ok = await tryRefreshToken();
-    if (!ok) return; // skip sans déconnecter
+    if (!await tryRefreshToken()) return;
   }
-  try {
-    const [groupsRaw, sitesRaw] = await Promise.all([sbGet('eclolink_groups'), sbGet('eclolink_sites')]);
-    groups = groupsRaw.map(g => ({
-      ...g,
-      ip_local  : g.ip_local   || '',
-      ip_public : g.ip_public  || '',
-      web_server: g.web_server || ''
-    }));
-    sites = sitesRaw.map(s => ({
-      ...s,
-      groupId     : s.group_id,
-      bo_url      : s.bo_url        || '',
-      gitlab_url  : s.gitlab_url    || '',
-      php_version : s.php_version   || '',
-      agency      : s.agency        || '',
-      go_live_date: s.go_live_date  || '',
-      dns_zone    : s.dns_zone      || '',
-      technologies: tryParseJSON(s.technologies)
-    }));
-    render();
-  } catch(e) { /* silencieux */ }
+  try { await fetchData(); render(); } catch(e) { /* silencieux */ }
 }
 
 setInterval(silentRefresh, 5 * 60 * 1000);
@@ -124,7 +107,7 @@ function openAllSiteUrls(gid) {
   const g    = groups.find(x => x.id === gid);
   const urls = sites.filter(s => s.groupId === gid && s.url).map(s => s.url);
   if (!urls.length) return;
-  pendingDelete = null; // ne pas interférer avec la suppression
+  pendingDelete = null;
   document.getElementById('confirm-title').textContent = 'Ouvrir tous les sites';
   document.getElementById('confirm-msg').textContent =
     `Ouvrir les ${urls.length} site${urls.length > 1 ? 's' : ''} du serveur "${g ? g.name : ''}" dans de nouveaux onglets ?`;

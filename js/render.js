@@ -5,15 +5,24 @@ function render() {
   const hasFilters = activeFilters.servers.length > 0
                   || activeFilters.techs.length   > 0
                   || activeFilters.agencies.length > 0;
-  let html         = '';
+
+  // Maps pour accès O(1) au lieu de find() O(n) dans les boucles
+  const groupById    = new Map(groups.map(g => [g.id, g]));
+  const sitesByGroup = new Map(groups.map(g => [g.id, []]));
+  sitesByGroup.set('__none__', []);
+  sites.forEach(s => {
+    const bucket = sitesByGroup.get(s.groupId) ?? sitesByGroup.get('__none__');
+    bucket.push(s);
+  });
+
+  const localeSort = (a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true });
 
   const filtered = sites.filter(s => {
     if (q) {
-      const g = groups.find(g => g.id === s.groupId);
-      const match = (s.name     || '').toLowerCase().includes(q)
-                 || (s.url      || '').toLowerCase().includes(q)
-                 || (g ? g.name : '').toLowerCase().includes(q);
-      if (!match) return false;
+      const g = groupById.get(s.groupId);
+      if (!(s.name || '').toLowerCase().includes(q)
+       && !(s.url  || '').toLowerCase().includes(q)
+       && !(g ? g.name : '').toLowerCase().includes(q)) return false;
     }
     if (activeFilters.servers.length  && !activeFilters.servers.includes(s.groupId)) return false;
     if (activeFilters.techs.length    && !activeFilters.techs.some(t => (s.technologies || []).includes(t))) return false;
@@ -21,24 +30,22 @@ function render() {
     return true;
   });
 
+  let html = '';
+
   if (q || hasFilters) {
     if (!filtered.length) {
       html = `<div class="no-result">Aucun résultat${q ? ` pour "${esc(q)}"` : ''}</div>`;
     } else {
       html += `<div class="group-card"><div class="group-body">`;
-      [...filtered].sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true })).forEach(s => {
-        const g = groups.find(g => g.id === s.groupId);
+      [...filtered].sort(localeSort).forEach(s => {
+        const g = groupById.get(s.groupId);
         html += rowHTML(s, q, g ? g.name : '');
       });
       html += `</div></div>`;
     }
   } else {
-    const ungrouped = sites
-      .filter(s => !s.groupId || !groups.find(g => g.id === s.groupId))
-      .sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true }));
-
-    [...groups].sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true })).forEach(g => {
-      const gs   = sites.filter(s => s.groupId === g.id).sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true }));
+    [...groups].sort(localeSort).forEach(g => {
+      const gs   = (sitesByGroup.get(g.id) || []).slice().sort(localeSort);
       const open = !collapsed[g.id];
       const hasInfo = g.ip_local || g.ip_public || g.web_server;
 
@@ -68,6 +75,7 @@ function render() {
       html += `</div>`;
     });
 
+    const ungrouped = (sitesByGroup.get('__none__') || []).slice().sort(localeSort);
     if (ungrouped.length) {
       const open = !collapsed['__none__'];
       html += `
@@ -96,28 +104,28 @@ function render() {
 // ── Ligne d'un site ───────────────────────────────────────────────
 function rowHTML(s, q, srvLabel) {
   const techBadges = (s.technologies || [])
-    .map(tid => TECHS.find(x => x.id === tid))
+    .map(tid => TECH_BY_ID.get(tid))
     .filter(Boolean)
     .sort((a, b) => a.label.localeCompare(b.label, 'fr'))
     .map(t => `<span class="tech-badge">${techIconHTML(t, 12)}${esc(t.label)}</span>`)
     .join('');
 
-  const dateStr  = formatDate(s.go_live_date);
-  const hasInfo  = s.php_version || s.dns_zone;
+  const dateStr = formatDate(s.go_live_date);
+  const hasInfo = s.php_version || s.dns_zone;
 
   return `
     <div class="site-row">
       <div class="site-info">
         <div class="site-name">${hl(s.name, q)}</div>
         <div class="site-meta">
-          ${s.url         ? `<a class="icon-link" href="${esc(s.url)}" target="_blank" title="${esc(s.url)}">${SVG_SITE}</a>` : ''}
-          ${s.bo_url      ? `<a class="icon-link" href="${esc(s.bo_url)}" target="_blank" title="Back-office">${SVG_BO}</a>` : ''}
-          ${s.gitlab_url  ? `<a class="icon-link" href="${esc(s.gitlab_url)}" target="_blank" title="GitLab">${SVG_GL}</a>` : ''}
-          ${s.agency      ? `<span class="tag tag-agency">${esc(s.agency)}</span>` : ''}
-          ${dateStr       ? `<span class="tag tag-date">&#128197; ${esc(dateStr)}</span>` : ''}
-          ${srvLabel      ? `<span class="tag tag-server">${esc(srvLabel)}</span>` : ''}
+          ${s.url        ? `<a class="icon-link" href="${esc(s.url)}" target="_blank" title="${esc(s.url)}">${SVG_SITE}</a>` : ''}
+          ${s.bo_url     ? `<a class="icon-link" href="${esc(s.bo_url)}" target="_blank" title="Back-office">${SVG_BO}</a>` : ''}
+          ${s.gitlab_url ? `<a class="icon-link" href="${esc(s.gitlab_url)}" target="_blank" title="GitLab">${SVG_GL}</a>` : ''}
+          ${s.agency     ? `<span class="tag tag-agency">${esc(s.agency)}</span>` : ''}
+          ${dateStr      ? `<span class="tag tag-date">&#128197; ${esc(dateStr)}</span>` : ''}
+          ${srvLabel     ? `<span class="tag tag-server">${esc(srvLabel)}</span>` : ''}
           ${techBadges}
-          ${s.notes       ? `<span class="site-notes">${esc(s.notes)}</span>` : ''}
+          ${s.notes      ? `<span class="site-notes">${esc(s.notes)}</span>` : ''}
         </div>
       </div>
       <div class="row-actions">
@@ -132,9 +140,8 @@ function rowHTML(s, q, srvLabel) {
 function onSearchInput() {
   render();
   refreshOpenDropdowns();
-  const hasValue = !!document.getElementById('search').value;
   const btn = document.getElementById('search-clear');
-  if (btn) btn.style.display = hasValue ? 'flex' : 'none';
+  if (btn) btn.style.display = document.getElementById('search').value ? 'flex' : 'none';
 }
 
 function clearSearch() {
@@ -144,13 +151,22 @@ function clearSearch() {
   input.focus();
 }
 
+// ── Positionnement d'un tooltip (partagé) ────────────────────────
+function positionTooltip(tt, btn) {
+  const rect      = btn.getBoundingClientRect();
+  const ttW       = 220;
+  tt.style.left   = Math.min(rect.left, window.innerWidth - ttW - 8) + 'px';
+  const spaceBelow = window.innerHeight - rect.bottom;
+  tt.style.top    = spaceBelow >= 100
+    ? (rect.bottom + 6) + 'px'
+    : (rect.top - tt.offsetHeight - 6) + 'px';
+}
+
 // ── Popover infos serveur ─────────────────────────────────────────
 function toggleServerInfo(gid, btn) {
   const tt = document.getElementById('server-tooltip');
   if (!tt) return;
-  if (tt.dataset.gid === gid && tt.classList.contains('open')) {
-    hideServerInfo(); return;
-  }
+  if (tt.dataset.gid === gid && tt.classList.contains('open')) { hideServerInfo(); return; }
   const g = groups.find(x => x.id === gid);
   if (!g) return;
 
@@ -163,16 +179,7 @@ function toggleServerInfo(gid, btn) {
   tt.innerHTML = rows.join('');
   tt.dataset.gid = gid;
   tt.classList.add('open');
-
-  const rect = btn.getBoundingClientRect();
-  const ttW  = 220;
-  const left = Math.min(rect.left, window.innerWidth - ttW - 8);
-  tt.style.left = left + 'px';
-  // position en dessous, ou au-dessus si pas de place
-  const spaceBelow = window.innerHeight - rect.bottom;
-  tt.style.top = spaceBelow >= 100
-    ? (rect.bottom + 6) + 'px'
-    : (rect.top - tt.offsetHeight - 6) + 'px';
+  positionTooltip(tt, btn);
 }
 
 function hideServerInfo() {
@@ -184,9 +191,7 @@ function hideServerInfo() {
 function toggleSiteInfo(sid, btn) {
   const tt = document.getElementById('site-tooltip');
   if (!tt) return;
-  if (tt.dataset.sid === sid && tt.classList.contains('open')) {
-    hideSiteInfo(); return;
-  }
+  if (tt.dataset.sid === sid && tt.classList.contains('open')) { hideSiteInfo(); return; }
   const s = sites.find(x => x.id === sid);
   if (!s) return;
 
@@ -201,15 +206,7 @@ function toggleSiteInfo(sid, btn) {
   tt.innerHTML = rows.join('');
   tt.dataset.sid = sid;
   tt.classList.add('open');
-
-  const rect = btn.getBoundingClientRect();
-  const ttW  = 220;
-  const left = Math.min(rect.left, window.innerWidth - ttW - 8);
-  tt.style.left = left + 'px';
-  const spaceBelow = window.innerHeight - rect.bottom;
-  tt.style.top = spaceBelow >= 100
-    ? (rect.bottom + 6) + 'px'
-    : (rect.top - tt.offsetHeight - 6) + 'px';
+  positionTooltip(tt, btn);
 }
 
 function hideSiteInfo() {

@@ -28,7 +28,7 @@ function saveCollapsed() {
 
 // ── Utilitaires généraux ──────────────────────────────────────────
 function uid() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2);
+  return crypto.randomUUID();
 }
 
 function tryParseJSON(str) {
@@ -39,10 +39,13 @@ function esc(t) {
   return String(t || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+// Recherche dans le texte original, échappe chaque segment séparément
 function hl(text, q) {
   if (!q) return esc(text);
   const re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
-  return esc(text).replace(re, '<mark>$1</mark>');
+  return String(text || '').split(re)
+    .map((p, i) => i % 2 === 1 ? `<mark>${esc(p)}</mark>` : esc(p))
+    .join('');
 }
 
 function toast(msg) {

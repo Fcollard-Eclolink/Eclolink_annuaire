@@ -27,6 +27,7 @@ async function tryRefreshToken() {
     });
     if (!r.ok) return false;
     const d = await r.json();
+    if (!d.access_token || !d.refresh_token) return false;
     saveSession({ access_token: d.access_token, refresh_token: d.refresh_token, expires_at: Date.now() / 1000 + d.expires_in });
     return true;
   } catch { return false; }

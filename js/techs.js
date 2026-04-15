@@ -39,6 +39,9 @@ const SVG_SITE = `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" st
 // Clé à molette — lien back-office
 const SVG_BO   = `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`;
 
+// Map pour accès O(1) aux technos par id
+const TECH_BY_ID = new Map(TECHS.map(t => [t.id, t]));
+
 // ── Fournisseurs DNS ──────────────────────────────────────────────
 const DNS_PROVIDERS = [
   { value: 'cloudflare', label: 'Cloudflare', slug: 'cloudflare' },

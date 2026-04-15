@@ -125,7 +125,7 @@ function openSiteModal(id, pgid) {
   const sel  = s ? s.groupId : pgid;
   const serverOptions = [
     { value: '', label: '— Sans serveur —' },
-    ...groups
+    ...[...groups]
       .sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true }))
       .map(g => ({ value: g.id, label: g.name }))
   ];
@@ -225,16 +225,19 @@ function openSiteModal(id, pgid) {
 
 // ── Sauvegarde ────────────────────────────────────────────────────
 async function saveModal() {
-  const btn = document.getElementById('save-btn');
+  const btn  = document.getElementById('save-btn');
+  const name = (document.getElementById('f-name').value || '').trim();
+  if (!name) {
+    toast(modalMode === 'server' ? 'Le nom du serveur est requis' : 'Le nom du site est requis');
+    return;
+  }
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Enregistrement...';
   try {
     if (modalMode === 'server') {
-      const name = (document.getElementById('f-name').value || '').trim();
-      if (!name) { btn.disabled = false; btn.textContent = 'Enregistrer'; toast('Le nom du serveur est requis'); return; }
       const obj = {
         name,
-        ip_local  : (document.getElementById('f-ip-local').value  || '').trim(),
+        ip_local : (document.getElementById('f-ip-local').value  || '').trim(),
         ip_public : (document.getElementById('f-ip-public').value || '').trim(),
         web_server: document.getElementById('f-webserver')?.value || null,
       };
@@ -247,8 +250,6 @@ async function saveModal() {
         groups.push({ id, ...obj });
       }
     } else if (modalMode === 'site') {
-      const name = (document.getElementById('f-name').value || '').trim();
-      if (!name) { btn.disabled = false; btn.textContent = 'Enregistrer'; toast('Le nom du site est requis'); return; }
       const techs     = getSelectedTechs();
       const dateVal   = document.getElementById('f-date').value || null;
       const agencyVal = document.getElementById('f-agency').value || null;
