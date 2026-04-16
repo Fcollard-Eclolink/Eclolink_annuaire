@@ -44,13 +44,10 @@ const TECH_BY_ID = new Map(TECHS.map(t => [t.id, t]));
 
 // ── Hébergeurs ────────────────────────────────────────────────────
 const HOSTERS = [
-  { value: 'aws',          label: 'AWS',          slug: 'amazonaws'    },
-  { value: 'digitalocean', label: 'DigitalOcean', slug: 'digitalocean' },
-  { value: 'hetzner',      label: 'Hetzner',      slug: 'hetzner'      },
-  { value: 'infomaniak',   label: 'Infomaniak',   slug: 'infomaniak'   },
-  { value: 'ionos',        label: 'IONOS',        slug: 'ionos'        },
-  { value: 'ovh',          label: 'OVH',          slug: 'ovh'          },
-  { value: 'scaleway',     label: 'Scaleway',     slug: 'scaleway'     },
+  { value: 'gandi',   label: 'Gandi',   slug: 'gandi'   },
+  { value: 'ionos',   label: 'IONOS',   slug: 'ionos'   },
+  { value: 'namebay', label: 'Namebay', slug: 'namebay' },
+  { value: 'ovh',     label: 'OVH',     slug: 'ovh'     },
 ];
 
 // ── Fournisseurs DNS ──────────────────────────────────────────────
