@@ -96,11 +96,24 @@ function openServerModal(id) {
     { value: 'nginx',  label: 'Nginx'     },
   ];
 
+  const hosterOptions = [
+    { value: '', label: '— Aucun —' },
+    ...[...HOSTERS].sort((a, b) => a.label.localeCompare(b.label, 'fr')).map(h => ({
+      value: h.value,
+      label: h.label,
+      icon: `<img src="${SI}/${h.slug}" width="13" height="13" alt="" onerror="this.style.display='none'" style="display:inline-block;vertical-align:middle;margin-right:5px;flex-shrink:0">`
+    }))
+  ];
+
   document.getElementById('modal-title').textContent = id ? 'Modifier le serveur' : 'Nouveau serveur';
   document.getElementById('modal-body').innerHTML = `
     <div class="field">
       <label>Nom du serveur</label>
       <input id="f-name" type="text" value="${esc(g ? g.name : '')}" placeholder="Ex : Serveur 1, OVH-VPS...">
+    </div>
+    <div class="field">
+      <label>Hébergeur</label>
+      ${customSelectHTML('f-hoster', hosterOptions, g?.hoster || '', '— Aucun —')}
     </div>
     <div class="field">
       <label>IP publique</label>
@@ -237,7 +250,8 @@ async function saveModal() {
     if (modalMode === 'server') {
       const obj = {
         name,
-        ip_local : (document.getElementById('f-ip-local').value  || '').trim(),
+        hoster    : document.getElementById('f-hoster')?.value    || null,
+        ip_local  : (document.getElementById('f-ip-local').value  || '').trim(),
         ip_public : (document.getElementById('f-ip-public').value || '').trim(),
         web_server: document.getElementById('f-webserver')?.value || null,
       };

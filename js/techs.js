@@ -42,6 +42,17 @@ const SVG_BO   = `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" st
 // Map pour accès O(1) aux technos par id
 const TECH_BY_ID = new Map(TECHS.map(t => [t.id, t]));
 
+// ── Hébergeurs ────────────────────────────────────────────────────
+const HOSTERS = [
+  { value: 'aws',          label: 'AWS',          slug: 'amazonaws'    },
+  { value: 'digitalocean', label: 'DigitalOcean', slug: 'digitalocean' },
+  { value: 'hetzner',      label: 'Hetzner',      slug: 'hetzner'      },
+  { value: 'infomaniak',   label: 'Infomaniak',   slug: 'infomaniak'   },
+  { value: 'ionos',        label: 'IONOS',        slug: 'ionos'        },
+  { value: 'ovh',          label: 'OVH',          slug: 'ovh'          },
+  { value: 'scaleway',     label: 'Scaleway',     slug: 'scaleway'     },
+];
+
 // ── Fournisseurs DNS ──────────────────────────────────────────────
 const DNS_PROVIDERS = [
   { value: 'cloudflare', label: 'Cloudflare', slug: 'cloudflare' },

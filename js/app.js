@@ -1,6 +1,6 @@
 // ── Normalisation des données Supabase ────────────────────────────
 function normalizeGroup(g) {
-  return { ...g, ip_local: g.ip_local || '', ip_public: g.ip_public || '', web_server: g.web_server || '' };
+  return { ...g, hoster: g.hoster || '', ip_local: g.ip_local || '', ip_public: g.ip_public || '', web_server: g.web_server || '' };
 }
 
 function normalizeSite(s) {

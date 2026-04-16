@@ -47,7 +47,7 @@ function render() {
     [...groups].sort(localeSort).forEach(g => {
       const gs   = (sitesByGroup.get(g.id) || []).slice().sort(localeSort);
       const open = !collapsed[g.id];
-      const hasInfo = g.ip_local || g.ip_public || g.web_server;
+      const hasInfo = g.hoster || g.ip_local || g.ip_public || g.web_server;
 
       html += `
         <div class="group-card">
@@ -171,6 +171,10 @@ function toggleServerInfo(gid, btn) {
   if (!g) return;
 
   const rows = [];
+  if (g.hoster) {
+    const h = HOSTERS.find(x => x.value === g.hoster);
+    rows.push(`<div class="sti-row"><span class="sti-label">Hébergeur</span><span class="sti-val"><img src="${SI}/${h ? h.slug : g.hoster}" width="12" height="12" alt="" onerror="this.style.display='none'" style="vertical-align:middle;margin-right:4px;flex-shrink:0">${esc(h ? h.label : g.hoster)}</span></div>`);
+  }
   if (g.ip_public)  rows.push(`<div class="sti-row"><span class="sti-label">IP publique</span><span class="sti-val">${esc(g.ip_public)}<button class="sti-copy" onclick="copyToClipboard('${esc(g.ip_public)}',this)" title="Copier">${SVG_COPY}</button></span></div>`);
   if (g.ip_local)   rows.push(`<div class="sti-row"><span class="sti-label">IP locale</span><span class="sti-val">${esc(g.ip_local)}<button class="sti-copy" onclick="copyToClipboard('${esc(g.ip_local)}',this)" title="Copier">${SVG_COPY}</button></span></div>`);
   if (g.web_server) rows.push(`<div class="sti-row"><span class="sti-label">Serveur web</span><span class="sti-val"><img src="${SI}/${g.web_server}" width="12" height="12" alt="" onerror="this.style.display='none'" style="vertical-align:middle;margin-right:4px">${esc(g.web_server)}</span></div>`);
