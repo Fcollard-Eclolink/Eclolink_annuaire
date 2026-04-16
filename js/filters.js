@@ -22,12 +22,14 @@ function getAvailableSites(excludeKey) {
 function toggleFilterDropdown(type) {
   const dd = document.getElementById(`filter-dd-${type}`);
   const isOpen = dd?.classList.contains('open');
-  ['server', 'tech', 'agency'].forEach(t =>
-    document.getElementById(`filter-dd-${t}`)?.classList.remove('open')
-  );
+  ['server', 'tech', 'agency'].forEach(t => {
+    document.getElementById(`filter-dd-${t}`)?.classList.remove('open');
+    document.getElementById(`filter-btn-${t}`)?.classList.remove('open');
+  });
   if (!isOpen) {
     renderFilterDropdown(type);
     dd?.classList.add('open');
+    document.getElementById(`filter-btn-${type}`)?.classList.add('open');
   }
 }
 
@@ -164,7 +166,9 @@ function updateFilterBtnState() {
 document.addEventListener('click', e => {
   ['server', 'tech', 'agency'].forEach(type => {
     const wrap = document.getElementById(`filter-wrap-${type}`);
-    if (wrap && !wrap.contains(e.target))
+    if (wrap && !wrap.contains(e.target)) {
       document.getElementById(`filter-dd-${type}`)?.classList.remove('open');
+      document.getElementById(`filter-btn-${type}`)?.classList.remove('open');
+    }
   });
 });

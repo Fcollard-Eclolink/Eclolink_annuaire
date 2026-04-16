@@ -175,8 +175,14 @@ input[type=password] {
 }
 
 .filter-caret {
-    font-size: 10px;
+    font-size: 13px;
     line-height: 1;
+    display: inline-block;
+    transition: transform .2s;
+
+    .filter-btn.open & {
+        transform: rotate(180deg);
+    }
 }
 
 .filter-dd {
