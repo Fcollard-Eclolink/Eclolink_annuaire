@@ -175,7 +175,7 @@ input[type=password] {
 }
 
 .filter-caret {
-    font-size: 13px;
+    font-size: 16px;
     line-height: 1;
     display: inline-block;
     transition: transform .2s;
