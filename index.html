@@ -76,23 +76,29 @@
 
   <!-- Barre de filtres -->
   <div class="filter-bar">
-    <div class="filter-wrap" id="filter-wrap-server">
-      <button class="btn filter-btn" id="filter-btn-server" onclick="toggleFilterDropdown('server')">
-        Serveur <span class="filter-caret">&#9662;</span>
-      </button>
-      <div class="filter-dd" id="filter-dd-server"></div>
-    </div>
-    <div class="filter-wrap" id="filter-wrap-tech">
-      <button class="btn filter-btn" id="filter-btn-tech" onclick="toggleFilterDropdown('tech')">
-        Technologie <span class="filter-caret">&#9662;</span>
-      </button>
-      <div class="filter-dd" id="filter-dd-tech"></div>
-    </div>
-    <div class="filter-wrap" id="filter-wrap-agency">
-      <button class="btn filter-btn" id="filter-btn-agency" onclick="toggleFilterDropdown('agency')">
-        Agence <span class="filter-caret">&#9662;</span>
-      </button>
-      <div class="filter-dd" id="filter-dd-agency"></div>
+    <div class="filter-group">
+      <div class="filter-wrap" id="filter-wrap-server">
+        <button class="btn filter-btn" id="filter-btn-server" onclick="toggleFilterDropdown('server')">
+          Serveur <span class="filter-caret">&#9662;</span>
+        </button>
+        <div class="filter-dd" id="filter-dd-server"></div>
+      </div>
+      <div class="filter-wrap" id="filter-wrap-tech">
+        <button class="btn filter-btn" id="filter-btn-tech" onclick="toggleFilterDropdown('tech')">
+          Technologie <span class="filter-caret">&#9662;</span>
+        </button>
+        <div class="filter-dd" id="filter-dd-tech"></div>
+      </div>
+      <div class="filter-wrap" id="filter-wrap-agency">
+        <button class="btn filter-btn" id="filter-btn-agency" onclick="toggleFilterDropdown('agency')">
+          Agence <span class="filter-caret">&#9662;</span>
+        </button>
+        <div class="filter-dd" id="filter-dd-agency"></div>
+      </div>
+      <div class="filter-expand-actions">
+        <button class="btn" onclick="expandAllServers()" title="Déplier tous les serveurs">Déplier tous</button>
+        <button class="btn" onclick="collapseAllServers()" title="Replier tous les serveurs">Replier tous</button>
+      </div>
     </div>
   </div>
 

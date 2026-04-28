@@ -223,3 +223,17 @@ function toggleGroup(id) {
   saveCollapsed();
   render();
 }
+
+function expandAllServers() {
+  groups.forEach(g => { collapsed[g.id] = false; });
+  collapsed['__none__'] = false;
+  saveCollapsed();
+  render();
+}
+
+function collapseAllServers() {
+  groups.forEach(g => { collapsed[g.id] = true; });
+  collapsed['__none__'] = true;
+  saveCollapsed();
+  render();
+}
