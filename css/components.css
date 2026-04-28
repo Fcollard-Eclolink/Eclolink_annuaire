@@ -150,6 +150,8 @@ input[type=password] {
 /* ── Barre de filtres ─────────────────────────────────────────── */
 .filter-bar {
     display: flex;
+    justify-content: space-between;
+    align-items: center;
     gap: 8px;
     flex-wrap: wrap;
     margin-bottom: 10px;
@@ -157,7 +159,6 @@ input[type=password] {
 
 .filter-group {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;

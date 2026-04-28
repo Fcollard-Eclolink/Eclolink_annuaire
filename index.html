@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,129 +8,142 @@
   <link rel="icon" type="image/png" href="img/favicon.png">
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<!-- ══ LOGIN ══════════════════════════════════════════════════════ -->
-<div id="login-screen" style="display:none">
-  <div class="login-card">
-    <h2 class="login-title">Annuaire Eclolink</h2>
-    <div id="login-error" class="login-error" style="display:none">Email ou mot de passe incorrect.</div>
-    <div class="field">
-      <label>Email</label>
-      <input type="text" id="login-email" placeholder="prenom@eclolink.fr" onkeydown="if(event.key==='Enter')submitLogin()">
-    </div>
-    <div class="field">
-      <label>Mot de passe</label>
-      <input type="password" id="login-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')submitLogin()">
-    </div>
-    <button class="btn primary" id="login-btn" style="width:100%" onclick="submitLogin()">Accéder</button>
-  </div>
-</div>
-
-<!-- ══ APPLICATION ════════════════════════════════════════════════ -->
-<div id="app" style="display:none">
-<div class="wrap">
-
-  <!-- Modale formulaire -->
-  <div id="modal-wrap" class="overlay" onclick="if(event.target===this)closeModal()">
-    <div class="modal">
-      <h3 id="modal-title">Ajouter</h3>
-      <div id="modal-body"></div>
-      <div class="modal-btns">
-        <button class="btn" onclick="closeModal()">Annuler</button>
-        <button class="btn primary" id="save-btn" onclick="saveModal()">Enregistrer</button>
+  <!-- ══ LOGIN ══════════════════════════════════════════════════════ -->
+  <div id="login-screen" style="display:none">
+    <div class="login-card">
+      <h2 class="login-title">Annuaire Eclolink</h2>
+      <div id="login-error" class="login-error" style="display:none">Email ou mot de passe incorrect.</div>
+      <div class="field">
+        <label>Email</label>
+        <input type="text" id="login-email" placeholder="prenom@eclolink.fr"
+          onkeydown="if(event.key==='Enter')submitLogin()">
       </div>
+      <div class="field">
+        <label>Mot de passe</label>
+        <input type="password" id="login-password" placeholder="••••••••"
+          onkeydown="if(event.key==='Enter')submitLogin()">
+      </div>
+      <button class="btn primary" id="login-btn" style="width:100%" onclick="submitLogin()">Accéder</button>
     </div>
   </div>
 
-  <!-- Modale confirmation suppression -->
-  <div id="confirm-wrap" class="overlay" onclick="if(event.target===this)closeConfirm()">
-    <div class="modal modal-confirm">
-      <h3 class="confirm-title" id="confirm-title">Confirmer la suppression</h3>
-      <p id="confirm-msg" class="confirm-msg"></p>
-      <div class="modal-btns">
-        <button class="btn" onclick="closeConfirm()">Annuler</button>
-        <button class="btn btn-danger" onclick="executeDelete()">Supprimer</button>
+  <!-- ══ APPLICATION ════════════════════════════════════════════════ -->
+  <div id="app" style="display:none">
+    <div class="wrap">
+
+      <!-- Modale formulaire -->
+      <div id="modal-wrap" class="overlay" onclick="if(event.target===this)closeModal()">
+        <div class="modal">
+          <h3 id="modal-title">Ajouter</h3>
+          <div id="modal-body"></div>
+          <div class="modal-btns">
+            <button class="btn" onclick="closeModal()">Annuler</button>
+            <button class="btn primary" id="save-btn" onclick="saveModal()">Enregistrer</button>
+          </div>
+        </div>
       </div>
+
+      <!-- Modale confirmation suppression -->
+      <div id="confirm-wrap" class="overlay" onclick="if(event.target===this)closeConfirm()">
+        <div class="modal modal-confirm">
+          <h3 class="confirm-title" id="confirm-title">Confirmer la suppression</h3>
+          <p id="confirm-msg" class="confirm-msg"></p>
+          <div class="modal-btns">
+            <button class="btn" onclick="closeConfirm()">Annuler</button>
+            <button class="btn btn-danger" onclick="executeDelete()">Supprimer</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Header -->
+      <div class="app-header">
+        <h1>Annuaire des serveurs</h1>
+        <div class="header-actions">
+          <button class="icon-btn" id="theme-btn" onclick="toggleTheme()"></button>
+          <button class="icon-btn" onclick="logout()" title="Déconnexion"><svg viewBox="0 0 24 24" width="16"
+              height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg></button>
+        </div>
+      </div>
+
+      <!-- Barre de recherche & actions -->
+      <div class="top">
+        <div class="search-wrap">
+          <input type="text" id="search" placeholder="Rechercher un site, URL, serveur… (Ctrl+K)"
+            oninput="onSearchInput()">
+          <button class="search-clear" id="search-clear" onclick="clearSearch()" style="display:none"
+            title="Effacer">&#10005;</button>
+        </div>
+        <button class="btn" onclick="load(true)" title="Actualiser"
+          style="padding:0 11px;font-size:16px">&#8635;</button>
+        <button class="btn" onclick="openServerModal()" title="Nouveau serveur (Ctrl+Shift+G)">+ Serveur</button>
+        <button class="btn primary" onclick="openSiteModal()" title="Nouveau site (Ctrl+Shift+S)">+ Site</button>
+      </div>
+
+      <!-- Barre de filtres -->
+      <div class="filter-bar">
+        <div class="filter-group">
+          <div class="filter-wrap" id="filter-wrap-server">
+            <button class="btn filter-btn" id="filter-btn-server" onclick="toggleFilterDropdown('server')">
+              Serveur <span class="filter-caret">&#9662;</span>
+            </button>
+            <div class="filter-dd" id="filter-dd-server"></div>
+          </div>
+          <div class="filter-wrap" id="filter-wrap-tech">
+            <button class="btn filter-btn" id="filter-btn-tech" onclick="toggleFilterDropdown('tech')">
+              Technologie <span class="filter-caret">&#9662;</span>
+            </button>
+            <div class="filter-dd" id="filter-dd-tech"></div>
+          </div>
+          <div class="filter-wrap" id="filter-wrap-agency">
+            <button class="btn filter-btn" id="filter-btn-agency" onclick="toggleFilterDropdown('agency')">
+              Agence <span class="filter-caret">&#9662;</span>
+            </button>
+            <div class="filter-dd" id="filter-dd-agency"></div>
+          </div>
+        </div>
+        <div class="filter-expand-actions">
+          <button class="btn" onclick="expandAllServers()" title="Déplier tous les serveurs">Déplier tous</button>
+          <button class="btn" onclick="collapseAllServers()" title="Replier tous les serveurs">Replier tous</button>
+        </div>
+      </div>
+
+      <!-- Chips des filtres actifs -->
+      <div id="filter-chips" class="filter-chips-bar" style="display:none"></div>
+
+      <div id="list"></div>
+      <div class="toast" id="toast"></div>
+      <div id="server-tooltip" class="server-tooltip"></div>
+      <div id="site-tooltip" class="server-tooltip"></div>
+
     </div>
+
+    <div class="app-watermark">
+      <span class="watermark-version">v1.6.1</span>
+      <img src="img/favicon.png" alt="Eclolink" class="watermark-logo">
+    </div>
+
   </div>
 
-  <!-- Header -->
-  <div class="app-header">
-    <h1>Annuaire des serveurs</h1>
-    <div class="header-actions">
-      <button class="icon-btn" id="theme-btn" onclick="toggleTheme()"></button>
-      <button class="icon-btn" onclick="logout()" title="Déconnexion"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
-    </div>
-  </div>
-
-  <!-- Barre de recherche & actions -->
-  <div class="top">
-    <div class="search-wrap">
-      <input type="text" id="search" placeholder="Rechercher un site, URL, serveur… (Ctrl+K)" oninput="onSearchInput()">
-      <button class="search-clear" id="search-clear" onclick="clearSearch()" style="display:none" title="Effacer">&#10005;</button>
-    </div>
-    <button class="btn" onclick="load(true)" title="Actualiser" style="padding:0 11px;font-size:16px">&#8635;</button>
-    <button class="btn" onclick="openServerModal()" title="Nouveau serveur (Ctrl+Shift+G)">+ Serveur</button>
-    <button class="btn primary" onclick="openSiteModal()" title="Nouveau site (Ctrl+Shift+S)">+ Site</button>
-  </div>
-
-  <!-- Barre de filtres -->
-  <div class="filter-bar">
-    <div class="filter-group">
-      <div class="filter-wrap" id="filter-wrap-server">
-        <button class="btn filter-btn" id="filter-btn-server" onclick="toggleFilterDropdown('server')">
-          Serveur <span class="filter-caret">&#9662;</span>
-        </button>
-        <div class="filter-dd" id="filter-dd-server"></div>
-      </div>
-      <div class="filter-wrap" id="filter-wrap-tech">
-        <button class="btn filter-btn" id="filter-btn-tech" onclick="toggleFilterDropdown('tech')">
-          Technologie <span class="filter-caret">&#9662;</span>
-        </button>
-        <div class="filter-dd" id="filter-dd-tech"></div>
-      </div>
-      <div class="filter-wrap" id="filter-wrap-agency">
-        <button class="btn filter-btn" id="filter-btn-agency" onclick="toggleFilterDropdown('agency')">
-          Agence <span class="filter-caret">&#9662;</span>
-        </button>
-        <div class="filter-dd" id="filter-dd-agency"></div>
-      </div>
-      <div class="filter-expand-actions">
-        <button class="btn" onclick="expandAllServers()" title="Déplier tous les serveurs">Déplier tous</button>
-        <button class="btn" onclick="collapseAllServers()" title="Replier tous les serveurs">Replier tous</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Chips des filtres actifs -->
-  <div id="filter-chips" class="filter-chips-bar" style="display:none"></div>
-
-  <div id="list"></div>
-  <div class="toast" id="toast"></div>
-  <div id="server-tooltip" class="server-tooltip"></div>
-  <div id="site-tooltip" class="server-tooltip"></div>
-
-</div>
-
-<div class="app-watermark">
-  <span class="watermark-version">v1.6.1</span>
-  <img src="img/favicon.png" alt="Eclolink" class="watermark-logo">
-</div>
-
-</div>
-
-<!-- ══ SCRIPTS ════════════════════════════════════════════════════ -->
-<script src="config.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/api.js"></script>
-<script src="js/theme.js"></script>
-<script src="js/techs.js"></script>
-<script src="js/state.js"></script>
-<script src="js/render.js"></script>
-<script src="js/agencies.js"></script>
-<script src="js/filters.js"></script>
-<script src="js/modals.js"></script>
-<script src="js/app.js"></script>
+  <!-- ══ SCRIPTS ════════════════════════════════════════════════════ -->
+  <script src="config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/theme.js"></script>
+  <script src="js/techs.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/agencies.js"></script>
+  <script src="js/filters.js"></script>
+  <script src="js/modals.js"></script>
+  <script src="js/app.js"></script>
 </body>
+
 </html>
