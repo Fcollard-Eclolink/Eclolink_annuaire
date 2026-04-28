@@ -162,7 +162,6 @@ input[type=password] {
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
-    width: 100%;
 }
 
 .filter-expand-actions {
@@ -178,10 +177,10 @@ input[type=password] {
 .filter-btn {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    height: 30px;
-    padding: 0 11px;
-    font-size: 12px;
+    gap: 8px;
+    height: 36px;
+    padding: 0 14px;
+    font-size: 13px;
 
     &.active {
         background: var(--btn-primary-bg);
