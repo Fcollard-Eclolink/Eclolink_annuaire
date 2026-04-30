@@ -37,29 +37,77 @@ function closePmModal() {
     document.body.classList.remove('modal-open');
 }
 
-// ── Rendu de la liste ─────────────────────────────────────────────
+// ── Helpers de rendu interne ──────────────────────────────────────
+function renderPmAssignedSection(pmId) {
+  const assigned = sites.filter(s => s.project_manager_id === pmId);
+  if (!assigned.length) return '';
+  const chips = [...assigned]
+    .sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true }))
+    .map(s => `<button type="button" class="pm-chip"
+      data-site-id="${esc(s.id)}" data-name="${esc(s.name.toLowerCase())}"
+      onclick="togglePmSite('${esc(pmId)}','${esc(s.id)}', false)"
+      title="Retirer ${esc(s.name)}">
+      ${esc(s.name)} <span class="pm-chip-x">&times;</span>
+    </button>`).join('');
+  return `
+    <div class="pm-assigned">
+      <div class="pm-assigned-header">Sites attribués (${assigned.length})</div>
+      <div class="pm-assigned-chips">${chips}</div>
+    </div>`;
+}
+
+function renderPmFullList(pmId) {
+  const sortedSites = [...sites].sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true }));
+  if (!sortedSites.length) return `<div class="pm-empty-sub">Aucun site enregistré.</div>`;
+  return sortedSites.map(s => {
+    const checked = s.project_manager_id === pmId ? 'checked' : '';
+    return `<label class="pm-site-item" data-name="${esc(s.name.toLowerCase())}">
+      <input type="checkbox" ${checked}
+             data-pm-id="${esc(pmId)}" data-site-id="${esc(s.id)}"
+             onchange="togglePmSite('${esc(pmId)}','${esc(s.id)}',this.checked)">
+      <span>${esc(s.name)}</span>
+    </label>`;
+  }).join('');
+}
+
+function renderPmSitesBody(pmId) {
+  return `
+    <div class="pm-sites-body">
+      <div class="pm-search">
+        <input type="text" placeholder="Rechercher un site…"
+               data-pm-id="${esc(pmId)}"
+               oninput="filterPmSites(this, '${esc(pmId)}')">
+      </div>
+      <div class="pm-assigned-section">
+        ${renderPmAssignedSection(pmId)}
+      </div>
+      <div class="pm-sites-section-label">Tous les sites</div>
+      <div class="pm-sites-list">
+        ${renderPmFullList(pmId)}
+      </div>
+    </div>`;
+}
+
+// ── Rendu de la liste des cheffes ─────────────────────────────────
 function renderPmList() {
   const list = document.getElementById('pm-list');
   if (!list) return;
+
+  // Capture l'état (open + valeur de search) pour le re-render
+  const openIds = [...list.querySelectorAll('.pm-sites[open]')]
+    .map(d => d.dataset.pmId).filter(Boolean);
+  const searchValues = {};
+  list.querySelectorAll('.pm-search input').forEach(input => {
+    if (input.dataset.pmId) searchValues[input.dataset.pmId] = input.value;
+  });
+
   if (!projectManagers.length) {
     list.innerHTML = `<div class="pm-empty">Aucune cheffe de projet enregistrée.</div>`;
     return;
   }
-  const sortedSites = [...sites].sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true }));
+
   list.innerHTML = [...projectManagers].sort(pmSort).map(pm => {
     const assignedCount = sites.filter(s => s.project_manager_id === pm.id).length;
-    const sitesItems = sortedSites.length
-      ? sortedSites.map(s => {
-          const checked = s.project_manager_id === pm.id ? 'checked' : '';
-          return `<label class="pm-site-item">
-            <input type="checkbox" ${checked}
-                   data-pm-id="${esc(pm.id)}" data-site-id="${esc(s.id)}"
-                   onchange="togglePmSite('${esc(pm.id)}','${esc(s.id)}',this.checked)">
-            <span>${esc(s.name)}</span>
-          </label>`;
-        }).join('')
-      : `<div class="pm-empty-sub">Aucun site enregistré.</div>`;
-
     return `
       <div class="pm-row" data-pm-id="${esc(pm.id)}">
         <div class="pm-row-main">
@@ -75,15 +123,48 @@ function renderPmList() {
           </select>
           <button class="icon-btn del" onclick="deletePm('${esc(pm.id)}')" title="Supprimer">&#10005;</button>
         </div>
-        <details class="pm-sites" id="pm-sites-${esc(pm.id)}">
+        <details class="pm-sites" data-pm-id="${esc(pm.id)}" id="pm-sites-${esc(pm.id)}">
           <summary>
             <span class="pm-sites-arrow">&#9656;</span>
             Sites assignés <span class="pm-sites-count">(${assignedCount})</span>
           </summary>
-          <div class="pm-sites-list">${sitesItems}</div>
+          ${renderPmSitesBody(pm.id)}
         </details>
       </div>`;
   }).join('');
+
+  // Restore open state + search values
+  openIds.forEach(id => {
+    const el = document.getElementById(`pm-sites-${id}`);
+    if (el) el.open = true;
+  });
+  Object.entries(searchValues).forEach(([pmId, val]) => {
+    if (!val) return;
+    const input = list.querySelector(`.pm-search input[data-pm-id="${pmId}"]`);
+    if (input) {
+      input.value = val;
+      filterPmSites(input, pmId);
+    }
+  });
+}
+
+// ── Filtre client-side du dropdown des sites ─────────────────────
+function filterPmSites(input, pmId) {
+  const q = input.value.trim().toLowerCase();
+  const body = input.closest('.pm-sites-body');
+  if (!body) return;
+
+  // Filtre les chips de la section "attribués"
+  body.querySelectorAll('.pm-chip').forEach(chip => {
+    const name = chip.dataset.name || '';
+    chip.style.display = !q || name.includes(q) ? '' : 'none';
+  });
+
+  // Filtre les items de la liste complète
+  body.querySelectorAll('.pm-site-item').forEach(item => {
+    const name = item.dataset.name || '';
+    item.style.display = !q || name.includes(q) ? '' : 'none';
+  });
 }
 
 // ── Ajout d'une nouvelle ligne (locale, pas encore en BDD) ───────
@@ -107,7 +188,7 @@ function addNewPm() {
   row.querySelector('input[data-field="first_name"]').focus();
 }
 
-// ── onBlur d'un champ : création (si nouveau row) ou maj nom ──────
+// ── onBlur : création (nouveau row) ou maj prénom/nom ────────────
 async function onPmBlur(el) {
   const row = el.closest('.pm-row');
   if (!row) return;
@@ -118,13 +199,13 @@ async function onPmBlur(el) {
   const agency   = agencyEl ? agencyEl.value : '';
 
   if (isNew) {
-    if (!first) return; // attend que le prénom soit rempli
+    if (!first) return;
     try {
       const id = uid();
       const payload = { id, first_name: first, last_name: last, agency: agency || null };
       await sbInsert('eclolink_project_managers', payload);
       projectManagers.push({ id, first_name: first, last_name: last, agency: agency || '' });
-      renderPmList(); // re-render pour afficher le bloc "Sites assignés"
+      renderPmList();
       toast('Enregistré ✓');
     } catch(e) {
       toast('Erreur : ' + e.message);
@@ -133,7 +214,6 @@ async function onPmBlur(el) {
     return;
   }
 
-  // Maj cheffe existante (prénom / nom uniquement ici)
   const id = row.dataset.pmId;
   const pm = projectManagers.find(p => p.id === id);
   if (!pm) return;
@@ -147,7 +227,7 @@ async function onPmBlur(el) {
     await sbUpdate('eclolink_project_managers', id, { first_name: first, last_name: last });
     pm.first_name = first;
     pm.last_name  = last;
-    render(); // tooltips à jour
+    render();
   } catch(e) {
     toast('Erreur : ' + e.message);
     console.error('[onPmBlur update]', e);
@@ -181,24 +261,26 @@ async function togglePmSite(pmId, siteId, checked) {
     await sbUpdate('eclolink_sites', siteId, { project_manager_id: newPmId });
     site.project_manager_id = newPmId;
 
-    // Décocher la case du site dans toutes les autres cheffes (un site = 1 seule cheffe)
+    // Mettre à jour les checkboxes de TOUTES les cheffes pour ce site
     document.querySelectorAll(`input[type="checkbox"][data-site-id="${siteId}"]`).forEach(cb => {
       cb.checked = cb.dataset.pmId === (newPmId || '');
     });
 
-    // Mettre à jour le compteur de l'ancienne cheffe
-    if (previousPmId) {
-      const cnt = document.querySelector(`#pm-sites-${previousPmId} .pm-sites-count`);
-      if (cnt) cnt.textContent = `(${sites.filter(s => s.project_manager_id === previousPmId).length})`;
-    }
-    // Et celui de la nouvelle
-    if (newPmId) {
-      const cnt = document.querySelector(`#pm-sites-${newPmId} .pm-sites-count`);
-      if (cnt) cnt.textContent = `(${sites.filter(s => s.project_manager_id === newPmId).length})`;
-    }
-    render(); // tooltip site à jour
+    // Re-render la section "attribués" + le compteur des cheffes affectées
+    [previousPmId, newPmId].filter(Boolean).forEach(pid => {
+      const row = document.querySelector(`.pm-row[data-pm-id="${pid}"]`);
+      if (!row) return;
+      const cnt = row.querySelector('.pm-sites-count');
+      if (cnt) cnt.textContent = `(${sites.filter(s => s.project_manager_id === pid).length})`;
+      const assignedHost = row.querySelector('.pm-assigned-section');
+      if (assignedHost) assignedHost.innerHTML = renderPmAssignedSection(pid);
+      // Re-applique le filtre en cours
+      const search = row.querySelector('.pm-search input');
+      if (search && search.value) filterPmSites(search, pid);
+    });
+
+    render(); // tooltips de l'annuaire à jour
   } catch(e) {
-    // revert visual
     const cb = document.querySelector(`#pm-sites-${pmId} input[data-site-id="${siteId}"]`);
     if (cb) cb.checked = !checked;
     toast('Erreur : ' + e.message);

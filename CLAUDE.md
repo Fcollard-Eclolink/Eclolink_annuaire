@@ -207,6 +207,6 @@ Format : `X.Y.Z` affiché dans `.watermark-version` dans `index.html`
 - **Y** → nouvelle fonctionnalité
 - **Z** → ajout mineur / correctif / polish UI
 
-Version courante : **v1.7.1**
+Version courante : **v1.7.2**
 
 À chaque `git push`, mettre à jour le numéro dans `index.html`.

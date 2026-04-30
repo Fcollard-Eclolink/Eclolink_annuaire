@@ -14,6 +14,11 @@
     }
 }
 
+/* La modale de confirmation passe TOUJOURS au-dessus des autres modales */
+#confirm-wrap.open {
+    z-index: 200;
+}
+
 /* ── Fenêtre modale ───────────────────────────────────────────── */
 .modal {
     background: var(--surface);
@@ -335,6 +340,11 @@
 }
 
 /* ── Modale Cheffes de projet ─────────────────────────────────── */
+#pm-wrap .modal {
+    width: 720px;
+    max-width: 95vw;
+}
+
 .pm-hint {
     font-size: 12px;
     color: var(--text-muted);
@@ -436,16 +446,96 @@
     font-weight: normal;
 }
 
+.pm-sites-body {
+    margin-top: 4px;
+    padding: 6px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+}
+
+.pm-search {
+    margin-bottom: 6px;
+}
+
+.pm-search input {
+    width: 100%;
+    padding: 6px 10px;
+    font-size: 12.5px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: var(--surface);
+    color: var(--text);
+    font-family: inherit;
+}
+
+.pm-search input:focus {
+    outline: none;
+    border-color: var(--link);
+}
+
+.pm-assigned {
+    padding: 6px 8px;
+    background: var(--hover);
+    border-radius: 5px;
+    margin-bottom: 6px;
+}
+
+.pm-assigned-header {
+    font-size: 10.5px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+}
+
+.pm-assigned-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.pm-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 11.5px;
+    color: var(--text);
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.pm-chip:hover {
+    background: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+    border-color: #dc2626;
+}
+
+.pm-chip-x {
+    font-size: 13px;
+    line-height: 1;
+}
+
+.pm-sites-section-label {
+    font-size: 10.5px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+    padding: 0 2px;
+}
+
 .pm-sites-list {
     display: flex;
     flex-direction: column;
     gap: 1px;
-    margin-top: 4px;
     max-height: 200px;
     overflow-y: auto;
-    padding: 4px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
 }
 
 .pm-site-item {
