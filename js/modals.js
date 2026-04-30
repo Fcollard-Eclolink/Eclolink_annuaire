@@ -148,6 +148,11 @@ function openSiteModal(id, pgid) {
     ...[...AGENCIES].sort((a, b) => a.localeCompare(b, 'fr')).map(ag => ({ value: ag, label: ag }))
   ];
 
+  const pmOptions = [
+    { value: '', label: '— Aucune —' },
+    ...[...projectManagers].sort(pmSort).map(p => ({ value: p.id, label: pmDisplayName(p) }))
+  ];
+
   const techOpts = [...TECHS].sort((a, b) => a.label.localeCompare(b.label, 'fr')).map(t => `
     <label class="tech-option">
       <input type="checkbox" value="${t.id}" onchange="updateTechBox()">
@@ -176,6 +181,10 @@ function openSiteModal(id, pgid) {
     <div class="field">
       <label>Version PHP</label>
       <input id="f-php" type="text" value="${esc(s ? s.php_version || '' : '')}" placeholder="Ex : PHP 8.1, PHP 8.2...">
+    </div>
+    <div class="field">
+      <label>Cheffe de projet</label>
+      ${customSelectHTML('f-pm', pmOptions, s?.project_manager_id || '', '— Aucune —')}
     </div>
     <div class="field">
       <label>Agence</label>
@@ -272,16 +281,17 @@ async function saveModal() {
         : null;
       const obj = {
         name,
-        url         : (document.getElementById('f-url').value    || '').trim(),
-        bo_url      : (document.getElementById('f-bo-url').value || '').trim(),
-        gitlab_url  : (document.getElementById('f-gitlab').value || '').trim(),
-        php_version : (document.getElementById('f-php').value    || '').trim(),
-        agency      : agencyVal,
-        go_live_date: dateVal,
-        dns_zone    : dnsVal,
-        group_id    : document.getElementById('f-group').value   || null,
-        technologies: JSON.stringify(techs),
-        notes       : (document.getElementById('f-notes').value  || '').trim()
+        url               : (document.getElementById('f-url').value    || '').trim(),
+        bo_url            : (document.getElementById('f-bo-url').value || '').trim(),
+        gitlab_url        : (document.getElementById('f-gitlab').value || '').trim(),
+        php_version       : (document.getElementById('f-php').value    || '').trim(),
+        agency            : agencyVal,
+        go_live_date      : dateVal,
+        dns_zone          : dnsVal,
+        group_id          : document.getElementById('f-group').value || null,
+        project_manager_id: document.getElementById('f-pm').value    || null,
+        technologies      : JSON.stringify(techs),
+        notes             : (document.getElementById('f-notes').value || '').trim()
       };
       if (editId) {
         await sbUpdate('eclolink_sites', editId, obj);
@@ -334,6 +344,15 @@ async function executeDelete() {
       groups = groups.filter(g => g.id !== id);
       sites  = sites.map(s => s.groupId === id ? { ...s, groupId: null, group_id: null } : s);
       toast('Serveur supprimé');
+    } else if (type === 'project_manager') {
+      await sbDelete('eclolink_project_managers', id);
+      const assigned = sites.filter(s => s.project_manager_id === id);
+      await Promise.all(assigned.map(s => sbUpdate('eclolink_sites', s.id, { project_manager_id: null })));
+      projectManagers = projectManagers.filter(p => p.id !== id);
+      sites = sites.map(s => s.project_manager_id === id ? { ...s, project_manager_id: null } : s);
+      // Si la modale PM est ouverte, on la re-render
+      if (document.getElementById('pm-wrap').classList.contains('open')) renderPmList();
+      toast('Cheffe supprimée');
     } else {
       await sbDelete('eclolink_sites', id);
       sites = sites.filter(s => s.id !== id);

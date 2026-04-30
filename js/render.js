@@ -111,7 +111,7 @@ function rowHTML(s, q, srvLabel) {
     .join('');
 
   const dateStr = formatDate(s.go_live_date);
-  const hasInfo = s.php_version || s.dns_zone;
+  const hasInfo = s.php_version || s.dns_zone || s.project_manager_id;
 
   return `
     <div class="site-row">
@@ -201,6 +201,10 @@ function toggleSiteInfo(sid, btn) {
 
   const rows = [];
   if (s.php_version) rows.push(`<div class="sti-row"><span class="sti-label">Version PHP</span><span class="sti-val">${esc(s.php_version)}</span></div>`);
+  if (s.project_manager_id) {
+    const pm = projectManagers.find(p => p.id === s.project_manager_id);
+    if (pm) rows.push(`<div class="sti-row"><span class="sti-label">Cheffe de projet</span><span class="sti-val">${esc(pm.first_name)}</span></div>`);
+  }
   if (s.dns_zone) {
     const dns = DNS_PROVIDERS.find(d => d.value === s.dns_zone);
     rows.push(`<div class="sti-row"><span class="sti-label">Zone DNS</span><span class="sti-val"><img src="${SI}/${esc(s.dns_zone)}" width="12" height="12" alt="" onerror="this.style.display='none'" style="vertical-align:middle;margin-right:4px;flex-shrink:0">${esc(dns ? dns.label : s.dns_zone)}</span></div>`);

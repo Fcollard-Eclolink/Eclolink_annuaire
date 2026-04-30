@@ -6,21 +6,31 @@ function normalizeGroup(g) {
 function normalizeSite(s) {
   return {
     ...s,
-    groupId     : s.group_id,
-    bo_url      : s.bo_url       || '',
-    gitlab_url  : s.gitlab_url   || '',
-    php_version : s.php_version  || '',
-    agency      : s.agency       || '',
-    go_live_date: s.go_live_date || '',
-    dns_zone    : s.dns_zone     || '',
-    technologies: tryParseJSON(s.technologies)
+    groupId           : s.group_id,
+    bo_url            : s.bo_url             || '',
+    gitlab_url        : s.gitlab_url         || '',
+    php_version       : s.php_version        || '',
+    agency            : s.agency             || '',
+    go_live_date      : s.go_live_date       || '',
+    dns_zone          : s.dns_zone           || '',
+    project_manager_id: s.project_manager_id || null,
+    technologies      : tryParseJSON(s.technologies)
   };
 }
 
+function normalizePm(p) {
+  return { id: p.id, first_name: p.first_name || '', last_name: p.last_name || '' };
+}
+
 async function fetchData() {
-  const [groupsRaw, sitesRaw] = await Promise.all([sbGet('eclolink_groups'), sbGet('eclolink_sites')]);
-  groups = groupsRaw.map(normalizeGroup);
-  sites  = sitesRaw.map(normalizeSite);
+  const [groupsRaw, sitesRaw, pmsRaw] = await Promise.all([
+    sbGet('eclolink_groups'),
+    sbGet('eclolink_sites'),
+    sbGet('eclolink_project_managers')
+  ]);
+  groups          = groupsRaw.map(normalizeGroup);
+  sites           = sitesRaw.map(normalizeSite);
+  projectManagers = pmsRaw.map(normalizePm);
 }
 
 // ── Chargement des données ────────────────────────────────────────
@@ -41,8 +51,9 @@ document.addEventListener('keydown', e => {
   const ctrl      = e.ctrlKey || e.metaKey;
   const isConfirm = document.getElementById('confirm-wrap').classList.contains('open');
   const isModal   = document.getElementById('modal-wrap').classList.contains('open');
+  const isPm      = document.getElementById('pm-wrap')?.classList.contains('open');
 
-  if (!isConfirm && !isModal) {
+  if (!isConfirm && !isModal && !isPm) {
     if (ctrl && e.key === 'k')               { e.preventDefault(); document.getElementById('search')?.focus(); return; }
     if (ctrl && e.shiftKey && e.key === 'G') { e.preventDefault(); openServerModal(); return; }
     if (ctrl && e.shiftKey && e.key === 'S') { e.preventDefault(); openSiteModal();   return; }
@@ -51,6 +62,10 @@ document.addEventListener('keydown', e => {
   if (isConfirm) {
     if (e.key === 'Escape') { e.preventDefault(); closeConfirm(); }
     if (e.key === 'Enter')  { e.preventDefault(); executeDelete(); }
+    return;
+  }
+  if (isPm) {
+    if (e.key === 'Escape') { e.preventDefault(); closePmModal(); }
     return;
   }
   if (isModal) {

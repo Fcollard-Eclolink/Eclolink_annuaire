@@ -39,7 +39,8 @@ js/
   render.js             render(), rowHTML(), toggleServerInfo(), toggleSiteInfo(), positionTooltip()
   filters.js            toggleFilter(), renderFilterDropdown(), renderFilterChips(), applyFilterChange()
   modals.js             openServerModal(), openSiteModal(), saveModal(), deleteServer(), deleteSite()
-  app.js                normalizeGroup(), normalizeSite(), fetchData(), load(), silentRefresh(), raccourcis
+  projectManagers.js    openPmModal(), addNewPm(), onPmBlur(), deletePm(), pmDisplayName()
+  app.js                normalizeGroup(), normalizeSite(), normalizePm(), fetchData(), load(), raccourcis
 ```
 
 ---
@@ -57,20 +58,28 @@ js/
 | web_server   | TEXT    | apache / nginx               |
 
 ### Table `eclolink_sites` (sites)
-| Colonne       | Type    | Notes                              |
-|--------------|---------|------------------------------------|
-| id            | TEXT PK | `crypto.randomUUID()`              |
-| name          | TEXT    | Requis                             |
-| url           | TEXT    |                                    |
-| bo_url        | TEXT    | Lien back-office                   |
-| gitlab_url    | TEXT    |                                    |
-| php_version   | TEXT    | Ex : "PHP 8.2"                     |
-| agency        | TEXT    | Valeur de AGENCIES[]               |
-| go_live_date  | TEXT    | Format ISO `YYYY-MM-DD`            |
-| dns_zone      | TEXT    | cloudflare / gandi / ovh           |
-| group_id      | TEXT FK | → eclolink_groups.id               |
-| technologies  | TEXT    | JSON stringifié `["wordpress",...]`|
-| notes         | TEXT    |                                    |
+| Colonne             | Type    | Notes                              |
+|--------------------|---------|------------------------------------|
+| id                  | TEXT PK | `crypto.randomUUID()`              |
+| name                | TEXT    | Requis                             |
+| url                 | TEXT    |                                    |
+| bo_url              | TEXT    | Lien back-office                   |
+| gitlab_url          | TEXT    |                                    |
+| php_version         | TEXT    | Ex : "PHP 8.2"                     |
+| agency              | TEXT    | Valeur de AGENCIES[]               |
+| go_live_date        | TEXT    | Format ISO `YYYY-MM-DD`            |
+| dns_zone            | TEXT    | cloudflare / gandi / ovh           |
+| group_id            | TEXT FK | → eclolink_groups.id               |
+| project_manager_id  | TEXT FK | → eclolink_project_managers.id     |
+| technologies        | TEXT    | JSON stringifié `["wordpress",...]`|
+| notes               | TEXT    |                                    |
+
+### Table `eclolink_project_managers` (cheffes de projet)
+| Colonne     | Type    | Notes                       |
+|------------|---------|-----------------------------|
+| id          | TEXT PK | `crypto.randomUUID()`       |
+| first_name  | TEXT    | Requis (affiché dans tooltip) |
+| last_name   | TEXT    |                             |
 
 ---
 
@@ -105,14 +114,15 @@ js/
 ## Variables globales (js/state.js)
 
 ```js
-let groups       = [];          // tableaux normalisés depuis Supabase
-let sites        = [];
-let collapsed    = {};          // { groupId: true } persité dans localStorage
-let modalMode    = null;        // 'server' | 'site'
-let editId       = null;        // id en cours d'édition
-let preGroupId   = null;        // groupe pré-sélectionné à l'ouverture modale site
-let pendingDelete= null;        // { type, id }
-let activeFilters = { servers: [], techs: [], agencies: [] };
+let groups          = [];          // tableaux normalisés depuis Supabase
+let sites           = [];
+let projectManagers = [];          // [{ id, first_name, last_name }]
+let collapsed       = {};          // { groupId: true } persité dans localStorage
+let modalMode       = null;        // 'server' | 'site'
+let editId          = null;        // id en cours d'édition
+let preGroupId      = null;        // groupe pré-sélectionné à l'ouverture modale site
+let pendingDelete   = null;        // { type: 'server' | 'site' | 'project_manager', id }
+let activeFilters   = { servers: [], techs: [], agencies: [] };
 ```
 
 ---
@@ -196,6 +206,6 @@ Format : `X.Y.Z` affiché dans `.watermark-version` dans `index.html`
 - **Y** → nouvelle fonctionnalité
 - **Z** → ajout mineur / correctif / polish UI
 
-Version courante : **v1.6.1**
+Version courante : **v1.7.0**
 
 À chaque `git push`, mettre à jour le numéro dans `index.html`.
