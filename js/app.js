@@ -19,7 +19,12 @@ function normalizeSite(s) {
 }
 
 function normalizePm(p) {
-  return { id: p.id, first_name: p.first_name || '', last_name: p.last_name || '' };
+  return {
+    id        : p.id,
+    first_name: p.first_name || '',
+    last_name : p.last_name  || '',
+    agency    : p.agency     || ''
+  };
 }
 
 async function fetchData() {

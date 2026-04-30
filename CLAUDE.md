@@ -39,7 +39,7 @@ js/
   render.js             render(), rowHTML(), toggleServerInfo(), toggleSiteInfo(), positionTooltip()
   filters.js            toggleFilter(), renderFilterDropdown(), renderFilterChips(), applyFilterChange()
   modals.js             openServerModal(), openSiteModal(), saveModal(), deleteServer(), deleteSite()
-  projectManagers.js    openPmModal(), addNewPm(), onPmBlur(), deletePm(), pmDisplayName()
+  projectManagers.js    openPmModal(), addNewPm(), onPmBlur(), onPmAgencyChange(), togglePmSite(), deletePm()
   app.js                normalizeGroup(), normalizeSite(), normalizePm(), fetchData(), load(), raccourcis
 ```
 
@@ -75,11 +75,12 @@ js/
 | notes               | TEXT    |                                    |
 
 ### Table `eclolink_project_managers` (cheffes de projet)
-| Colonne     | Type    | Notes                       |
-|------------|---------|-----------------------------|
-| id          | TEXT PK | `crypto.randomUUID()`       |
+| Colonne     | Type    | Notes                         |
+|------------|---------|-------------------------------|
+| id          | TEXT PK | `crypto.randomUUID()`         |
 | first_name  | TEXT    | Requis (affiché dans tooltip) |
-| last_name   | TEXT    |                             |
+| last_name   | TEXT    |                               |
+| agency      | TEXT    | Valeur de AGENCIES[]          |
 
 ---
 
@@ -206,6 +207,6 @@ Format : `X.Y.Z` affiché dans `.watermark-version` dans `index.html`
 - **Y** → nouvelle fonctionnalité
 - **Z** → ajout mineur / correctif / polish UI
 
-Version courante : **v1.7.0**
+Version courante : **v1.7.1**
 
 À chaque `git push`, mettre à jour le numéro dans `index.html`.
