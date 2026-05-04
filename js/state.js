@@ -7,7 +7,7 @@ let modalMode       = null;
 let editId          = null;
 let preGroupId      = null;
 let pendingDelete   = null;
-let activeFilters   = { servers: [], techs: [], agencies: [] };
+let activeFilters   = { servers: [], techs: [], agencies: [], pms: [] };
 
 // ── Utilitaire date ───────────────────────────────────────────────
 function formatDate(str) {

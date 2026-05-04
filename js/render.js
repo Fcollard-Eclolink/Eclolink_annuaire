@@ -2,9 +2,10 @@
 function render() {
   const q          = (document.getElementById('search').value || '').trim().toLowerCase();
   const list       = document.getElementById('list');
-  const hasFilters = activeFilters.servers.length > 0
-                  || activeFilters.techs.length   > 0
-                  || activeFilters.agencies.length > 0;
+  const hasFilters = activeFilters.servers.length  > 0
+                  || activeFilters.techs.length    > 0
+                  || activeFilters.agencies.length > 0
+                  || activeFilters.pms.length      > 0;
 
   // Maps pour accès O(1) au lieu de find() O(n) dans les boucles
   const groupById    = new Map(groups.map(g => [g.id, g]));
@@ -27,6 +28,7 @@ function render() {
     if (activeFilters.servers.length  && !activeFilters.servers.includes(s.groupId)) return false;
     if (activeFilters.techs.length    && !activeFilters.techs.some(t => (s.technologies || []).includes(t))) return false;
     if (activeFilters.agencies.length && !activeFilters.agencies.includes(s.agency)) return false;
+    if (activeFilters.pms.length      && !activeFilters.pms.includes(s.project_manager_id)) return false;
     return true;
   });
 

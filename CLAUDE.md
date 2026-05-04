@@ -123,7 +123,7 @@ let modalMode       = null;        // 'server' | 'site'
 let editId          = null;        // id en cours d'édition
 let preGroupId      = null;        // groupe pré-sélectionné à l'ouverture modale site
 let pendingDelete   = null;        // { type: 'server' | 'site' | 'project_manager', id }
-let activeFilters   = { servers: [], techs: [], agencies: [] };
+let activeFilters   = { servers: [], techs: [], agencies: [], pms: [] };
 ```
 
 ---
@@ -207,6 +207,6 @@ Format : `X.Y.Z` affiché dans `.watermark-version` dans `index.html`
 - **Y** → nouvelle fonctionnalité
 - **Z** → ajout mineur / correctif / polish UI
 
-Version courante : **v1.7.2**
+Version courante : **v1.7.3**
 
 À chaque `git push`, mettre à jour le numéro dans `index.html`.
