@@ -253,7 +253,7 @@ input:focus { border-color: #888; }
 .info-row {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   gap: 12px;
   padding: 3px 0;
 }
@@ -277,6 +277,46 @@ input:focus { border-color: #888; }
   text-align: right;
   word-break: break-all;
 }
+
+/* Groupe valeur + bouton copier */
+.info-val-wrap {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Bouton copier IP */
+.copy-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.copy-btn:hover  { background: var(--hover); color: var(--text); }
+.copy-btn.copied { color: #2d8a2d; }
+
+/* Badges serveur web */
+.ws-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 4px;
+  text-transform: lowercase;
+}
+.ws-nginx     { background: #e8f5e2; color: #2d6e10; border: 0.5px solid #aad88a; }
+.ws-apache    { background: #fff0e6; color: #b34a00; border: 0.5px solid #f0b080; }
+.ws-caddy     { background: #e8f0ff; color: #1a44b8; border: 0.5px solid #90b0f0; }
+.ws-litespeed { background: #fff8e0; color: #8a6000; border: 0.5px solid #d8c050; }
+.ws-iis       { background: #f0eaff; color: #5520a0; border: 0.5px solid #c090e0; }
+.ws-other     { background: var(--hover); color: var(--text-muted); border: 0.5px solid var(--border); }
 
 /* Corps du serveur (sites) */
 .server-body {

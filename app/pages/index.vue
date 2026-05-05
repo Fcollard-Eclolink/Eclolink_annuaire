@@ -49,6 +49,30 @@ function siteCount(groupId: string): number {
   return sitesByGroup.value.get(groupId)?.length ?? 0
 }
 
+// ── Copie IP ──────────────────────────────────────────────────────
+const copiedField = ref<string | null>(null)
+
+async function copyIp(text: string, fieldId: string): Promise<void> {
+  try {
+    await navigator.clipboard.writeText(text)
+    copiedField.value = fieldId
+    setTimeout(() => {
+      if (copiedField.value === fieldId) copiedField.value = null
+    }, 1500)
+  } catch { /* ignore — pas de permission clipboard */ }
+}
+
+// ── Badge serveur web ─────────────────────────────────────────────
+function webServerKey(name: string): string {
+  const n = name.toLowerCase()
+  if (n.includes('nginx'))     return 'nginx'
+  if (n.includes('apache'))    return 'apache'
+  if (n.includes('caddy'))     return 'caddy'
+  if (n.includes('litespeed')) return 'litespeed'
+  if (n.includes('iis'))       return 'iis'
+  return 'other'
+}
+
 // ── Popover infos serveur ─────────────────────────────────────────
 const infoOpenId = ref<string | null>(null)
 
@@ -221,15 +245,59 @@ async function saveEdit(): Promise<void> {
                   </div>
                   <div v-if="group.ip_public" class="info-row">
                     <span class="info-label">IP publique</span>
-                    <span class="info-val">{{ group.ip_public }}</span>
+                    <div class="info-val-wrap">
+                      <span class="info-val">{{ group.ip_public }}</span>
+                      <button
+                        class="copy-btn"
+                        :class="{ copied: copiedField === 'pub-' + group.id }"
+                        title="Copier"
+                        @click.stop="copyIp(group.ip_public!, 'pub-' + group.id)"
+                      >
+                        <svg v-if="copiedField !== 'pub-' + group.id"
+                             xmlns="http://www.w3.org/2000/svg" width="12" height="12"
+                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <rect x="9" y="2" width="13" height="13" rx="2" ry="2"/>
+                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                        <svg v-else xmlns="http://www.w3.org/2000/svg" width="12" height="12"
+                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                   <div v-if="group.ip_local" class="info-row">
                     <span class="info-label">IP locale</span>
-                    <span class="info-val">{{ group.ip_local }}</span>
+                    <div class="info-val-wrap">
+                      <span class="info-val">{{ group.ip_local }}</span>
+                      <button
+                        class="copy-btn"
+                        :class="{ copied: copiedField === 'loc-' + group.id }"
+                        title="Copier"
+                        @click.stop="copyIp(group.ip_local!, 'loc-' + group.id)"
+                      >
+                        <svg v-if="copiedField !== 'loc-' + group.id"
+                             xmlns="http://www.w3.org/2000/svg" width="12" height="12"
+                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <rect x="9" y="2" width="13" height="13" rx="2" ry="2"/>
+                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                        <svg v-else xmlns="http://www.w3.org/2000/svg" width="12" height="12"
+                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                   <div v-if="group.web_server" class="info-row">
                     <span class="info-label">Serveur web</span>
-                    <span class="info-val">{{ group.web_server }}</span>
+                    <span :class="['ws-badge', 'ws-' + webServerKey(group.web_server)]">
+                      {{ group.web_server }}
+                    </span>
                   </div>
                 </div>
               </div>
