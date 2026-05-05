@@ -49,6 +49,24 @@ function siteCount(groupId: string): number {
   return sitesByGroup.value.get(groupId)?.length ?? 0
 }
 
+// ── Popover infos serveur ─────────────────────────────────────────
+const infoOpenId = ref<string | null>(null)
+
+function hasInfo(group: Group): boolean {
+  return !!(group.hoster || group.ip_public || group.ip_local || group.web_server)
+}
+
+function toggleInfo(id: string): void {
+  infoOpenId.value = infoOpenId.value === id ? null : id
+}
+
+function closeInfo(): void {
+  infoOpenId.value = null
+}
+
+onMounted(()  => document.addEventListener('click', closeInfo))
+onUnmounted(() => document.removeEventListener('click', closeInfo))
+
 // ── Suppression ───────────────────────────────────────────────────
 const deleteTarget  = ref<Group | null>(null)
 const deleteLoading = ref(false)
@@ -184,8 +202,38 @@ async function saveEdit(): Promise<void> {
               <span class="server-count">{{ siteCount(group.id) }}</span>
             </button>
 
-            <!-- Actions : modifier + supprimer -->
-            <div class="server-actions">
+            <!-- Actions : infos + modifier + supprimer -->
+            <div class="server-actions" @click.stop>
+
+              <!-- Bouton ℹ + popover -->
+              <div v-if="hasInfo(group)" class="info-wrap">
+                <button
+                  class="icon-btn"
+                  :class="{ active: infoOpenId === group.id }"
+                  title="Informations"
+                  @click="toggleInfo(group.id)"
+                >&#x2139;</button>
+
+                <div v-if="infoOpenId === group.id" class="info-popover">
+                  <div v-if="group.hoster" class="info-row">
+                    <span class="info-label">Hébergeur</span>
+                    <span class="info-val">{{ group.hoster }}</span>
+                  </div>
+                  <div v-if="group.ip_public" class="info-row">
+                    <span class="info-label">IP publique</span>
+                    <span class="info-val">{{ group.ip_public }}</span>
+                  </div>
+                  <div v-if="group.ip_local" class="info-row">
+                    <span class="info-label">IP locale</span>
+                    <span class="info-val">{{ group.ip_local }}</span>
+                  </div>
+                  <div v-if="group.web_server" class="info-row">
+                    <span class="info-label">Serveur web</span>
+                    <span class="info-val">{{ group.web_server }}</span>
+                  </div>
+                </div>
+              </div>
+
               <button
                 class="icon-btn"
                 title="Modifier"

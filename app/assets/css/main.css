@@ -224,11 +224,58 @@ input:focus { border-color: #888; }
   font-family: inherit;
   flex-shrink: 0;
 }
-.icon-btn:hover { background: var(--hover); color: var(--text); }
+.icon-btn:hover         { background: var(--hover); color: var(--text); }
+.icon-btn.active        { background: var(--hover); color: var(--text); }
 .icon-btn.del:hover {
   background: var(--del-hover-bg);
   color: var(--del-hover-color);
   border-color: var(--del-hover-border);
+}
+
+/* Popover infos serveur */
+.info-wrap {
+  position: relative;
+}
+
+.info-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  padding: 10px 12px;
+  min-width: 200px;
+  z-index: 50;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 3px 0;
+}
+.info-row + .info-row {
+  border-top: 0.5px solid var(--border);
+  padding-top: 5px;
+  margin-top: 2px;
+}
+
+.info-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.info-val {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  text-align: right;
+  word-break: break-all;
 }
 
 /* Corps du serveur (sites) */
