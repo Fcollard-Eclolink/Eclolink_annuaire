@@ -4,3 +4,4 @@ app/.nuxt/
 app/.output/
 .env
 *.local
+.claude/settings.local.json

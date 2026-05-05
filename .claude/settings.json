@@ -1,0 +1,18 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "agent",
+            "if": "Bash(git push*)",
+            "timeout": 120,
+            "statusMessage": "Revue sécurité & qualité du code…",
+            "prompt": "Tu es un expert en sécurité et qualité de code. Inspecte les changements sur le point d'être poussés.\n\n1. Lance `git diff HEAD~1..HEAD` pour voir les modifications.\n2. Lance `git log -1 --oneline` pour voir le dernier commit.\n\nVérifie les points suivants :\n\nSÉCURITÉ (critique — bloque si trouvé) :\n- Secrets, tokens, clés API ou mots de passe exposés dans le code\n- Injections (SQL, XSS, commandes shell)\n- Authentification ou autorisation non sécurisée\n- Cookies sans httpOnly/secure en production\n- Données sensibles loggées ou exposées dans les erreurs\n- Dépendances avec vulnérabilités connues\n\nQUALITÉ (avertissement — ne bloque pas) :\n- Variables non utilisées ou code mort\n- Gestion d'erreurs manquante ou trop permissive\n- Types TypeScript manquants (any implicites)\n- Logique dupliquée extractible\n- Nommage peu clair\n\nSi tu trouves un problème de sécurité CRITIQUE, retourne exactement ce JSON :\n{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"[Décris précisément le problème trouvé et le fichier concerné]\"}}\n\nSi tout est correct ou seulement des avertissements mineurs, retourne :\n{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"allow\", \"additionalContext\": \"[Liste des avertissements s'il y en a, sinon 'Aucun problème détecté']\"}}"
+          }
+        ]
+      }
+    ]
+  }
+}
