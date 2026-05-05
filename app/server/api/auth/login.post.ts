@@ -1,17 +1,22 @@
+interface LoginBody {
+  email   : string
+  password: string
+}
+
 export default defineEventHandler(async (event) => {
-  const { email, password } = await readBody<{ email: string; password: string }>(event)
+  const { email, password } = await readBody<LoginBody>(event)
 
   if (!email || !password) {
     throw createError({ statusCode: 400, message: 'Email et mot de passe requis' })
   }
 
-  const config = useRuntimeConfig()
+  const { supabaseUrl, supabaseKey } = useRuntimeConfig()
 
   const res = await fetch(
-    `${config.supabaseUrl}/auth/v1/token?grant_type=password`,
+    `${supabaseUrl}/auth/v1/token?grant_type=password`,
     {
       method  : 'POST',
-      headers : { apikey: config.supabaseKey, 'Content-Type': 'application/json' },
+      headers : { apikey: supabaseKey, 'Content-Type': 'application/json' },
       body    : JSON.stringify({ email, password }),
     },
   )
@@ -20,10 +25,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, message: 'Email ou mot de passe incorrect' })
   }
 
-  const data = await res.json()
-
+  const data = (await res.json()) as SupabaseTokenData
   setTokenCookies(event, data)
 
-  // On ne renvoie rien de sensible au client
   return { ok: true }
 })

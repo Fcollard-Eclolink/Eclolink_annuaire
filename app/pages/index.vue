@@ -1,28 +1,13 @@
 <script setup lang="ts">
+// Les interfaces Group et Site sont définies dans server/utils/types.ts
+// et exposées côté client via les types de retour de useFetch
+import type { Group, Site } from '~/server/utils/types'
+
 definePageMeta({ middleware: 'auth' })
 
 const { user, logout } = useAuth()
 
-interface Group {
-  id         : string
-  name       : string
-  hoster     : string | null
-  ip_public  : string | null
-  ip_local   : string | null
-  web_server : string | null
-}
-
-interface Site {
-  id                 : string
-  name               : string
-  url                : string | null
-  bo_url             : string | null
-  agency             : string | null
-  group_id           : string | null
-  notes              : string | null
-}
-
-// Chargement en parallèle
+// Chargement en parallèle — useFetch est awaitable (Nuxt 3.x)
 const [{ data: groups, error: errGroups }, { data: sites, error: errSites }] =
   await Promise.all([
     useFetch<Group[]>('/api/groups'),

@@ -1,6 +1,6 @@
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event): Promise<SupabaseUser> => {
   const res  = await sbFetch(event, '/auth/v1/user')
-  const user = await res.json()
-  // On n'expose que le strict minimum au client
-  return { id: user.id as string, email: user.email as string }
+  const user = (await res.json()) as SupabaseUser
+  // N'expose que le strict minimum au client
+  return { id: user.id, email: user.email }
 })

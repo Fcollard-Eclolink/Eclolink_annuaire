@@ -1,12 +1,13 @@
 export default defineEventHandler(async (event) => {
-  // Révocation côté Supabase (best effort — si le token est déjà expiré c'est ok)
   const token = getAccessToken(event)
+
   if (token) {
-    const config = useRuntimeConfig()
-    await fetch(`${config.supabaseUrl}/auth/v1/logout`, {
+    const { supabaseUrl, supabaseKey } = useRuntimeConfig()
+    // Révocation best-effort — si le token est déjà expiré c'est ok
+    await fetch(`${supabaseUrl}/auth/v1/logout`, {
       method  : 'POST',
-      headers : { apikey: config.supabaseKey, Authorization: `Bearer ${token}` },
-    }).catch(() => {})
+      headers : { apikey: supabaseKey, Authorization: `Bearer ${token}` },
+    }).catch(() => undefined)
   }
 
   clearTokenCookies(event)
