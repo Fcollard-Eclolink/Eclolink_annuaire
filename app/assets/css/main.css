@@ -134,26 +134,87 @@ input:focus { border-color: #888; }
 
 .app-header h1 { font-size: 18px; font-weight: 500; }
 
-/* ── Liste des sites ──────────────────────────────────────────── */
-.sites-list {
+/* ── Liste des serveurs ───────────────────────────────────────── */
+.servers-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
-.site-card {
+.server-block {
   background: var(--surface);
   border: 0.5px solid var(--border);
   border-radius: 10px;
-  padding: 12px 14px;
+  overflow: hidden;
+}
+
+/* En-tête serveur (bouton cliquable) */
+.server-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  text-align: left;
+}
+.server-header:hover { background: var(--hover); }
+
+.server-chevron {
+  font-size: 10px;
+  color: var(--text-muted);
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+.server-header.open .server-chevron {
+  transform: rotate(90deg);
+}
+
+.server-name { flex: 1; }
+.server-name.muted { color: var(--text-muted); font-style: italic; }
+
+.server-count {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+  background: var(--hover);
+  border: 0.5px solid var(--border);
+  border-radius: 20px;
+  padding: 1px 8px;
+  flex-shrink: 0;
+}
+
+/* Corps du serveur (sites) */
+.server-body {
+  border-top: 0.5px solid var(--border);
+}
+
+.site-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  padding: 9px 14px 9px 36px;
+  border-bottom: 0.5px solid var(--border);
+}
+.site-row:last-child { border-bottom: none; }
+.site-row:hover { background: var(--hover); }
+
+.site-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
 }
 
 .site-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
 }
 
@@ -167,11 +228,25 @@ input:focus { border-color: #888; }
 }
 .site-url:hover { color: var(--text); text-decoration: underline; }
 
-.site-info {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  overflow: hidden;
+.site-agency {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--hover);
+  border: 0.5px solid var(--border);
+  border-radius: 6px;
+  padding: 2px 8px;
+  flex-shrink: 0;
+}
+
+.empty-group {
+  padding: 10px 14px 10px 36px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.user-email {
+  font-size: 13px;
+  color: var(--text-muted);
 }
 
 .empty-state {
