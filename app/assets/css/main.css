@@ -1,0 +1,189 @@
+/* ── Variables ────────────────────────────────────────────────── */
+:root {
+  --bg              : #f5f5f3;
+  --surface         : #fff;
+  --border          : #e0e0dc;
+  --border-input    : #ccc;
+  --text            : #1a1a1a;
+  --text-muted      : #777;
+  --hover           : #f0f0ee;
+  --btn-primary-bg  : #1a1a1a;
+  --btn-primary-color: #fff;
+  --del-hover-bg    : #fcebeb;
+  --del-hover-color : #a32d2d;
+  --del-hover-border: #f09595;
+}
+
+/* ── Reset ────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── Inputs ───────────────────────────────────────────────────── */
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  height: 36px;
+  padding: 0 12px;
+  border: 0.5px solid var(--border-input);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  width: 100%;
+  outline: none;
+}
+input:focus { border-color: #888; }
+
+/* ── Boutons ──────────────────────────────────────────────────── */
+.btn {
+  height: 36px;
+  padding: 0 14px;
+  border: 0.5px solid var(--border-input);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+  font-family: inherit;
+}
+.btn:hover { background: var(--hover); }
+.btn.primary {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-color);
+  border-color: var(--btn-primary-bg);
+}
+.btn.primary:hover { opacity: 0.85; }
+
+/* ── Champ de formulaire ──────────────────────────────────────── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 1rem;
+}
+.field label { font-size: 13px; font-weight: 500; color: var(--text); }
+
+/* ── Écran de connexion ───────────────────────────────────────── */
+.login-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1.5rem;
+}
+
+.login-card {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 360px;
+}
+
+.login-title {
+  font-size: 17px;
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+}
+
+.login-error {
+  font-size: 13px;
+  color: #a32d2d;
+  background: var(--del-hover-bg);
+  border: 0.5px solid var(--del-hover-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 1rem;
+}
+
+/* ── Spinner bouton ───────────────────────────────────────────── */
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--btn-primary-color);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Page principale ──────────────────────────────────────────── */
+.app-wrap {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.app-header h1 { font-size: 18px; font-weight: 500; }
+
+/* ── Liste des sites ──────────────────────────────────────────── */
+.sites-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.site-card {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.site-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.site-url {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.site-url:hover { color: var(--text); text-decoration: underline; }
+
+.site-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  overflow: hidden;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.load-error {
+  text-align: center;
+  padding: 2rem;
+  color: var(--del-hover-color);
+  font-size: 13px;
+}

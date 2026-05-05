@@ -10,3 +10,5 @@ services:
       - NODE_ENV=development
       - NUXT_HOST=0.0.0.0
       - NUXT_PORT=3000
+      - NUXT_SUPABASE_URL=${SUPABASE_URL}
+      - NUXT_SUPABASE_KEY=${SUPABASE_KEY}
