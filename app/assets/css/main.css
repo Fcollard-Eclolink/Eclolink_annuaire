@@ -148,12 +148,18 @@ input:focus { border-color: #888; }
   overflow: hidden;
 }
 
-/* En-tête serveur (bouton cliquable) */
-.server-header {
-  width: 100%;
+/* En-tête serveur : toggle + actions */
+.server-header-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+}
+
+/* Zone cliquable toggle (chevron + nom + compteur) */
+.server-toggle {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 11px 14px;
   background: none;
   border: none;
@@ -163,8 +169,9 @@ input:focus { border-color: #888; }
   font-weight: 500;
   color: var(--text);
   text-align: left;
+  min-width: 0;
 }
-.server-header:hover { background: var(--hover); }
+.server-toggle:hover { background: var(--hover); }
 
 .server-chevron {
   font-size: 10px;
@@ -172,11 +179,13 @@ input:focus { border-color: #888; }
   transition: transform 0.15s;
   flex-shrink: 0;
 }
-.server-header.open .server-chevron {
-  transform: rotate(90deg);
-}
+.server-toggle.open .server-chevron { transform: rotate(90deg); }
 
-.server-name { flex: 1; }
+.server-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .server-name.muted { color: var(--text-muted); font-style: italic; }
 
 .server-count {
@@ -188,6 +197,38 @@ input:focus { border-color: #888; }
   border-radius: 20px;
   padding: 1px 8px;
   flex-shrink: 0;
+}
+
+/* Boutons d'action serveur */
+.server-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 10px;
+  flex-shrink: 0;
+}
+
+/* Bouton icône générique */
+.icon-btn {
+  width: 28px;
+  height: 28px;
+  border: 0.5px solid var(--border-input);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-family: inherit;
+  flex-shrink: 0;
+}
+.icon-btn:hover { background: var(--hover); color: var(--text); }
+.icon-btn.del:hover {
+  background: var(--del-hover-bg);
+  color: var(--del-hover-color);
+  border-color: var(--del-hover-border);
 }
 
 /* Corps du serveur (sites) */
@@ -261,4 +302,83 @@ input:focus { border-color: #888; }
   padding: 2rem;
   color: var(--del-hover-color);
   font-size: 13px;
+}
+
+/* ── Modales ──────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.38);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 100;
+}
+
+.modal-card {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 14px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+
+.modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.modal-msg {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.5;
+  margin-bottom: 1.25rem;
+}
+
+.modal-error {
+  font-size: 13px;
+  color: var(--del-hover-color);
+  background: var(--del-hover-bg);
+  border: 0.5px solid var(--del-hover-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 1rem;
+}
+
+.modal-btns {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 1.25rem;
+}
+
+.btn-danger {
+  background: #a32d2d;
+  color: #fff;
+  border-color: #a32d2d;
+}
+.btn-danger:hover { opacity: 0.85; background: #a32d2d; }
+.btn-danger:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.spinner-dark {
+  border-color: #fff;
+  border-top-color: transparent;
+}
+
+/* Transition modales */
+.modal-enter-active, .modal-leave-active {
+  transition: opacity 0.15s ease;
+}
+.modal-enter-active .modal-card,
+.modal-leave-active .modal-card {
+  transition: transform 0.15s ease;
+}
+.modal-enter-from, .modal-leave-to { opacity: 0; }
+.modal-enter-from .modal-card, .modal-leave-to .modal-card {
+  transform: scale(0.97) translateY(4px);
 }
