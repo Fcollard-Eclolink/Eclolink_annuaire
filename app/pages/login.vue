@@ -1,6 +1,8 @@
 <script setup lang="ts">
 definePageMeta({ middleware: [] }) // page publique, pas de guard
 
+const { user } = useAuth()
+
 const email    = ref('')
 const password = ref('')
 const loading  = ref(false)
@@ -16,9 +18,12 @@ async function submit() {
       method : 'POST',
       body   : { email: email.value, password: password.value },
     })
+    // Peuple l'état user AVANT de naviguer — sinon le middleware
+    // voit encore user=null et renvoie silencieusement vers /login
+    user.value = await $fetch('/api/auth/me')
     await navigateTo('/')
   } catch {
-    error.value   = 'Email ou mot de passe incorrect.'
+    error.value    = 'Email ou mot de passe incorrect.'
     password.value = ''
   } finally {
     loading.value = false
