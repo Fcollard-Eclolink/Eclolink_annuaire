@@ -1,0 +1,15 @@
+/* ── Variables globales ───────────────────────────────────────── */
+:root {
+  --bg               : #f5f5f3;
+  --surface          : #fff;
+  --border           : #e0e0dc;
+  --border-input     : #ccc;
+  --text             : #1a1a1a;
+  --text-muted       : #777;
+  --hover            : #f0f0ee;
+  --btn-primary-bg   : #1a1a1a;
+  --btn-primary-color: #fff;
+  --del-hover-bg     : #fcebeb;
+  --del-hover-color  : #a32d2d;
+  --del-hover-border : #f09595;
+}

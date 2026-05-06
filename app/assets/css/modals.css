@@ -1,0 +1,59 @@
+/* ── Modales ──────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.38);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 100;
+}
+
+.modal-card {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 14px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+
+.modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.modal-msg {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.5;
+  margin-bottom: 1.25rem;
+}
+
+.modal-error {
+  font-size: 13px;
+  color: var(--del-hover-color);
+  background: var(--del-hover-bg);
+  border: 0.5px solid var(--del-hover-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 1rem;
+}
+
+.modal-btns {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 1.25rem;
+}
+
+/* Transitions modales */
+.modal-enter-active, .modal-leave-active { transition: opacity 0.15s ease; }
+.modal-enter-active .modal-card,
+.modal-leave-active .modal-card          { transition: transform 0.15s ease; }
+.modal-enter-from, .modal-leave-to       { opacity: 0; }
+.modal-enter-from .modal-card,
+.modal-leave-to .modal-card              { transform: scale(0.97) translateY(4px); }
