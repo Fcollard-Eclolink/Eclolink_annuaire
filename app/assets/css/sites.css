@@ -7,7 +7,7 @@
   padding: 8px 10px 8px 36px;
   border-bottom: 0.5px solid var(--border);
 }
-.site-row:last-child { border-bottom: none; }
+.site-row:last-child { border-bottom: none; border-radius: 0 0 10px 10px; }
 .site-row:hover { background: var(--hover); }
 
 .site-info {

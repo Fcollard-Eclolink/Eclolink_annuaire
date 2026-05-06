@@ -9,14 +9,16 @@
   background: var(--surface);
   border: 0.5px solid var(--border);
   border-radius: 10px;
-  overflow: hidden;
+  /* Pas d'overflow:hidden pour que les popovers puissent dépasser */
+  position: relative;
 }
 
-/* En-tête : hover sur toute la largeur */
+/* En-tête : hover sur toute la largeur, coins arrondis en haut */
 .server-header-row {
   display: flex;
   align-items: center;
   transition: background 0.12s;
+  border-radius: 10px 10px 0 0;
 }
 .server-header-row:hover { background: var(--hover); }
 
@@ -95,7 +97,7 @@
   box-shadow: 0 4px 16px rgba(0,0,0,0.10);
   padding: 10px 12px;
   min-width: 200px;
-  z-index: 50;
+  z-index: 200;
 }
 
 .info-row {
