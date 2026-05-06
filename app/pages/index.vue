@@ -88,10 +88,21 @@ function hasSiteInfo(site: Site): boolean {
   )
 }
 
-// Technologies split en tableau
+// Technologies : supporte JSON array ["a","b"] ET CSV "a, b"
 function techTags(site: Site): string[] {
   if (!site.technologies) return []
-  return site.technologies.split(',').map(t => t.trim()).filter(Boolean)
+  const raw = site.technologies.trim()
+  if (raw.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(raw) as unknown
+      if (Array.isArray(parsed)) {
+        return (parsed as unknown[])
+          .map(v => String(v).trim())
+          .filter(Boolean)
+      }
+    } catch { /* fallback CSV */ }
+  }
+  return raw.split(',').map(t => t.trim()).filter(Boolean)
 }
 
 // Logo simpleicons.org pour une technologie (null = pas de logo connu)
