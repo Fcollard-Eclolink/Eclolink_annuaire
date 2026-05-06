@@ -24,3 +24,10 @@ export interface Group {
   ip_local  : string | null
   web_server: string | null
 }
+
+export interface ProjectManager {
+  id        : string
+  first_name: string
+  last_name : string
+  agency    : string | null
+}

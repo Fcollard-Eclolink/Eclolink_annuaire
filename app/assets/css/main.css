@@ -337,13 +337,36 @@ input:focus { border-color: #888; }
 .site-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   overflow: hidden;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Ligne nom + tags inline */
+.site-name-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
 }
 
 .site-name {
   font-size: 13px;
   font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Tags agence / technologies */
+.site-tag {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--hover);
+  border: 0.5px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .site-url {
@@ -356,14 +379,33 @@ input:focus { border-color: #888; }
 }
 .site-url:hover { color: var(--text); text-decoration: underline; }
 
-.site-agency {
-  font-size: 12px;
-  color: var(--text-muted);
-  background: var(--hover);
-  border: 0.5px solid var(--border);
-  border-radius: 6px;
-  padding: 2px 8px;
+/* Boutons d'action site */
+.site-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   flex-shrink: 0;
+}
+
+/* Lien cliquable dans popover */
+.info-link {
+  color: var(--text);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 160px;
+  display: inline-block;
+}
+.info-link:hover { text-decoration: underline; }
+
+/* Notes dans popover (multi-ligne) */
+.info-row--notes { align-items: flex-start; }
+.info-row--notes .info-val {
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-width: 200px;
+  text-align: left;
 }
 
 .empty-group {
@@ -390,6 +432,38 @@ input:focus { border-color: #888; }
   color: var(--del-hover-color);
   font-size: 13px;
 }
+
+/* ── Select & Textarea dans modales ──────────────────────────── */
+select.field-input {
+  height: 36px;
+  padding: 0 12px;
+  border: 0.5px solid var(--border-input);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  width: 100%;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+}
+select.field-input:focus { border-color: #888; }
+
+textarea.field-input {
+  padding: 8px 12px;
+  border: 0.5px solid var(--border-input);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  width: 100%;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 72px;
+  outline: none;
+  line-height: 1.5;
+}
+textarea.field-input:focus { border-color: #888; }
 
 /* ── Modales ──────────────────────────────────────────────────── */
 .modal-overlay {
