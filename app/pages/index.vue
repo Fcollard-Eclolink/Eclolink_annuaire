@@ -80,25 +80,51 @@ function hasGroupInfo(group: Group): boolean {
   return !!(group.hoster || group.ip_public || group.ip_local || group.web_server)
 }
 
-// Infos site
+// Infos site (bo_url et gitlab_url sont des boutons directs, pas dans le popover)
 function hasSiteInfo(site: Site): boolean {
   return !!(
     site.dns_zone || site.php_version || site.go_live_date ||
-    site.bo_url   || site.gitlab_url  || site.project_manager_id || site.notes
+    site.project_manager_id || site.notes
   )
 }
 
-// Tags affichés sur la ligne site (agence + technologies)
-function siteTags(site: Site): string[] {
-  const tags: string[] = []
-  if (site.agency) tags.push(site.agency)
-  if (site.technologies) {
-    for (const t of site.technologies.split(',')) {
-      const trimmed = t.trim()
-      if (trimmed) tags.push(trimmed)
-    }
-  }
-  return tags
+// Technologies split en tableau
+function techTags(site: Site): string[] {
+  if (!site.technologies) return []
+  return site.technologies.split(',').map(t => t.trim()).filter(Boolean)
+}
+
+// Logo simpleicons.org pour une technologie (null = pas de logo connu)
+const TECH_ICONS: Record<string, { slug: string; color: string }> = {
+  wordpress:    { slug: 'wordpress',   color: '21759b' },
+  woocommerce:  { slug: 'woocommerce', color: '96588A' },
+  wpbakery:     { slug: 'wpbakery',    color: '522D80' },
+  elementor:    { slug: 'elementor',   color: '92003B' },
+  divi:         { slug: 'divi',        color: '7EBEC5' },
+  shopify:      { slug: 'shopify',     color: '7AB55C' },
+  prestashop:   { slug: 'prestashop',  color: 'DF0067' },
+  drupal:       { slug: 'drupal',      color: '0678BE' },
+  joomla:       { slug: 'joomla',      color: '5091CD' },
+  magento:      { slug: 'magento',     color: 'EE672F' },
+  vue:          { slug: 'vuedotjs',    color: '42B883' },
+  nuxt:         { slug: 'nuxtdotjs',   color: '00DC82' },
+  react:        { slug: 'react',       color: '61DAFB' },
+  nextjs:       { slug: 'nextdotjs',   color: '000000' },
+  laravel:      { slug: 'laravel',     color: 'FF2D20' },
+  symfony:      { slug: 'symfony',     color: '000000' },
+  php:          { slug: 'php',         color: '777BB4' },
+  typescript:   { slug: 'typescript',  color: '3178C6' },
+  javascript:   { slug: 'javascript',  color: 'F7DF1E' },
+  docker:       { slug: 'docker',      color: '2496ED' },
+  sass:         { slug: 'sass',        color: 'CC6699' },
+}
+
+function techIconUrl(tech: string): string | null {
+  const n = tech.toLowerCase()
+  const key = Object.keys(TECH_ICONS).find(k => n.includes(k))
+  if (!key) return null
+  const { slug, color } = TECH_ICONS[key]!
+  return `https://cdn.simpleicons.org/${slug}/${color}`
 }
 
 // ── Badge serveur web ─────────────────────────────────────────────
@@ -478,17 +504,45 @@ async function saveSiteEdit(): Promise<void> {
               class="site-row"
             >
               <div class="site-info">
-                <div class="site-name-line">
-                  <span class="site-name">{{ site.name }}</span>
-                  <span v-for="tag in siteTags(site)" :key="tag" class="site-tag">{{ tag }}</span>
+                <span class="site-name">{{ site.name }}</span>
+                <div class="site-meta">
+                  <!-- Bouton URL -->
+                  <a v-if="site.url" class="site-link-btn" :href="site.url"
+                     target="_blank" rel="noopener noreferrer" title="Visiter le site">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                    </svg>
+                  </a>
+                  <!-- Bouton Back-office -->
+                  <a v-if="site.bo_url" class="site-link-btn" :href="site.bo_url"
+                     target="_blank" rel="noopener noreferrer" title="Back-office">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+                    </svg>
+                  </a>
+                  <!-- Bouton GitLab -->
+                  <a v-if="site.gitlab_url" class="site-link-btn site-link-btn--gitlab" :href="site.gitlab_url"
+                     target="_blank" rel="noopener noreferrer" title="GitLab">
+                    <img src="https://cdn.simpleicons.org/gitlab/FC6D26" width="13" height="13" alt="GitLab">
+                  </a>
+                  <!-- Séparateur visuel si liens ET tags -->
+                  <span
+                    v-if="(site.url || site.bo_url || site.gitlab_url) && (site.agency || site.technologies)"
+                    class="site-meta-sep"
+                  />
+                  <!-- Tag agence -->
+                  <span v-if="site.agency" class="site-tag site-tag--agency">{{ site.agency }}</span>
+                  <!-- Badges technologie -->
+                  <span v-for="tech in techTags(site)" :key="tech" class="site-tech-badge">
+                    <img v-if="techIconUrl(tech)" :src="techIconUrl(tech)" width="11" height="11" :alt="tech">
+                    {{ tech }}
+                  </span>
                 </div>
-                <a
-                  v-if="site.url"
-                  :href="site.url"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="site-url"
-                >{{ site.url }}</a>
               </div>
               <div class="site-actions" @click.stop>
                 <div v-if="hasSiteInfo(site)" class="info-wrap">
@@ -517,18 +571,6 @@ async function saveSiteEdit(): Promise<void> {
                     <div v-if="site.go_live_date" class="info-row">
                       <span class="info-label">Mise en ligne</span>
                       <span class="info-val">{{ site.go_live_date }}</span>
-                    </div>
-                    <div v-if="site.bo_url" class="info-row">
-                      <span class="info-label">Back-office</span>
-                      <a :href="site.bo_url" target="_blank" rel="noopener noreferrer" class="info-val info-link">
-                        {{ site.bo_url }}
-                      </a>
-                    </div>
-                    <div v-if="site.gitlab_url" class="info-row">
-                      <span class="info-label">GitLab</span>
-                      <a :href="site.gitlab_url" target="_blank" rel="noopener noreferrer" class="info-val info-link">
-                        {{ site.gitlab_url }}
-                      </a>
                     </div>
                     <div v-if="site.notes" class="info-row info-row--notes">
                       <span class="info-label">Notes</span>
@@ -563,17 +605,45 @@ async function saveSiteEdit(): Promise<void> {
               class="site-row"
             >
               <div class="site-info">
-                <div class="site-name-line">
-                  <span class="site-name">{{ site.name }}</span>
-                  <span v-for="tag in siteTags(site)" :key="tag" class="site-tag">{{ tag }}</span>
+                <span class="site-name">{{ site.name }}</span>
+                <div class="site-meta">
+                  <!-- Bouton URL -->
+                  <a v-if="site.url" class="site-link-btn" :href="site.url"
+                     target="_blank" rel="noopener noreferrer" title="Visiter le site">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                    </svg>
+                  </a>
+                  <!-- Bouton Back-office -->
+                  <a v-if="site.bo_url" class="site-link-btn" :href="site.bo_url"
+                     target="_blank" rel="noopener noreferrer" title="Back-office">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+                    </svg>
+                  </a>
+                  <!-- Bouton GitLab -->
+                  <a v-if="site.gitlab_url" class="site-link-btn site-link-btn--gitlab" :href="site.gitlab_url"
+                     target="_blank" rel="noopener noreferrer" title="GitLab">
+                    <img src="https://cdn.simpleicons.org/gitlab/FC6D26" width="13" height="13" alt="GitLab">
+                  </a>
+                  <!-- Séparateur visuel si liens ET tags -->
+                  <span
+                    v-if="(site.url || site.bo_url || site.gitlab_url) && (site.agency || site.technologies)"
+                    class="site-meta-sep"
+                  />
+                  <!-- Tag agence -->
+                  <span v-if="site.agency" class="site-tag site-tag--agency">{{ site.agency }}</span>
+                  <!-- Badges technologie -->
+                  <span v-for="tech in techTags(site)" :key="tech" class="site-tech-badge">
+                    <img v-if="techIconUrl(tech)" :src="techIconUrl(tech)" width="11" height="11" :alt="tech">
+                    {{ tech }}
+                  </span>
                 </div>
-                <a
-                  v-if="site.url"
-                  :href="site.url"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="site-url"
-                >{{ site.url }}</a>
               </div>
               <div class="site-actions" @click.stop>
                 <div v-if="hasSiteInfo(site)" class="info-wrap">
@@ -602,18 +672,6 @@ async function saveSiteEdit(): Promise<void> {
                     <div v-if="site.go_live_date" class="info-row">
                       <span class="info-label">Mise en ligne</span>
                       <span class="info-val">{{ site.go_live_date }}</span>
-                    </div>
-                    <div v-if="site.bo_url" class="info-row">
-                      <span class="info-label">Back-office</span>
-                      <a :href="site.bo_url" target="_blank" rel="noopener noreferrer" class="info-val info-link">
-                        {{ site.bo_url }}
-                      </a>
-                    </div>
-                    <div v-if="site.gitlab_url" class="info-row">
-                      <span class="info-label">GitLab</span>
-                      <a :href="site.gitlab_url" target="_blank" rel="noopener noreferrer" class="info-val info-link">
-                        {{ site.gitlab_url }}
-                      </a>
                     </div>
                     <div v-if="site.notes" class="info-row info-row--notes">
                       <span class="info-label">Notes</span>

@@ -328,7 +328,7 @@ input:focus { border-color: #888; }
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 9px 14px 9px 36px;
+  padding: 8px 10px 8px 36px;
   border-bottom: 0.5px solid var(--border);
 }
 .site-row:last-child { border-bottom: none; }
@@ -337,47 +337,87 @@ input:focus { border-color: #888; }
 .site-info {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
   overflow: hidden;
   flex: 1;
   min-width: 0;
-}
-
-/* Ligne nom + tags inline */
-.site-name-line {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 5px;
 }
 
 .site-name {
   font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Tags agence / technologies */
-.site-tag {
-  font-size: 11px;
-  color: var(--text-muted);
-  background: var(--hover);
+/* Ligne méta : boutons liens + tags */
+.site-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+/* Bouton lien icône (URL, BO, GitLab) */
+.site-link-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
   border: 0.5px solid var(--border);
-  border-radius: 4px;
-  padding: 1px 6px;
+  border-radius: 6px;
+  color: var(--text-muted);
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: background 0.12s, border-color 0.12s;
+}
+.site-link-btn:hover {
+  background: var(--hover);
+  color: var(--text);
+  border-color: var(--border-input);
+}
+.site-link-btn--gitlab:hover { border-color: #FC6D26; }
+
+/* Séparateur entre boutons et tags */
+.site-meta-sep {
+  display: inline-block;
+  width: 1px;
+  height: 14px;
+  background: var(--border);
+  flex-shrink: 0;
+  margin: 0 2px;
+}
+
+/* Tag agence (plus visible que les tech badges) */
+.site-tag--agency {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--hover);
+  border: 0.5px solid var(--border-input);
+  border-radius: 20px;
+  padding: 1px 8px;
   flex-shrink: 0;
   white-space: nowrap;
 }
 
-.site-url {
-  font-size: 12px;
+/* Badge technologie avec logo */
+.site-tech-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
   color: var(--text-muted);
-  text-decoration: none;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  background: var(--hover);
+  border: 0.5px solid var(--border);
+  border-radius: 20px;
+  padding: 1px 7px;
+  flex-shrink: 0;
   white-space: nowrap;
 }
-.site-url:hover { color: var(--text); text-decoration: underline; }
+.site-tech-badge img { display: block; flex-shrink: 0; }
 
 /* Boutons d'action site */
 .site-actions {
