@@ -540,27 +540,28 @@ const {
                 <input id="as-agency" v-model="addSiteForm.agency" type="text" placeholder="Eclolink…">
               </div>
               <div class="field">
-                <label for="as-group">Serveur</label>
-                <select id="as-group" v-model="addSiteForm.group_id" class="field-input">
-                  <option value="">— Aucun —</option>
-                  <option v-for="g in groups" :key="g.id" :value="g.id">{{ g.name }}</option>
-                </select>
+                <label>Serveur</label>
+                <AppSelect
+                  v-model="addSiteForm.group_id"
+                  :options="(groups ?? []).map(g => ({ value: g.id, label: g.name }))"
+                  placeholder="— Aucun —"
+                />
               </div>
               <div class="field">
-                <label for="as-pm">Cheffe de projet</label>
-                <select id="as-pm" v-model="addSiteForm.project_manager_id" class="field-input">
-                  <option value="">— Aucune —</option>
-                  <option v-for="pm in pms" :key="pm.id" :value="pm.id">
-                    {{ pm.first_name }} {{ pm.last_name }}
-                  </option>
-                </select>
+                <label>Cheffe de projet</label>
+                <AppSelect
+                  v-model="addSiteForm.project_manager_id"
+                  :options="(pms ?? []).map(pm => ({ value: pm.id, label: `${pm.first_name} ${pm.last_name}` }))"
+                  placeholder="— Aucune —"
+                />
               </div>
               <div class="field">
-                <label for="as-client">Client</label>
-                <select id="as-client" v-model="addSiteForm.client_id" class="field-input">
-                  <option value="">— Aucun —</option>
-                  <option v-for="c in clients" :key="c.id" :value="c.id">{{ c.name }}</option>
-                </select>
+                <label>Client</label>
+                <AppSelect
+                  v-model="addSiteForm.client_id"
+                  :options="(clients ?? []).map(c => ({ value: c.id, label: c.name }))"
+                  placeholder="— Aucun —"
+                />
               </div>
               <div class="field">
                 <label for="as-php">Version PHP</label>
@@ -630,27 +631,28 @@ const {
                 <input id="es-agency" v-model="editSiteForm.agency" type="text" placeholder="Eclolink…">
               </div>
               <div class="field">
-                <label for="es-group">Serveur</label>
-                <select id="es-group" v-model="editSiteForm.group_id" class="field-input">
-                  <option value="">— Aucun —</option>
-                  <option v-for="g in groups" :key="g.id" :value="g.id">{{ g.name }}</option>
-                </select>
+                <label>Serveur</label>
+                <AppSelect
+                  v-model="editSiteForm.group_id"
+                  :options="(groups ?? []).map(g => ({ value: g.id, label: g.name }))"
+                  placeholder="— Aucun —"
+                />
               </div>
               <div class="field">
-                <label for="es-pm">Cheffe de projet</label>
-                <select id="es-pm" v-model="editSiteForm.project_manager_id" class="field-input">
-                  <option value="">— Aucune —</option>
-                  <option v-for="pm in pms" :key="pm.id" :value="pm.id">
-                    {{ pm.first_name }} {{ pm.last_name }}
-                  </option>
-                </select>
+                <label>Cheffe de projet</label>
+                <AppSelect
+                  v-model="editSiteForm.project_manager_id"
+                  :options="(pms ?? []).map(pm => ({ value: pm.id, label: `${pm.first_name} ${pm.last_name}` }))"
+                  placeholder="— Aucune —"
+                />
               </div>
               <div class="field">
-                <label for="es-client">Client</label>
-                <select id="es-client" v-model="editSiteForm.client_id" class="field-input">
-                  <option value="">— Aucun —</option>
-                  <option v-for="c in clients" :key="c.id" :value="c.id">{{ c.name }}</option>
-                </select>
+                <label>Client</label>
+                <AppSelect
+                  v-model="editSiteForm.client_id"
+                  :options="(clients ?? []).map(c => ({ value: c.id, label: c.name }))"
+                  placeholder="— Aucun —"
+                />
               </div>
               <div class="field">
                 <label for="es-php">Version PHP</label>

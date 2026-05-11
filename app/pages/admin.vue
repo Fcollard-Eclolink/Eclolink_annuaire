@@ -780,10 +780,11 @@ function simpleIconUrl(slug: string): string {
               <div class="field"><label>Nom *</label><input v-model="pmForm.last_name" type="text" required></div>
               <div class="field">
                 <label>Agence</label>
-                <select v-model="pmForm.agency" class="field-input">
-                  <option value="">— Aucune —</option>
-                  <option v-for="a in agencies" :key="a.id" :value="a.name">{{ a.name }}</option>
-                </select>
+                <AppSelect
+                  v-model="pmForm.agency"
+                  :options="(agencies ?? []).map(a => ({ value: a.name, label: a.name }))"
+                  placeholder="— Aucune —"
+                />
               </div>
               <div class="modal-btns">
                 <button type="button" class="btn" :disabled="modalLoading" @click="pmAddOpen ? closePmAdd() : closePmEdit()">Annuler</button>
@@ -812,10 +813,11 @@ function simpleIconUrl(slug: string): string {
               <div class="field"><label>Nom *</label><input v-model="clientForm.name" type="text" required></div>
               <div class="field">
                 <label>Agence</label>
-                <select v-model="clientForm.agency" class="field-input">
-                  <option value="">— Aucune —</option>
-                  <option v-for="a in agencies" :key="a.id" :value="a.name">{{ a.name }}</option>
-                </select>
+                <AppSelect
+                  v-model="clientForm.agency"
+                  :options="(agencies ?? []).map(a => ({ value: a.name, label: a.name }))"
+                  placeholder="— Aucune —"
+                />
               </div>
               <div class="field"><label>Nom contact</label><input v-model="clientForm.contact_name" type="text"></div>
               <div class="field"><label>Email contact</label><input v-model="clientForm.contact_email" type="email"></div>

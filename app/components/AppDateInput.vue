@@ -1,6 +1,43 @@
 <script setup lang="ts">
-const modelValue = defineModel<string>({ default: '' })
+const modelValue   = defineModel<string>({ default: '' })
 const datePickerRef = ref<HTMLInputElement | null>(null)
+const displayValue  = ref('')
+
+function isoToDisplay(iso: string): string {
+  if (!iso) return ''
+  const p = iso.split('-')
+  return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : ''
+}
+
+function displayToIso(display: string): string {
+  const d = display.replace(/\D/g, '')
+  return d.length === 8 ? `${d.slice(4,8)}-${d.slice(2,4)}-${d.slice(0,2)}` : ''
+}
+
+// Sync depuis le modèle (changement externe ou reset du formulaire)
+watch(modelValue, (iso) => {
+  if (displayToIso(displayValue.value) !== iso)
+    displayValue.value = isoToDisplay(iso)
+}, { immediate: true })
+
+function onInput(e: Event): void {
+  const input  = e.target as HTMLInputElement
+  const digits = input.value.replace(/\D/g, '').slice(0, 8)
+
+  let formatted = digits
+  if (digits.length > 2) formatted = `${digits.slice(0,2)}/${digits.slice(2)}`
+  if (digits.length > 4) formatted = `${digits.slice(0,2)}/${digits.slice(2,4)}/${digits.slice(4)}`
+
+  displayValue.value = formatted
+  input.value        = formatted
+  modelValue.value   = displayToIso(formatted)
+}
+
+function onCalendarChange(e: Event): void {
+  const iso = (e.target as HTMLInputElement).value
+  modelValue.value  = iso
+  displayValue.value = isoToDisplay(iso)
+}
 
 function openPicker(): void {
   datePickerRef.value?.showPicker?.()
@@ -11,9 +48,11 @@ function openPicker(): void {
   <div class="date-input-wrap">
     <input
       type="text"
-      :value="modelValue"
-      placeholder="AAAA-MM-JJ"
-      @input="modelValue = ($event.target as HTMLInputElement).value"
+      inputmode="numeric"
+      :value="displayValue"
+      placeholder="JJ/MM/AAAA"
+      maxlength="10"
+      @input="onInput"
     >
     <button type="button" class="date-cal-btn" title="Choisir une date" @click="openPicker">
       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
@@ -25,7 +64,6 @@ function openPicker(): void {
         <line x1="3" y1="10" x2="21" y2="10"/>
       </svg>
     </button>
-    <!-- Input date caché, déclenché par le bouton calendrier -->
     <input
       ref="datePickerRef"
       type="date"
@@ -33,7 +71,7 @@ function openPicker(): void {
       class="date-hidden-picker"
       tabindex="-1"
       aria-hidden="true"
-      @change="modelValue = ($event.target as HTMLInputElement).value"
+      @change="onCalendarChange"
     >
   </div>
 </template>
