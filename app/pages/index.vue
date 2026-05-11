@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import type { Group, Site, ProjectManager, Client } from '~/server/utils/types'
 import type { SiteEditForm } from '~/composables/useSiteCrud'
+import type { FilterOption } from '~/components/AppFilterSelect.vue'
+import { techTags } from '~/composables/useTechBadge'
+
+interface ActiveFilterChip {
+  category: 'group' | 'tech' | 'agency' | 'pm'
+  value   : string
+  label   : string
+  catLabel: string
+}
 
 definePageMeta({ middleware: 'auth' })
 
@@ -70,6 +79,135 @@ function onGlobalKeydown(e: KeyboardEvent): void {
 onMounted(()  => document.addEventListener('keydown', onGlobalKeydown))
 onUnmounted(() => document.removeEventListener('keydown', onGlobalKeydown))
 
+// ── Déplier / Replier tous ────────────────────────────────────────
+const expandAllTick    = ref(0)
+const collapseAllTick  = ref(0)
+function expandAll():   void { expandAllTick.value++   }
+function collapseAll(): void { collapseAllTick.value++ }
+
+// ── Filtres (multi-sélection) ─────────────────────────────────────
+const filterGroups   = ref<string[]>([])
+const filterTechs    = ref<string[]>([])
+const filterAgencies = ref<string[]>([])
+const filterPms      = ref<string[]>([])
+
+/** Retourne true si le site satisfait toutes les catégories données (AND inter-cat, OR intra-cat). */
+function matchesCombination(s: Site, opts: {
+  groups   : string[]
+  techs    : string[]
+  agencies : string[]
+  pms      : string[]
+}): boolean {
+  if (opts.groups.length   && !opts.groups.includes(s.group_id ?? ''))                 return false
+  if (opts.techs.length    && !opts.techs.some(t => techTags(s).includes(t)))          return false
+  if (opts.agencies.length && !opts.agencies.includes(s.agency ?? ''))                 return false
+  if (opts.pms.length      && !opts.pms.includes(s.project_manager_id ?? ''))          return false
+  return true
+}
+
+// Sites de base pour calculer les options désactivées (on exclut la catégorie concernée)
+const baseSitesForGroup   = computed(() =>
+  (sites.value ?? []).filter(s => matchesCombination(s, { groups: [], techs: filterTechs.value, agencies: filterAgencies.value, pms: filterPms.value }))
+)
+const baseSitesForTech    = computed(() =>
+  (sites.value ?? []).filter(s => matchesCombination(s, { groups: filterGroups.value, techs: [], agencies: filterAgencies.value, pms: filterPms.value }))
+)
+const baseSitesForAgency  = computed(() =>
+  (sites.value ?? []).filter(s => matchesCombination(s, { groups: filterGroups.value, techs: filterTechs.value, agencies: [], pms: filterPms.value }))
+)
+const baseSitesForPm      = computed(() =>
+  (sites.value ?? []).filter(s => matchesCombination(s, { groups: filterGroups.value, techs: filterTechs.value, agencies: filterAgencies.value, pms: [] }))
+)
+
+// Options des filtres avec état disabled
+const filterGroupOptions = computed((): FilterOption[] =>
+  (groups.value ?? []).map(g => ({
+    id: g.id, label: g.name,
+    disabled: !baseSitesForGroup.value.some(s => s.group_id === g.id),
+  }))
+)
+const filterTechOptions = computed((): FilterOption[] => {
+  const allTechs = new Set<string>()
+  for (const s of sites.value ?? []) for (const t of techTags(s)) allTechs.add(t)
+  return [...allTechs].sort().map(t => ({
+    id: t, label: t,
+    disabled: !baseSitesForTech.value.some(s => techTags(s).includes(t)),
+  }))
+})
+const filterAgencyOptions = computed((): FilterOption[] => {
+  const allAgencies = new Set<string>()
+  for (const s of sites.value ?? []) if (s.agency) allAgencies.add(s.agency)
+  return [...allAgencies].sort().map(a => ({
+    id: a, label: a,
+    disabled: !baseSitesForAgency.value.some(s => s.agency === a),
+  }))
+})
+const filterPmOptions = computed((): FilterOption[] =>
+  (pms.value ?? []).map(pm => ({
+    id: pm.id, label: `${pm.first_name} ${pm.last_name}`,
+    disabled: !baseSitesForPm.value.some(s => s.project_manager_id === pm.id),
+  }))
+)
+
+// Vue filtrée
+const filteredSitesByGroup = computed(() => {
+  const result = new Map<string, Site[]>()
+  for (const [groupId, list] of sitesByGroup.value) {
+    result.set(groupId, list.filter(s => matchesCombination(s, {
+      groups: filterGroups.value, techs: filterTechs.value,
+      agencies: filterAgencies.value, pms: filterPms.value,
+    })))
+  }
+  return result
+})
+const filteredGroups = computed(() =>
+  (groups.value ?? []).filter(g => {
+    if (filterGroups.value.length && !filterGroups.value.includes(g.id)) return false
+    if (filterTechs.value.length || filterAgencies.value.length || filterPms.value.length) {
+      return (filteredSitesByGroup.value.get(g.id) ?? []).length > 0
+    }
+    return true
+  })
+)
+const filteredUngrouped = computed(() => {
+  if (filterGroups.value.length) return []
+  return (sitesByGroup.value.get('__none__') ?? []).filter(s => matchesCombination(s, {
+    groups: [], techs: filterTechs.value, agencies: filterAgencies.value, pms: filterPms.value,
+  }))
+})
+
+// ── Filtres actifs (chips) ────────────────────────────────────────
+const activeFilterChips = computed((): ActiveFilterChip[] => {
+  const chips: ActiveFilterChip[] = []
+  for (const id of filterGroups.value) {
+    const g = (groups.value ?? []).find(g => g.id === id)
+    if (g) chips.push({ category: 'group', value: id, label: g.name, catLabel: 'Serveur' })
+  }
+  for (const t of filterTechs.value)
+    chips.push({ category: 'tech', value: t, label: t, catLabel: 'Techno' })
+  for (const a of filterAgencies.value)
+    chips.push({ category: 'agency', value: a, label: a, catLabel: 'Agence' })
+  for (const id of filterPms.value) {
+    const pm = (pms.value ?? []).find(p => p.id === id)
+    if (pm) chips.push({ category: 'pm', value: id, label: `${pm.first_name} ${pm.last_name}`, catLabel: 'Cheffe' })
+  }
+  return chips
+})
+
+function removeFilterChip(chip: ActiveFilterChip): void {
+  switch (chip.category) {
+    case 'group':  filterGroups.value   = filterGroups.value.filter(v => v !== chip.value);   break
+    case 'tech':   filterTechs.value    = filterTechs.value.filter(v => v !== chip.value);    break
+    case 'agency': filterAgencies.value = filterAgencies.value.filter(v => v !== chip.value); break
+    case 'pm':     filterPms.value      = filterPms.value.filter(v => v !== chip.value);      break
+  }
+}
+
+function clearAllFilters(): void {
+  filterGroups.value = []; filterTechs.value = []
+  filterAgencies.value = []; filterPms.value = []
+}
+
 // ── CRUD serveurs ─────────────────────────────────────────────────
 const {
   deleteTarget: deleteGroup, deleteLoading: deleteGroupLoading, deleteError: deleteGroupError,
@@ -115,7 +253,7 @@ const {
           ref="inputRef"
           v-model="query"
           type="text"
-          placeholder="Rechercher un site…"
+          placeholder="Rechercher un site, URL, serveur... (Ctrl+K)"
           autocomplete="off"
           @keydown="onSearchKeydown"
         >
@@ -124,7 +262,7 @@ const {
       </div>
       <!-- Actions -->
       <div class="toolbar-actions">
-        <button class="btn" :disabled="reloading" title="Recharger les données" @click="reloadAll">
+        <button class="btn icon-only" :disabled="reloading" title="Recharger les données" @click="reloadAll">
           <svg :class="{ spinning: reloading }" xmlns="http://www.w3.org/2000/svg" width="14" height="14"
                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                stroke-linecap="round" stroke-linejoin="round">
@@ -133,7 +271,6 @@ const {
             <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
             <path d="M8 16H3v5"/>
           </svg>
-          Recharger
         </button>
         <button class="btn" @click="openAddGroup">+ Serveur</button>
         <button class="btn primary" @click="openAddSite">+ Site</button>
@@ -145,6 +282,39 @@ const {
     </div>
 
     <template v-else>
+
+      <!-- ── Filtres + expand/collapse ─────────────────────────── -->
+      <div v-if="!isActive" class="filters-row">
+        <div class="filters-left">
+          <AppFilterSelect v-model="filterGroups"   label="Serveur"     :options="filterGroupOptions" />
+          <AppFilterSelect v-model="filterTechs"    label="Technologie" :options="filterTechOptions" />
+          <AppFilterSelect v-model="filterAgencies" label="Agence"      :options="filterAgencyOptions" />
+          <AppFilterSelect v-model="filterPms"      label="Cheffe"      :options="filterPmOptions" />
+        </div>
+        <div class="filters-right">
+          <button class="btn" title="Déplier tous les serveurs" @click="expandAll">Déplier</button>
+          <button class="btn" title="Replier tous les serveurs" @click="collapseAll">Replier</button>
+        </div>
+      </div>
+
+      <!-- ── Filtres actifs ────────────────────────────────────── -->
+      <div v-if="!isActive && activeFilterChips.length" class="active-filters">
+        <button
+          v-for="chip in activeFilterChips"
+          :key="`${chip.category}:${chip.value}`"
+          class="active-filter-chip"
+          :title="`Retirer : ${chip.catLabel} · ${chip.label}`"
+          @click="removeFilterChip(chip)"
+        >
+          {{ chip.label }}
+          <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+        <button class="active-filters-clear" @click="clearAllFilters">Tout effacer</button>
+      </div>
 
       <!-- ── Résultats de recherche ──────────────────────────────── -->
       <div v-if="isActive" class="search-results">
@@ -167,11 +337,13 @@ const {
 
           <!-- Blocs serveurs -->
           <AppServerBlock
-            v-for="group in groups"
+            v-for="group in filteredGroups"
             :key="group.id"
             :group="group"
-            :sites="sitesByGroup.get(group.id) ?? []"
+            :sites="filteredSitesByGroup.get(group.id) ?? []"
             :pm-by-id="pmById"
+            :expand-all-tick="expandAllTick"
+            :collapse-all-tick="collapseAllTick"
             @edit-group="openEditGroup"
             @delete-group="openDeleteGroup"
             @edit-site="openEditSite"
@@ -180,16 +352,18 @@ const {
 
           <!-- Sites sans serveur -->
           <AppServerBlock
-            v-if="ungrouped.length"
+            v-if="filteredUngrouped.length"
             :group="{ id: '__none__', name: 'Sans serveur', hoster: null, ip_public: null, ip_local: null, web_server: null }"
-            :sites="ungrouped"
+            :sites="filteredUngrouped"
             :pm-by-id="pmById"
             :name-is-muted="true"
+            :expand-all-tick="expandAllTick"
+            :collapse-all-tick="collapseAllTick"
             @edit-site="openEditSite"
             @delete-site="openDeleteSite"
           />
 
-          <div v-if="!groups?.length && !ungrouped.length" class="empty-state">
+          <div v-if="!filteredGroups.length && !filteredUngrouped.length" class="empty-state">
             Aucun site enregistré.
           </div>
 

@@ -5,6 +5,15 @@ export default defineNuxtConfig({
     host: '0.0.0.0',
   },
 
+  vite: {
+    server: {
+      hmr: {
+        port      : 24678,
+        clientPort: 24678,
+      },
+    },
+  },
+
   runtimeConfig: {
     supabaseUrl: '',  // surcharge via NUXT_SUPABASE_URL
     supabaseKey: '',  // surcharge via NUXT_SUPABASE_KEY

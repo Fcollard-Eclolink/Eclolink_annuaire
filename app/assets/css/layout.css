@@ -160,6 +160,175 @@
 @keyframes spin { to { transform: rotate(360deg); } }
 .spinning { animation: spin 0.7s linear infinite; }
 
+/* Bouton icône seule (sans texte) */
+.btn.icon-only {
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Filtres + expand/collapse ────────────────────────────────── */
+.filters-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.filters-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filters-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* ── Filter dropdown ──────────────────────────────────────────── */
+.filter-drop { position: relative; }
+
+.filter-drop-trigger {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 12px;
+  border: 0.5px solid var(--border-input);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.12s, background 0.12s;
+}
+.filter-drop-trigger:hover   { background: var(--hover); }
+.filter-drop.open .filter-drop-trigger  { border-color: #888; }
+.filter-drop.active .filter-drop-trigger {
+  background: var(--hover);
+  font-weight: 500;
+}
+
+.filter-drop-label { flex: 1; }
+
+.filter-drop-count {
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--text);
+  color: var(--surface);
+  border-radius: 20px;
+  padding: 1px 6px;
+  line-height: 1.4;
+}
+
+.filter-drop-arrow {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+.filter-drop.open .filter-drop-arrow { transform: rotate(180deg); }
+
+.filter-drop-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 180px;
+  max-height: 260px;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  z-index: 200;
+}
+
+.filter-drop-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 12px;
+  border: none;
+  background: none;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+}
+.filter-drop-option:hover                        { background: var(--hover); }
+.filter-drop-option.selected                     { font-weight: 500; }
+.filter-drop-option.disabled                     { color: var(--text-muted); cursor: not-allowed; opacity: 0.45; }
+.filter-drop-option.disabled:hover               { background: none; }
+
+.filter-drop-checkbox {
+  width: 14px;
+  height: 14px;
+  border: 0.5px solid var(--border-input);
+  border-radius: 3px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+}
+.filter-drop-option.selected .filter-drop-checkbox {
+  background: var(--text);
+  border-color: var(--text);
+}
+.filter-drop-option.disabled .filter-drop-checkbox { background: var(--hover); }
+
+/* ── Filtres actifs (chips) ───────────────────────────────────── */
+.active-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 1rem;
+}
+
+.active-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px 3px 10px;
+  background: var(--hover);
+  border: 0.5px solid var(--border-input);
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  color: var(--text);
+  transition: background 0.12s, border-color 0.12s;
+}
+.active-filter-chip:hover {
+  background: var(--del-hover-bg);
+  border-color: var(--del-hover-border);
+  color: var(--del-hover-color);
+}
+
+.active-filters-clear {
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 3px 10px;
+  border: 0.5px solid var(--border);
+  border-radius: 6px;
+  background: none;
+  font-family: inherit;
+  transition: background 0.12s;
+}
+.active-filters-clear:hover { color: var(--text); background: var(--hover); }
+
 /* ── Résultats de recherche ───────────────────────────────────── */
 .search-results {
   background: var(--surface);

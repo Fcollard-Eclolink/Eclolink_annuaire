@@ -3,11 +3,13 @@ import type { Group, Site, ProjectManager } from '~/server/utils/types'
 import { HOSTERS, WEB_SERVERS } from '~/utils/selectOptions'
 
 const props = defineProps<{
-  group      : Group
-  sites      : Site[]
-  pmById     : Map<string, ProjectManager>
-  defaultOpen?: boolean
-  nameIsMuted?: boolean
+  group          : Group
+  sites          : Site[]
+  pmById         : Map<string, ProjectManager>
+  defaultOpen   ?: boolean
+  nameIsMuted   ?: boolean
+  expandAllTick ?: number
+  collapseAllTick?: number
 }>()
 
 const emit = defineEmits<{
@@ -20,6 +22,9 @@ const emit = defineEmits<{
 // ── Expansion ─────────────────────────────────────────────────────
 const isOpen = ref(props.defaultOpen ?? true)
 function toggle(): void { isOpen.value = !isOpen.value }
+
+watch(() => props.expandAllTick,    () => { isOpen.value = true  })
+watch(() => props.collapseAllTick,  () => { isOpen.value = false })
 
 // ── Popover infos serveur ─────────────────────────────────────────
 const isInfoOpen  = ref(false)
