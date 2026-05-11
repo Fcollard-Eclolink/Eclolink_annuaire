@@ -20,15 +20,30 @@ const emit = defineEmits<{
 }>()
 
 // ── Expansion avec persistance localStorage (scoped par user) ─────
-const { load: loadExpand, isOpen: isGroupOpen, setOpen, toggle: toggleGroup } = useServerExpand()
+const { user } = useAuth()
 
-onMounted(loadExpand)
+function storageKey(): string | null {
+  return user.value ? `eclolink:srv-open:${user.value.id}:${props.group.id}` : null
+}
 
-const isOpen = computed(() => isGroupOpen(props.group.id))
-function toggle(): void { toggleGroup(props.group.id) }
+const isOpen = ref(props.defaultOpen ?? true)
 
-watch(() => props.expandAllTick,   () => { setOpen(props.group.id, true)  })
-watch(() => props.collapseAllTick, () => { setOpen(props.group.id, false) })
+onMounted(() => {
+  const key = storageKey()
+  if (!key) return
+  const stored = localStorage.getItem(key)
+  if (stored !== null) isOpen.value = stored === '1'
+})
+
+watch(isOpen, (val) => {
+  const key = storageKey()
+  if (key) localStorage.setItem(key, val ? '1' : '0')
+})
+
+function toggle(): void { isOpen.value = !isOpen.value }
+
+watch(() => props.expandAllTick,   () => { isOpen.value = true  })
+watch(() => props.collapseAllTick, () => { isOpen.value = false })
 
 // ── Popover infos serveur ─────────────────────────────────────────
 const isInfoOpen  = ref(false)
