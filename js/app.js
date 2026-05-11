@@ -112,6 +112,7 @@ function copyToClipboard(text, btn) {
 
 // ── Auto-synchronisation toutes les 5 minutes ────────────────────
 async function silentRefresh() {
+  updateLastSeen();
   const s = getSession();
   if (!s) return;
   if (s.expires_at && Date.now() / 1000 > s.expires_at - 60) {

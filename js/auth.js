@@ -1,9 +1,11 @@
 // ── Session ───────────────────────────────────────────────────────
-const SESSION_KEY = 'eclolink_session';
+const SESSION_KEY  = 'eclolink_session';
+const MAX_IDLE_MS  = 2 * 60 * 60 * 1000; // 2h
 
-function getSession()  { try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch { return null; } }
-function saveSession(s){ localStorage.setItem(SESSION_KEY, JSON.stringify(s)); }
-function clearSession(){ localStorage.removeItem(SESSION_KEY); }
+function getSession()    { try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch { return null; } }
+function saveSession(s)  { localStorage.setItem(SESSION_KEY, JSON.stringify(s)); }
+function clearSession()  { localStorage.removeItem(SESSION_KEY); }
+function updateLastSeen(){ const s = getSession(); if (s) saveSession({ ...s, last_seen: Date.now() }); }
 
 function getSBHeaders() {
   const s = getSession();
@@ -28,7 +30,7 @@ async function tryRefreshToken() {
     if (!r.ok) return false;
     const d = await r.json();
     if (!d.access_token || !d.refresh_token) return false;
-    saveSession({ access_token: d.access_token, refresh_token: d.refresh_token, expires_at: Date.now() / 1000 + d.expires_in });
+    saveSession({ access_token: d.access_token, refresh_token: d.refresh_token, expires_at: Date.now() / 1000 + d.expires_in, last_seen: Date.now() });
     return true;
   } catch { return false; }
 }
@@ -37,6 +39,9 @@ async function tryRefreshToken() {
 async function initAuth() {
   const s = getSession();
   if (s) {
+    if (s.last_seen && Date.now() - s.last_seen > MAX_IDLE_MS) {
+      clearSession(); showLogin(); return;
+    }
     if (s.expires_at && Date.now() / 1000 > s.expires_at - 60) {
       const ok = await tryRefreshToken();
       if (!ok) { clearSession(); showLogin(); return; }
@@ -67,7 +72,7 @@ async function submitLogin() {
     });
     if (!r.ok) throw new Error();
     const d = await r.json();
-    saveSession({ access_token: d.access_token, refresh_token: d.refresh_token, expires_at: Date.now() / 1000 + d.expires_in });
+    saveSession({ access_token: d.access_token, refresh_token: d.refresh_token, expires_at: Date.now() / 1000 + d.expires_in, last_seen: Date.now() });
     showApp();
   } catch {
     err.style.display = 'block';
