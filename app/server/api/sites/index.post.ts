@@ -1,5 +1,5 @@
-interface SitePatch {
-  name              ?: string
+interface SiteCreate {
+  name              : string
   url               ?: string | null
   bo_url            ?: string | null
   gitlab_url        ?: string | null
@@ -16,20 +16,18 @@ interface SitePatch {
 }
 
 export default defineEventHandler(async (event): Promise<Site> => {
-  const id = getRouterParam(event, 'id')
-  if (!id) throw createError({ statusCode: 400, message: 'ID requis' })
-
-  const body = await readBody<SitePatch>(event)
-  if (body.name !== undefined && !body.name.trim()) {
+  const body = await readBody<SiteCreate>(event)
+  if (!body.name?.trim()) {
     throw createError({ statusCode: 400, message: 'Le nom est requis' })
   }
 
-  const res  = await sbFetch(event, `/rest/v1/eclolink_sites?id=eq.${encodeURIComponent(id)}`, {
-    method: 'PATCH',
-    body  : JSON.stringify(body),
+  const res = await sbFetch(event, '/rest/v1/eclolink_sites', {
+    method : 'POST',
+    body   : JSON.stringify({ id: crypto.randomUUID(), ...body, name: body.name.trim() }),
+    headers: { Prefer: 'return=representation' },
   })
 
   const rows = (await res.json()) as Site[]
-  if (!rows[0]) throw createError({ statusCode: 404, message: 'Site introuvable' })
+  if (!rows[0]) throw createError({ statusCode: 500, message: 'Erreur lors de la création' })
   return rows[0]
 })

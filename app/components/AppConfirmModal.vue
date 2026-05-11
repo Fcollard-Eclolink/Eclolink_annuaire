@@ -1,9 +1,10 @@
 <script setup lang="ts">
 defineProps<{
-  title      : string
-  loading    : boolean
-  error     ?: string
-  dangerLabel?: string
+  title        : string
+  loading      : boolean
+  error       ?: string
+  dangerLabel ?: string
+  confirmLabel?: string   // si fourni → bouton primary au lieu de danger
 }>()
 
 const emit = defineEmits<{
@@ -22,9 +23,13 @@ const emit = defineEmits<{
         <button class="btn" :disabled="loading" @click="emit('cancel')">
           Annuler
         </button>
-        <button class="btn btn-danger" :disabled="loading" @click="emit('confirm')">
-          <span v-if="loading" class="spinner spinner-dark" />
-          {{ loading ? 'Suppression…' : (dangerLabel ?? 'Supprimer') }}
+        <button
+          :class="['btn', confirmLabel ? 'primary' : 'btn-danger']"
+          :disabled="loading"
+          @click="emit('confirm')"
+        >
+          <span v-if="loading" class="spinner" :class="confirmLabel ? '' : 'spinner-dark'" />
+          {{ loading ? (confirmLabel ? 'En cours…' : 'Suppression…') : (confirmLabel ?? dangerLabel ?? 'Supprimer') }}
         </button>
       </div>
     </div>

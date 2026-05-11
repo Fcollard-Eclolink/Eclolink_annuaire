@@ -14,6 +14,17 @@ export interface Site {
   go_live_date       : string | null
   technologies       : string | null
   project_manager_id : string | null
+  client_id          : string | null
+  registrar          : string | null
+}
+
+export interface Client {
+  id           : string
+  name         : string
+  agency       : string | null
+  contact_name : string | null
+  contact_email: string | null
+  notes        : string | null
 }
 
 export interface Group {
@@ -31,3 +42,4 @@ export interface ProjectManager {
   last_name : string
   agency    : string | null
 }
+

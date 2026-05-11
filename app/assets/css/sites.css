@@ -94,6 +94,7 @@
   white-space: nowrap;
 }
 .site-tech-badge img { display: block; flex-shrink: 0; }
+.site-tech-badge .tech-svg-icon svg { width: 11px; height: 11px; }
 
 /* Boutons d'action site */
 .site-actions {
@@ -101,4 +102,25 @@
   align-items: center;
   gap: 4px;
   flex-shrink: 0;
+}
+
+/* Highlight de recherche */
+mark.search-hl {
+  background: #fff3b0;
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+  font-weight: 600;
+}
+
+/* Badge nom de serveur dans résultats recherche */
+.site-server-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: transparent;
+  border: 0.5px solid var(--border);
+  border-radius: 20px;
+  padding: 1px 8px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }

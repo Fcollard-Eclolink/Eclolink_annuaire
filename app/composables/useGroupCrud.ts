@@ -1,13 +1,15 @@
 import type { Ref } from 'vue'
 import type { Group, Site } from '~/server/utils/types'
 
-interface GroupEditForm {
+interface GroupForm {
   name      : string
   hoster    : string
   ip_local  : string
   ip_public : string
   web_server: string
 }
+
+const EMPTY: GroupForm = { name: '', hoster: '', ip_local: '', ip_public: '', web_server: '' }
 
 export function useGroupCrud(
   groups: Ref<Group[] | null>,
@@ -51,7 +53,7 @@ export function useGroupCrud(
 
   // ── Édition ───────────────────────────────────────────────────
   const editTarget  = ref<Group | null>(null)
-  const editForm    = ref<GroupEditForm>({ name: '', hoster: '', ip_local: '', ip_public: '', web_server: '' })
+  const editForm    = ref<GroupForm>({ ...EMPTY })
   const editLoading = ref(false)
   const editError   = ref('')
 
@@ -74,10 +76,7 @@ export function useGroupCrud(
 
   async function saveEdit(): Promise<void> {
     if (!editTarget.value) return
-    if (!editForm.value.name.trim()) {
-      editError.value = 'Le nom est requis.'
-      return
-    }
+    if (!editForm.value.name.trim()) { editError.value = 'Le nom est requis.'; return }
     editLoading.value = true
     editError.value   = ''
     try {
@@ -103,10 +102,54 @@ export function useGroupCrud(
     }
   }
 
+  // ── Création ──────────────────────────────────────────────────
+  const isAddOpen  = ref(false)
+  const addForm    = ref<GroupForm>({ ...EMPTY })
+  const addLoading = ref(false)
+  const addError   = ref('')
+
+  function openAddModal(): void {
+    addForm.value = { ...EMPTY }
+    addError.value = ''
+    isAddOpen.value = true
+  }
+
+  function closeAddModal(): void {
+    if (addLoading.value) return
+    isAddOpen.value = false
+  }
+
+  async function confirmAdd(): Promise<void> {
+    if (!addForm.value.name.trim()) { addError.value = 'Le nom est requis.'; return }
+    addLoading.value = true
+    addError.value   = ''
+    try {
+      const created = await $fetch<Group>('/api/groups', {
+        method: 'POST',
+        body  : {
+          name      : addForm.value.name.trim(),
+          hoster    : addForm.value.hoster.trim()     || null,
+          ip_local  : addForm.value.ip_local.trim()   || null,
+          ip_public : addForm.value.ip_public.trim()  || null,
+          web_server: addForm.value.web_server.trim() || null,
+        },
+      })
+      if (groups.value) groups.value = [...groups.value, created]
+        .sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true }))
+      isAddOpen.value = false
+    } catch {
+      addError.value = 'Erreur lors de la création.'
+    } finally {
+      addLoading.value = false
+    }
+  }
+
   return {
     deleteTarget, deleteLoading, deleteError,
     openDeleteConfirm, closeDeleteConfirm, confirmDelete,
     editTarget, editForm, editLoading, editError,
     openEditModal, closeEditModal, saveEdit,
+    isAddOpen, addForm, addLoading, addError,
+    openAddModal, closeAddModal, confirmAdd,
   }
 }

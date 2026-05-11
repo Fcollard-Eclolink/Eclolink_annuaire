@@ -1,49 +1,42 @@
 import type { Site } from '~/server/utils/types'
+import { TECHS } from '~/utils/selectOptions'
+import type { TechOption } from '~/utils/selectOptions'
 
-const TECH_ICONS: Record<string, { slug: string; color: string }> = {
-  wordpress:   { slug: 'wordpress',   color: '21759b' },
-  woocommerce: { slug: 'woocommerce', color: '96588A' },
-  wpbakery:    { slug: 'wpbakery',    color: '522D80' },
-  elementor:   { slug: 'elementor',   color: '92003B' },
-  divi:        { slug: 'divi',        color: '7EBEC5' },
-  shopify:     { slug: 'shopify',     color: '7AB55C' },
-  prestashop:  { slug: 'prestashop',  color: 'DF0067' },
-  drupal:      { slug: 'drupal',      color: '0678BE' },
-  joomla:      { slug: 'joomla',      color: '5091CD' },
-  magento:     { slug: 'magento',     color: 'EE672F' },
-  vue:         { slug: 'vuedotjs',    color: '42B883' },
-  nuxt:        { slug: 'nuxtdotjs',   color: '00DC82' },
-  react:       { slug: 'react',       color: '61DAFB' },
-  nextjs:      { slug: 'nextdotjs',   color: '000000' },
-  laravel:     { slug: 'laravel',     color: 'FF2D20' },
-  symfony:     { slug: 'symfony',     color: '000000' },
-  php:         { slug: 'php',         color: '777BB4' },
-  typescript:  { slug: 'typescript',  color: '3178C6' },
-  javascript:  { slug: 'javascript',  color: 'F7DF1E' },
-  docker:      { slug: 'docker',      color: '2496ED' },
-  sass:        { slug: 'sass',        color: 'CC6699' },
+/** Trouve une entrée TECHS par id ou label (insensible à la casse). */
+function findTech(name: string): TechOption | undefined {
+  const n = name.toLowerCase().trim()
+  return TECHS.find(t => t.id === n || t.label.toLowerCase() === n || n.includes(t.id))
 }
 
-/** Parse le champ technologies (JSON array ou CSV) en tableau de strings. */
+/** Parse le champ technologies (JSON array ou CSV) en tableau de labels normalisés. */
 export function techTags(site: Site): string[] {
   if (!site.technologies) return []
   const raw = site.technologies.trim()
+  let values: string[]
   if (raw.startsWith('[')) {
     try {
       const parsed = JSON.parse(raw) as unknown
-      if (Array.isArray(parsed)) {
-        return (parsed as unknown[]).map(v => String(v).trim()).filter(Boolean)
-      }
-    } catch { /* fallback CSV */ }
+      values = Array.isArray(parsed)
+        ? (parsed as unknown[]).map(v => String(v).trim()).filter(Boolean)
+        : raw.split(',').map(t => t.trim()).filter(Boolean)
+    } catch {
+      values = raw.split(',').map(t => t.trim()).filter(Boolean)
+    }
+  } else {
+    values = raw.split(',').map(t => t.trim()).filter(Boolean)
   }
-  return raw.split(',').map(t => t.trim()).filter(Boolean)
+  // Normalise les ids (ex: "wordpress") en labels (ex: "WordPress")
+  return values.map(v => findTech(v)?.label ?? v)
 }
 
-/** Retourne l'URL simpleicons pour une technologie connue, ou null. */
+/** URL simpleicons pour une techno connue par slug, ou null. */
 export function techIconUrl(tech: string): string | null {
-  const n = tech.toLowerCase()
-  const key = Object.keys(TECH_ICONS).find(k => n.includes(k))
-  if (!key) return null
-  const { slug, color } = TECH_ICONS[key]!
-  return `https://cdn.simpleicons.org/${slug}/${color}`
+  const t = findTech(tech)
+  if (!t?.slug) return null
+  return `https://cdn.simpleicons.org/${t.slug}`
+}
+
+/** SVG inline pour les technos sans slug simpleicons, ou null. */
+export function techIconSvg(tech: string): string | null {
+  return findTech(tech)?.svg ?? null
 }

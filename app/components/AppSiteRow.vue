@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import type { Site, ProjectManager } from '~/server/utils/types'
-import { techTags, techIconUrl } from '~/composables/useTechBadge'
+import { techTags, techIconUrl, techIconSvg } from '~/composables/useTechBadge'
 
 const props = defineProps<{
-  site  : Site
-  pmById: Map<string, ProjectManager>
+  site          : Site
+  pmById        : Map<string, ProjectManager>
+  highlightQuery?: string
+  serverLabel   ?: string
 }>()
 
 const emit = defineEmits<{
@@ -18,6 +20,10 @@ const wrapRef    = ref<HTMLElement | null>(null)
 
 function toggleInfo(e: MouseEvent): void {
   e.stopPropagation()
+  if (!isInfoOpen.value) {
+    // Ferme tous les autres popovers site avant d'ouvrir celui-ci
+    document.dispatchEvent(new CustomEvent('info-popover:close'))
+  }
   isInfoOpen.value = !isInfoOpen.value
 }
 
@@ -27,8 +33,18 @@ function onDocClick(e: MouseEvent): void {
   }
 }
 
-onMounted(()  => document.addEventListener('click', onDocClick))
-onUnmounted(() => document.removeEventListener('click', onDocClick))
+function onCloseAll(): void {
+  isInfoOpen.value = false
+}
+
+onMounted(() => {
+  document.addEventListener('click', onDocClick)
+  document.addEventListener('info-popover:close', onCloseAll as EventListener)
+})
+onUnmounted(() => {
+  document.removeEventListener('click', onDocClick)
+  document.removeEventListener('info-popover:close', onCloseAll as EventListener)
+})
 
 // ── Helpers ───────────────────────────────────────────────────────
 const pm = computed(() =>
@@ -40,14 +56,33 @@ const pm = computed(() =>
 function hasSiteInfo(site: Site): boolean {
   return !!(site.dns_zone || site.php_version || site.go_live_date || pm.value || site.notes)
 }
+
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] ?? c),
+  )
+}
+
+const highlightedName = computed((): string => {
+  const escaped = escapeHtml(props.site.name)
+  const q = props.highlightQuery?.trim()
+  if (!q) return escaped
+  const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
+  return escaped.replace(re, '<mark class="search-hl">$1</mark>')
+})
 </script>
 
 <template>
   <div class="site-row">
     <!-- Info principale -->
     <div class="site-info">
-      <span class="site-name">{{ site.name }}</span>
+      <!-- eslint-disable-next-line vue/no-v-html -->
+      <span class="site-name" v-html="highlightedName" />
       <div class="site-meta">
+        <!-- Nom du serveur (visible en mode recherche) -->
+        <span v-if="serverLabel" class="site-server-label">{{ serverLabel }}</span>
+        <span v-if="serverLabel && (site.url || site.bo_url || site.gitlab_url || site.agency || site.technologies)"
+              class="site-meta-sep" />
         <!-- URL -->
         <a v-if="site.url" class="site-link-btn" :href="site.url"
            target="_blank" rel="noopener noreferrer" title="Visiter le site">
@@ -74,14 +109,17 @@ function hasSiteInfo(site: Site): boolean {
         </a>
         <!-- Séparateur si liens ET tags -->
         <span
-          v-if="(site.url || site.bo_url || site.gitlab_url) && (site.agency || site.technologies)"
+          v-if="!serverLabel && (site.url || site.bo_url || site.gitlab_url) && (site.agency || site.technologies)"
           class="site-meta-sep"
         />
         <!-- Agence -->
         <span v-if="site.agency" class="site-tag--agency">{{ site.agency }}</span>
         <!-- Technologies -->
         <span v-for="tech in techTags(site)" :key="tech" class="site-tech-badge">
-          <img v-if="techIconUrl(tech)" :src="techIconUrl(tech)" width="11" height="11" :alt="tech">
+          <img v-if="techIconUrl(tech)" :src="techIconUrl(tech)" width="11" height="11" :alt="tech"
+               @error="($event.target as HTMLImageElement).style.display='none'">
+          <!-- eslint-disable-next-line vue/no-v-html -->
+          <span v-else-if="techIconSvg(tech)" class="tech-svg-icon" v-html="techIconSvg(tech)" />
           {{ tech }}
         </span>
       </div>
