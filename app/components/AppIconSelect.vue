@@ -28,8 +28,8 @@ function onDocClick(e: MouseEvent): void {
 onMounted(()  => document.addEventListener('click', onDocClick))
 onUnmounted(() => document.removeEventListener('click', onDocClick))
 
-function iconUrl(slug: string): string {
-  return `https://cdn.simpleicons.org/${slug}`
+function iconUrl(slug: string | null): string {
+  return slug ? `https://cdn.simpleicons.org/${slug}` : ''
 }
 </script>
 
@@ -38,7 +38,7 @@ function iconUrl(slug: string): string {
     <!-- Déclencheur -->
     <button type="button" class="icon-select-trigger" @click.stop="isOpen = !isOpen">
       <span v-if="selected" class="icon-select-val">
-        <img :src="iconUrl(selected.slug)" width="14" height="14" :alt="selected.label"
+        <img v-if="selected.slug" :src="iconUrl(selected.slug)" width="14" height="14" :alt="selected.label"
              @error="($event.target as HTMLImageElement).style.display='none'">
         {{ selected.label }}
       </span>
@@ -64,7 +64,7 @@ function iconUrl(slug: string): string {
         :class="{ selected: opt.value === modelValue }"
         @click="select(opt.value)"
       >
-        <img :src="iconUrl(opt.slug)" width="14" height="14" :alt="opt.label"
+        <img v-if="opt.slug" :src="iconUrl(opt.slug)" width="14" height="14" :alt="opt.label"
              @error="($event.target as HTMLImageElement).style.display='none'">
         {{ opt.label }}
       </button>

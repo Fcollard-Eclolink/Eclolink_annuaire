@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import type { Group, Site, ProjectManager } from '~/server/utils/types'
-import { HOSTERS, WEB_SERVERS } from '~/utils/selectOptions'
+import type { Group, Site, ProjectManager, Hoster, WebServer } from '~/server/utils/types'
 
 const props = defineProps<{
   group          : Group
   sites          : Site[]
   pmById         : Map<string, ProjectManager>
+  hosters       ?: Hoster[]
+  webServers    ?: WebServer[]
   defaultOpen   ?: boolean
   nameIsMuted   ?: boolean
   expandAllTick ?: number
@@ -122,9 +123,9 @@ function webServerKey(name: string): string {
   return 'other'
 }
 
-function logoSlug(name: string, list: { label: string; slug: string }[]): string | null {
+function logoSlug(name: string, list: { name: string; simpleicons_slug: string | null }[]): string | null {
   const n = name.toLowerCase()
-  return list.find(o => o.label.toLowerCase() === n)?.slug ?? null
+  return list.find(o => o.name.toLowerCase() === n)?.simpleicons_slug ?? null
 }
 </script>
 
@@ -153,8 +154,8 @@ function logoSlug(name: string, list: { label: string; slug: string }[]): string
               <span class="info-label">Hébergeur</span>
               <span class="info-val-wrap">
                 <img
-                  v-if="logoSlug(group.hoster, HOSTERS)"
-                  :src="`https://cdn.simpleicons.org/${logoSlug(group.hoster, HOSTERS)}`"
+                  v-if="logoSlug(group.hoster, props.hosters ?? [])"
+                  :src="`https://cdn.simpleicons.org/${logoSlug(group.hoster, props.hosters ?? [])}`"
                   width="13" height="13" :alt="group.hoster"
                   @error="($event.target as HTMLImageElement).style.display='none'"
                 >
@@ -211,8 +212,8 @@ function logoSlug(name: string, list: { label: string; slug: string }[]): string
               <span class="info-label">Serveur web</span>
               <span :class="['ws-badge', 'ws-' + webServerKey(group.web_server)]">
                 <img
-                  v-if="logoSlug(group.web_server, WEB_SERVERS)"
-                  :src="`https://cdn.simpleicons.org/${logoSlug(group.web_server, WEB_SERVERS)}`"
+                  v-if="logoSlug(group.web_server, props.webServers ?? [])"
+                  :src="`https://cdn.simpleicons.org/${logoSlug(group.web_server, props.webServers ?? [])}`"
                   width="12" height="12" :alt="group.web_server"
                   @error="($event.target as HTMLImageElement).style.display='none'"
                 >

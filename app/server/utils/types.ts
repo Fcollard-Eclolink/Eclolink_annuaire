@@ -43,3 +43,34 @@ export interface ProjectManager {
   agency    : string | null
 }
 
+export interface Technology {
+  id              : string
+  label           : string
+  simpleicons_slug: string | null
+  svg             : string | null
+  sort_order      : number
+}
+
+export interface Agency {
+  id  : string
+  name: string
+}
+
+export interface Hoster {
+  id              : string
+  name            : string
+  simpleicons_slug: string | null
+}
+
+export interface WebServer {
+  id              : string
+  name            : string
+  simpleicons_slug: string | null
+}
+
+export interface DnsProvider {
+  id              : string
+  name            : string
+  simpleicons_slug: string | null
+}
+

@@ -1,14 +1,34 @@
 import type { Site } from '~/server/utils/types'
-import { TECHS } from '~/utils/selectOptions'
-import type { TechOption } from '~/utils/selectOptions'
+import type { Technology } from '~/server/utils/types'
 
-/** Trouve une entrée TECHS par id ou label (insensible à la casse). */
-function findTech(name: string): TechOption | undefined {
-  const n = name.toLowerCase().trim()
-  return TECHS.find(t => t.id === n || t.label.toLowerCase() === n || n.includes(t.id))
+/** State partagé — peuplé par index.vue au chargement. */
+const refTechs = () => useState<Technology[]>('ref:techs', () => [])
+
+// Correspondances des anciens IDs statiques vers les labels actuels
+const LEGACY_IDS: Record<string, string> = {
+  wpbakery: 'WP Bakery',
+  next    : 'Next.js',
 }
 
-/** Parse le champ technologies (JSON array ou CSV) en tableau de labels normalisés. */
+function normalize(s: string): string {
+  return s.toLowerCase().replace(/[\s.\-_]/g, '')
+}
+
+function findTech(name: string): Technology | undefined {
+  const n    = name.toLowerCase().trim()
+  const nNorm = normalize(n)
+  // Correspondance exacte label, slug, ou legacy id
+  return refTechs().value.find(t => {
+    if (t.label.toLowerCase() === n)                   return true
+    if ((t.simpleicons_slug ?? '').toLowerCase() === n) return true
+    if (normalize(t.label) === nNorm)                  return true
+    const legacyLabel = LEGACY_IDS[n]
+    if (legacyLabel && t.label === legacyLabel)        return true
+    return false
+  })
+}
+
+/** Parse le champ technologies (JSON array ou CSV) en tableau de labels normalisés et dédupliqués. */
 export function techTags(site: Site): string[] {
   if (!site.technologies) return []
   const raw = site.technologies.trim()
@@ -25,15 +45,24 @@ export function techTags(site: Site): string[] {
   } else {
     values = raw.split(',').map(t => t.trim()).filter(Boolean)
   }
-  // Normalise les ids (ex: "wordpress") en labels (ex: "WordPress")
-  return values.map(v => findTech(v)?.label ?? v)
+  // Normalise en labels et déduplique (gère les doublons legacy/nouveau)
+  const seen = new Set<string>()
+  const result: string[] = []
+  for (const v of values) {
+    const label = findTech(v)?.label ?? v
+    if (!seen.has(label)) {
+      seen.add(label)
+      result.push(label)
+    }
+  }
+  return result
 }
 
 /** URL simpleicons pour une techno connue par slug, ou null. */
 export function techIconUrl(tech: string): string | null {
   const t = findTech(tech)
-  if (!t?.slug) return null
-  return `https://cdn.simpleicons.org/${t.slug}`
+  if (!t?.simpleicons_slug) return null
+  return `https://cdn.simpleicons.org/${t.simpleicons_slug}`
 }
 
 /** SVG inline pour les technos sans slug simpleicons, ou null. */

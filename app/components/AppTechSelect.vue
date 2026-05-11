@@ -1,10 +1,15 @@
 <script setup lang="ts">
-import { TECHS } from '~/utils/selectOptions'
-import type { TechOption } from '~/utils/selectOptions'
+import type { Technology } from '~/server/utils/types'
+
+const props = defineProps<{
+  techs?: Technology[]
+}>()
 
 const modelValue = defineModel<string>({ default: '' })
 const isOpen     = ref(false)
 const wrapRef    = ref<HTMLElement | null>(null)
+
+const techList = computed(() => props.techs ?? [])
 
 /** Parse modelValue (CSV ou JSON array) → labels normalisés */
 const selectedLabels = computed((): string[] => {
@@ -20,23 +25,27 @@ const selectedLabels = computed((): string[] => {
   return raw.split(',').map(t => t.trim()).filter(Boolean)
 })
 
-function findTech(val: string): TechOption | undefined {
+function findTech(val: string): Technology | undefined {
   const v = val.toLowerCase()
-  return TECHS.find(t => t.label.toLowerCase() === v || t.id === v || v.includes(t.id))
+  return techList.value.find(t =>
+    t.label.toLowerCase() === v ||
+    (t.simpleicons_slug ?? '').toLowerCase() === v ||
+    v.includes(t.label.toLowerCase())
+  )
 }
 
-function isSelected(opt: TechOption): boolean {
+function isSelected(opt: Technology): boolean {
   return selectedLabels.value.some(v => {
     const vl = v.toLowerCase()
-    return vl === opt.label.toLowerCase() || vl === opt.id
+    return vl === opt.label.toLowerCase()
   })
 }
 
-function toggle(opt: TechOption): void {
+function toggle(opt: Technology): void {
   const next = isSelected(opt)
     ? selectedLabels.value.filter(v => {
         const vl = v.toLowerCase()
-        return vl !== opt.label.toLowerCase() && vl !== opt.id
+        return vl !== opt.label.toLowerCase()
       })
     : [...selectedLabels.value, opt.label]
   modelValue.value = next.join(', ')
@@ -45,7 +54,7 @@ function toggle(opt: TechOption): void {
 const selectedOpts = computed(() =>
   selectedLabels.value
     .map(v => findTech(v))
-    .filter((t): t is TechOption => t !== undefined),
+    .filter((t): t is Technology => t !== undefined),
 )
 
 function onDocClick(e: MouseEvent): void {
@@ -68,7 +77,7 @@ function iconUrl(slug: string): string {
     <button type="button" class="tech-select-trigger" @click.stop="isOpen = !isOpen">
       <div v-if="selectedOpts.length" class="tech-select-pills">
         <span v-for="opt in selectedOpts" :key="opt.id" class="tech-select-pill">
-          <img v-if="opt.slug" :src="iconUrl(opt.slug)" width="11" height="11" :alt="opt.label"
+          <img v-if="opt.simpleicons_slug" :src="iconUrl(opt.simpleicons_slug)" width="11" height="11" :alt="opt.label"
                @error="($event.target as HTMLImageElement).style.display='none'">
           <!-- eslint-disable-next-line vue/no-v-html -->
           <span v-else-if="opt.svg" class="tech-svg-icon" v-html="opt.svg" />
@@ -86,14 +95,14 @@ function iconUrl(slug: string): string {
     <!-- Dropdown -->
     <div v-if="isOpen" class="icon-select-dropdown tech-select-dropdown">
       <button
-        v-for="opt in TECHS"
+        v-for="opt in techList"
         :key="opt.id"
         type="button"
         class="icon-select-option tech-select-option"
         :class="{ selected: isSelected(opt) }"
         @click="toggle(opt)"
       >
-        <img v-if="opt.slug" :src="iconUrl(opt.slug)" width="14" height="14" :alt="opt.label"
+        <img v-if="opt.simpleicons_slug" :src="iconUrl(opt.simpleicons_slug)" width="14" height="14" :alt="opt.label"
              @error="($event.target as HTMLImageElement).style.display='none'">
         <!-- eslint-disable-next-line vue/no-v-html -->
         <span v-else-if="opt.svg" class="tech-svg-icon" v-html="opt.svg" />

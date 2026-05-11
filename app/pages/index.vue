@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Group, Site, ProjectManager, Client } from '~/server/utils/types'
+import type { Group, Site, ProjectManager, Client, Technology, Hoster, WebServer, DnsProvider } from '~/server/utils/types'
 import type { SiteEditForm } from '~/composables/useSiteCrud'
 import type { FilterOption } from '~/components/AppFilterSelect.vue'
 import { techTags } from '~/composables/useTechBadge'
@@ -17,16 +17,28 @@ const { user, logout } = useAuth()
 
 // ── Chargement ────────────────────────────────────────────────────
 const [
-  { data: groups,  error: errGroups, refresh: refreshGroups },
-  { data: sites,   error: errSites,  refresh: refreshSites  },
-  { data: pms,     error: errPms,    refresh: refreshPms    },
+  { data: groups,       error: errGroups,  refresh: refreshGroups  },
+  { data: sites,        error: errSites,   refresh: refreshSites   },
+  { data: pms,          error: errPms,     refresh: refreshPms     },
   { data: clients },
+  { data: fetchedTechs },
+  { data: fetchedHosters },
+  { data: fetchedWebServers },
+  { data: fetchedDnsProviders },
 ] = await Promise.all([
   useFetch<Group[]>('/api/groups'),
   useFetch<Site[]>('/api/sites'),
   useFetch<ProjectManager[]>('/api/project-managers'),
   useFetch<Client[]>('/api/clients'),
+  useFetch<Technology[]>('/api/technologies'),
+  useFetch<Hoster[]>('/api/hosters'),
+  useFetch<WebServer[]>('/api/web-servers'),
+  useFetch<DnsProvider[]>('/api/dns-providers'),
 ])
+
+// Populate shared state for useTechBadge
+const refTechs = useState<Technology[]>('ref:techs', () => [])
+watchEffect(() => { if (fetchedTechs.value) refTechs.value = fetchedTechs.value })
 
 const hasError     = computed(() => errGroups.value || errSites.value || errPms.value)
 const reloading    = ref(false)
@@ -235,6 +247,7 @@ const {
     <header class="app-header">
       <h1>Annuaire des serveurs</h1>
       <div style="display:flex;align-items:center;gap:12px">
+        <NuxtLink to="/admin" class="btn">Admin</NuxtLink>
         <span class="user-email">{{ user?.email }}</span>
         <button class="btn" @click="logout">Déconnexion</button>
       </div>
@@ -342,6 +355,8 @@ const {
             :group="group"
             :sites="filteredSitesByGroup.get(group.id) ?? []"
             :pm-by-id="pmById"
+            :hosters="fetchedHosters ?? []"
+            :web-servers="fetchedWebServers ?? []"
             :expand-all-tick="expandAllTick"
             :collapse-all-tick="collapseAllTick"
             @edit-group="openEditGroup"
@@ -356,6 +371,8 @@ const {
             :group="{ id: '__none__', name: 'Sans serveur', hoster: null, ip_public: null, ip_local: null, web_server: null }"
             :sites="filteredUngrouped"
             :pm-by-id="pmById"
+            :hosters="fetchedHosters ?? []"
+            :web-servers="fetchedWebServers ?? []"
             :name-is-muted="true"
             :expand-all-tick="expandAllTick"
             :collapse-all-tick="collapseAllTick"
@@ -422,7 +439,7 @@ const {
               </div>
               <div class="field">
                 <label>Hébergeur</label>
-                <AppIconSelect v-model="editGroupForm.hoster" :options="HOSTERS" />
+                <AppIconSelect v-model="editGroupForm.hoster" :options="(fetchedHosters ?? []).map(h => ({ value: h.name, label: h.name, slug: h.simpleicons_slug }))" />
               </div>
               <div class="field">
                 <label for="eg-ip-public">IP publique</label>
@@ -434,7 +451,7 @@ const {
               </div>
               <div class="field">
                 <label>Serveur web</label>
-                <AppIconSelect v-model="editGroupForm.web_server" :options="WEB_SERVERS" />
+                <AppIconSelect v-model="editGroupForm.web_server" :options="(fetchedWebServers ?? []).map(ws => ({ value: ws.name, label: ws.name, slug: ws.simpleicons_slug }))" />
               </div>
               <div class="modal-btns">
                 <button type="button" class="btn" :disabled="editGroupLoading" @click="closeEditGroup">
@@ -465,7 +482,7 @@ const {
               </div>
               <div class="field">
                 <label>Hébergeur</label>
-                <AppIconSelect v-model="addGroupForm.hoster" :options="HOSTERS" />
+                <AppIconSelect v-model="addGroupForm.hoster" :options="(fetchedHosters ?? []).map(h => ({ value: h.name, label: h.name, slug: h.simpleicons_slug }))" />
               </div>
               <div class="field">
                 <label for="ag-ip-public">IP publique</label>
@@ -477,7 +494,7 @@ const {
               </div>
               <div class="field">
                 <label>Serveur web</label>
-                <AppIconSelect v-model="addGroupForm.web_server" :options="WEB_SERVERS" />
+                <AppIconSelect v-model="addGroupForm.web_server" :options="(fetchedWebServers ?? []).map(ws => ({ value: ws.name, label: ws.name, slug: ws.simpleicons_slug }))" />
               </div>
               <div class="modal-btns">
                 <button type="button" class="btn" :disabled="addGroupLoading" @click="closeAddGroup">
@@ -551,11 +568,11 @@ const {
               </div>
               <div class="field">
                 <label>Zone DNS</label>
-                <AppIconSelect v-model="addSiteForm.dns_zone" :options="DNS_PROVIDERS" />
+                <AppIconSelect v-model="addSiteForm.dns_zone" :options="(fetchedDnsProviders ?? []).map(d => ({ value: d.name, label: d.name, slug: d.simpleicons_slug }))" />
               </div>
               <div class="field">
                 <label>Registrar</label>
-                <AppIconSelect v-model="addSiteForm.registrar" :options="HOSTERS" />
+                <AppIconSelect v-model="addSiteForm.registrar" :options="(fetchedHosters ?? []).map(h => ({ value: h.name, label: h.name, slug: h.simpleicons_slug }))" />
               </div>
               <div class="field">
                 <label>Mise en ligne</label>
@@ -563,7 +580,7 @@ const {
               </div>
               <div class="field">
                 <label>Technologies</label>
-                <AppTechSelect v-model="addSiteForm.technologies" />
+                <AppTechSelect v-model="addSiteForm.technologies" :techs="fetchedTechs ?? []" />
               </div>
               <div class="field">
                 <label for="as-notes">Notes</label>
@@ -641,11 +658,11 @@ const {
               </div>
               <div class="field">
                 <label>Zone DNS</label>
-                <AppIconSelect v-model="editSiteForm.dns_zone" :options="DNS_PROVIDERS" />
+                <AppIconSelect v-model="editSiteForm.dns_zone" :options="(fetchedDnsProviders ?? []).map(d => ({ value: d.name, label: d.name, slug: d.simpleicons_slug }))" />
               </div>
               <div class="field">
                 <label>Registrar</label>
-                <AppIconSelect v-model="editSiteForm.registrar" :options="HOSTERS" />
+                <AppIconSelect v-model="editSiteForm.registrar" :options="(fetchedHosters ?? []).map(h => ({ value: h.name, label: h.name, slug: h.simpleicons_slug }))" />
               </div>
               <div class="field">
                 <label>Mise en ligne</label>
@@ -653,7 +670,7 @@ const {
               </div>
               <div class="field">
                 <label>Technologies</label>
-                <AppTechSelect v-model="editSiteForm.technologies" />
+                <AppTechSelect v-model="editSiteForm.technologies" :techs="fetchedTechs ?? []" />
               </div>
               <div class="field">
                 <label for="es-notes">Notes</label>
