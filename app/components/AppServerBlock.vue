@@ -19,12 +19,31 @@ const emit = defineEmits<{
   'delete-site' : [site: Site]
 }>()
 
-// ── Expansion ─────────────────────────────────────────────────────
+// ── Expansion avec persistance localStorage (scoped par user) ─────
+const { user } = useAuth()
+
+function storageKey(): string | null {
+  return user.value ? `eclolink:srv-open:${user.value.id}:${props.group.id}` : null
+}
+
 const isOpen = ref(props.defaultOpen ?? true)
+
+onMounted(() => {
+  const key = storageKey()
+  if (!key) return
+  const stored = localStorage.getItem(key)
+  if (stored !== null) isOpen.value = stored === '1'
+})
+
+watch(isOpen, (val) => {
+  const key = storageKey()
+  if (key) localStorage.setItem(key, val ? '1' : '0')
+})
+
 function toggle(): void { isOpen.value = !isOpen.value }
 
-watch(() => props.expandAllTick,    () => { isOpen.value = true  })
-watch(() => props.collapseAllTick,  () => { isOpen.value = false })
+watch(() => props.expandAllTick,   () => { isOpen.value = true  })
+watch(() => props.collapseAllTick, () => { isOpen.value = false })
 
 // ── Popover infos serveur ─────────────────────────────────────────
 const isInfoOpen  = ref(false)
