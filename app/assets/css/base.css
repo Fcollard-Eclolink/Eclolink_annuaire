@@ -11,7 +11,8 @@ body {
 /* ── Inputs ───────────────────────────────────────────────────── */
 input[type="text"],
 input[type="email"],
-input[type="password"] {
+input[type="password"],
+input[type="number"] {
   height: 36px;
   padding: 0 12px;
   border: 0.5px solid var(--border-input);

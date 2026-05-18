@@ -49,6 +49,9 @@ app/
       hosters/        ← GET, POST, PATCH, DELETE
       web-servers/    ← GET, POST, PATCH, DELETE
       dns-providers/  ← GET, POST, PATCH, DELETE
+      developers/     ← GET, POST, PATCH, DELETE
+      maintenance-types/ ← GET, POST, PATCH, DELETE
+      maintenances/   ← GET, POST, PATCH, DELETE
   composables/
     useAuth.ts        ← useState('auth:user') + logout()
     useTechBadge.ts   ← techTags(), techIconUrl(), techIconSvg() — lit useState('ref:techs')
@@ -67,12 +70,14 @@ app/
     AppSelect.vue        ← dropdown custom simple (sans icônes)
     AppIconSelect.vue    ← dropdown custom avec icônes simpleicons
     AppTechSelect.vue    ← multi-select technologies (pills)
+    AppMultiSelect.vue   ← multi-select générique CSV d'IDs (pills sans icônes)
     AppDateInput.vue     ← saisie date masquée JJ/MM/AAAA
     AppConfirmModal.vue
   pages/
     login.vue         ← page publique
     index.vue         ← page protégée (middleware: 'auth')
     admin.vue         ← page protégée, CRUD données de référence
+    maintenance.vue   ← page protégée, liste des interventions de maintenance
   assets/css/
     main.css          ← importe tous les fichiers CSS
     variables.css
@@ -82,6 +87,7 @@ app/
     servers.css       ← server-block, site-row
     sites.css
     admin.css         ← styles page /admin
+    maintenance.css   ← styles page /maintenance
   app.vue
   nuxt.config.ts
 ```
@@ -97,12 +103,15 @@ app/
 | `eclolink_groups` | `id`, `name`, `hoster`, `ip_local`, `ip_public`, `web_server` |
 | `eclolink_sites` | `id`, `name`, `url`, `bo_url`, `gitlab_url`, `agency`, `group_id`, `php_version`, `dns_zone`, `go_live_date`, `technologies`, `project_manager_id`, `client_id`, `registrar`, `notes` |
 | `eclolink_project_managers` | `id`, `first_name`, `last_name`, `agency` |
-| `eclolink_clients` | `id`, `name`, `agency`, `contact_name`, `contact_email`, `notes` |
+| `eclolink_clients` | `id`, `name`, `agency`, `contact_name`, `contact_email`, `notes`, `monthly_quota_minutes` |
 | `eclolink_technologies` | `id`, `label`, `simpleicons_slug`, `svg`, `sort_order` |
 | `eclolink_agencies` | `id`, `name` |
 | `eclolink_hosters` | `id`, `name`, `simpleicons_slug` |
 | `eclolink_web_servers` | `id`, `name`, `simpleicons_slug` |
 | `eclolink_dns_providers` | `id`, `name`, `simpleicons_slug` |
+| `eclolink_developers` | `id`, `first_name`, `last_name`, `agency`, `job_title` |
+| `eclolink_maintenance_types` | `id`, `label` |
+| `eclolink_maintenances` | `id`, `site_id`, `client_id`, `developer_id`, `duration_minutes`, `intervention_date`, `has_incident`, `types` (CSV d'IDs), `notes`, `created_at` |
 
 Toutes les tables ont RLS activé avec une policy `allow_all_authenticated` (accès complet aux utilisateurs authentifiés).
 

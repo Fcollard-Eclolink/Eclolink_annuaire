@@ -19,12 +19,13 @@ export interface Site {
 }
 
 export interface Client {
-  id           : string
-  name         : string
-  agency       : string | null
-  contact_name : string | null
-  contact_email: string | null
-  notes        : string | null
+  id                    : string
+  name                  : string
+  agency                : string | null
+  contact_name          : string | null
+  contact_email         : string | null
+  notes                 : string | null
+  monthly_quota_minutes : number | null
 }
 
 export interface Group {
@@ -72,5 +73,31 @@ export interface DnsProvider {
   id              : string
   name            : string
   simpleicons_slug: string | null
+}
+
+export interface Developer {
+  id        : string
+  first_name: string
+  last_name : string
+  agency    : string | null
+  job_title : string | null
+}
+
+export interface MaintenanceType {
+  id   : string
+  label: string
+}
+
+export interface Maintenance {
+  id               : string
+  site_id          : string
+  client_id        : string | null
+  developer_id     : string | null
+  intervention_date: string
+  has_incident     : boolean
+  types            : string | null
+  notes            : string | null
+  duration_minutes : number | null
+  created_at       : string
 }
 

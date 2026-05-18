@@ -1,0 +1,178 @@
+/* ── Page Maintenance ─────────────────────────────────────────── */
+.maintenance-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+/* ── Filtres ─────────────────────────────────────────────────── */
+.maintenance-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 1rem;
+}
+
+.maintenance-incident-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+}
+.maintenance-incident-toggle input[type="checkbox"] {
+  cursor: pointer;
+  accent-color: var(--text);
+}
+
+/* ── Tableau ─────────────────────────────────────────────────── */
+.maintenance-table .maintenance-date {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.maintenance-type-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.maintenance-type-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 11px;
+  line-height: 1.4;
+  background: var(--hover);
+  border: 0.5px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.maintenance-incident-cell {
+  text-align: center;
+}
+.maintenance-incident-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #dc2626;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.maintenance-links {
+  display: inline-flex;
+  gap: 4px;
+}
+.maintenance-links .icon-btn {
+  text-decoration: none;
+}
+
+.maintenance-notes {
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.maintenance-duration {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ── Quotas mensuels ─────────────────────────────────────────── */
+.quota-section {
+  margin: 0 0 1.25rem;
+  padding: 1rem 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.quota-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-muted);
+  margin-bottom: .75rem;
+}
+
+.quota-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.quota-card {
+  padding: .75rem 1rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.quota-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: .5rem;
+}
+
+.quota-client-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.quota-time {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.quota-bar-wrap {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: .35rem;
+}
+
+.quota-bar-fill {
+  height: 100%;
+  background: #22c55e;
+  border-radius: 3px;
+  transition: width .3s;
+}
+.quota-bar-fill.quota-bar-warn { background: #f59e0b; }
+.quota-bar-fill.quota-bar-over { background: #ef4444; }
+
+.quota-pct {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: right;
+}
+.quota-bar-over + .quota-pct,
+.quota-pct:has(+ *) {
+  /* fallback handled by template text */
+}

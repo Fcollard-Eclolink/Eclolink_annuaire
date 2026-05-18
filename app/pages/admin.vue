@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Technology, Agency, Hoster, WebServer, DnsProvider, ProjectManager, Client, Site } from '~/server/utils/types'
+import type { Technology, Agency, Hoster, WebServer, DnsProvider, ProjectManager, Client, Site, Developer, MaintenanceType } from '~/server/utils/types'
 import { techTags } from '~/composables/useTechBadge'
 
 definePageMeta({ middleware: 'auth' })
@@ -9,7 +9,7 @@ const { isDark, init: initDark, toggle: toggleDark } = useDarkMode()
 onMounted(initDark)
 
 // ── Tabs ──────────────────────────────────────────────────────
-type TabId = 'technologies' | 'agencies' | 'hosters' | 'web-servers' | 'dns-providers' | 'project-managers' | 'clients'
+type TabId = 'technologies' | 'agencies' | 'hosters' | 'web-servers' | 'dns-providers' | 'project-managers' | 'clients' | 'developers' | 'maintenance-types'
 
 const activeTab = ref<TabId>('technologies')
 
@@ -21,6 +21,8 @@ const tabs: { id: TabId; label: string }[] = [
   { id: 'dns-providers',   label: 'DNS'            },
   { id: 'project-managers', label: 'Cheffes de projet' },
   { id: 'clients',         label: 'Clients'        },
+  { id: 'developers',      label: 'Développeurs'   },
+  { id: 'maintenance-types', label: 'Types maintenance' },
 ]
 
 // ── Data fetching ─────────────────────────────────────────────
@@ -31,6 +33,8 @@ const { data: webServers,   refresh: refreshWebServers } = await useFetch<WebSer
 const { data: dnsProviders, refresh: refreshDns }        = await useFetch<DnsProvider[]>('/api/dns-providers')
 const { data: pms,          refresh: refreshPms }        = await useFetch<ProjectManager[]>('/api/project-managers')
 const { data: clients,      refresh: refreshClients }    = await useFetch<Client[]>('/api/clients')
+const { data: developers,   refresh: refreshDevelopers } = await useFetch<Developer[]>('/api/developers')
+const { data: maintenanceTypes, refresh: refreshMaintenanceTypes } = await useFetch<MaintenanceType[]>('/api/maintenance-types')
 const { data: sites }                                    = await useFetch<Site[]>('/api/sites')
 
 // Peuple le state partagé pour que techTags() fonctionne
@@ -284,15 +288,15 @@ async function confirmPmDelete(): Promise<void> {
 }
 
 // ── Clients CRUD ──────────────────────────────────────────────
-interface ClientForm { name: string; agency: string; contact_name: string; contact_email: string; notes: string }
+interface ClientForm { name: string; agency: string; contact_name: string; contact_email: string; notes: string; monthly_quota_hours: number | string }
 
 const clientAddOpen      = ref(false)
 const clientEditTarget   = ref<Client | null>(null)
 const clientDeleteTarget = ref<Client | null>(null)
-const clientForm         = ref<ClientForm>({ name: '', agency: '', contact_name: '', contact_email: '', notes: '' })
+const clientForm         = ref<ClientForm>({ name: '', agency: '', contact_name: '', contact_email: '', notes: '', monthly_quota_hours: '' })
 
-function openClientAdd(): void { clientForm.value = { name: '', agency: '', contact_name: '', contact_email: '', notes: '' }; clientAddOpen.value = true; resetModal() }
-function openClientEdit(c: Client): void { clientForm.value = { name: c.name, agency: c.agency ?? '', contact_name: c.contact_name ?? '', contact_email: c.contact_email ?? '', notes: c.notes ?? '' }; clientEditTarget.value = c; resetModal() }
+function openClientAdd(): void { clientForm.value = { name: '', agency: '', contact_name: '', contact_email: '', notes: '', monthly_quota_hours: '' }; clientAddOpen.value = true; resetModal() }
+function openClientEdit(c: Client): void { clientForm.value = { name: c.name, agency: c.agency ?? '', contact_name: c.contact_name ?? '', contact_email: c.contact_email ?? '', notes: c.notes ?? '', monthly_quota_hours: c.monthly_quota_minutes != null ? String(c.monthly_quota_minutes / 60) : '' }; clientEditTarget.value = c; resetModal() }
 function closeClientAdd():    void { clientAddOpen.value = false }
 function closeClientEdit():   void { clientEditTarget.value = null }
 function closeClientDelete(): void { clientDeleteTarget.value = null }
@@ -300,7 +304,8 @@ function closeClientDelete(): void { clientDeleteTarget.value = null }
 async function confirmClientAdd(): Promise<void> {
   modalLoading.value = true; modalError.value = null
   try {
-    await $fetch('/api/clients', { method: 'POST', body: { name: clientForm.value.name.trim(), agency: clientForm.value.agency.trim() || null, contact_name: clientForm.value.contact_name.trim() || null, contact_email: clientForm.value.contact_email.trim() || null, notes: clientForm.value.notes.trim() || null } })
+    const quotaH = typeof clientForm.value.monthly_quota_hours === 'number' ? clientForm.value.monthly_quota_hours : parseFloat(String(clientForm.value.monthly_quota_hours))
+    await $fetch('/api/clients', { method: 'POST', body: { name: clientForm.value.name.trim(), agency: clientForm.value.agency.trim() || null, contact_name: clientForm.value.contact_name.trim() || null, contact_email: clientForm.value.contact_email.trim() || null, notes: clientForm.value.notes.trim() || null, monthly_quota_minutes: !isNaN(quotaH) && quotaH > 0 ? Math.round(quotaH * 60) : null } })
     await refreshClients(); clientAddOpen.value = false
   } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
   finally { modalLoading.value = false }
@@ -310,7 +315,8 @@ async function confirmClientEdit(): Promise<void> {
   if (!clientEditTarget.value) return
   modalLoading.value = true; modalError.value = null
   try {
-    await $fetch(`/api/clients/${clientEditTarget.value.id}`, { method: 'PATCH', body: { name: clientForm.value.name.trim(), agency: clientForm.value.agency.trim() || null, contact_name: clientForm.value.contact_name.trim() || null, contact_email: clientForm.value.contact_email.trim() || null, notes: clientForm.value.notes.trim() || null } })
+    const quotaH = typeof clientForm.value.monthly_quota_hours === 'number' ? clientForm.value.monthly_quota_hours : parseFloat(String(clientForm.value.monthly_quota_hours))
+    await $fetch(`/api/clients/${clientEditTarget.value.id}`, { method: 'PATCH', body: { name: clientForm.value.name.trim(), agency: clientForm.value.agency.trim() || null, contact_name: clientForm.value.contact_name.trim() || null, contact_email: clientForm.value.contact_email.trim() || null, notes: clientForm.value.notes.trim() || null, monthly_quota_minutes: !isNaN(quotaH) && quotaH > 0 ? Math.round(quotaH * 60) : null } })
     await refreshClients(); clientEditTarget.value = null
   } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
   finally { modalLoading.value = false }
@@ -322,6 +328,97 @@ async function confirmClientDelete(): Promise<void> {
   try {
     await $fetch(`/api/clients/${clientDeleteTarget.value.id}`, { method: 'DELETE' })
     await refreshClients(); clientDeleteTarget.value = null
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
+  finally { modalLoading.value = false }
+}
+
+// ── Developers CRUD ───────────────────────────────────────────
+interface DevForm { first_name: string; last_name: string; agency: string; job_title: string }
+
+const devAddOpen      = ref(false)
+const devEditTarget   = ref<Developer | null>(null)
+const devDeleteTarget = ref<Developer | null>(null)
+const devForm         = ref<DevForm>({ first_name: '', last_name: '', agency: '', job_title: '' })
+
+function openDevAdd(): void  { devForm.value = { first_name: '', last_name: '', agency: '', job_title: '' }; devAddOpen.value = true; resetModal() }
+function openDevEdit(d: Developer): void { devForm.value = { first_name: d.first_name, last_name: d.last_name, agency: d.agency ?? '', job_title: d.job_title ?? '' }; devEditTarget.value = d; resetModal() }
+function closeDevAdd():    void { devAddOpen.value = false }
+function closeDevEdit():   void { devEditTarget.value = null }
+function closeDevDelete(): void { devDeleteTarget.value = null }
+
+function devBody(): Record<string, string | null> {
+  return {
+    first_name: devForm.value.first_name.trim(),
+    last_name : devForm.value.last_name.trim(),
+    agency    : devForm.value.agency.trim()    || null,
+    job_title : devForm.value.job_title.trim() || null,
+  }
+}
+
+async function confirmDevAdd(): Promise<void> {
+  modalLoading.value = true; modalError.value = null
+  try {
+    await $fetch('/api/developers', { method: 'POST', body: devBody() })
+    await refreshDevelopers(); devAddOpen.value = false
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
+  finally { modalLoading.value = false }
+}
+async function confirmDevEdit(): Promise<void> {
+  if (!devEditTarget.value) return
+  modalLoading.value = true; modalError.value = null
+  try {
+    await $fetch(`/api/developers/${devEditTarget.value.id}`, { method: 'PATCH', body: devBody() })
+    await refreshDevelopers(); devEditTarget.value = null
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
+  finally { modalLoading.value = false }
+}
+async function confirmDevDelete(): Promise<void> {
+  if (!devDeleteTarget.value) return
+  modalLoading.value = true; modalError.value = null
+  try {
+    await $fetch(`/api/developers/${devDeleteTarget.value.id}`, { method: 'DELETE' })
+    await refreshDevelopers(); devDeleteTarget.value = null
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
+  finally { modalLoading.value = false }
+}
+
+// ── Maintenance Types CRUD ────────────────────────────────────
+interface MtForm { label: string }
+
+const mtAddOpen      = ref(false)
+const mtEditTarget   = ref<MaintenanceType | null>(null)
+const mtDeleteTarget = ref<MaintenanceType | null>(null)
+const mtForm         = ref<MtForm>({ label: '' })
+
+function openMtAdd(): void  { mtForm.value = { label: '' }; mtAddOpen.value = true; resetModal() }
+function openMtEdit(m: MaintenanceType): void { mtForm.value = { label: m.label }; mtEditTarget.value = m; resetModal() }
+function closeMtAdd():    void { mtAddOpen.value = false }
+function closeMtEdit():   void { mtEditTarget.value = null }
+function closeMtDelete(): void { mtDeleteTarget.value = null }
+
+async function confirmMtAdd(): Promise<void> {
+  modalLoading.value = true; modalError.value = null
+  try {
+    await $fetch('/api/maintenance-types', { method: 'POST', body: { label: mtForm.value.label.trim() } })
+    await refreshMaintenanceTypes(); mtAddOpen.value = false
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
+  finally { modalLoading.value = false }
+}
+async function confirmMtEdit(): Promise<void> {
+  if (!mtEditTarget.value) return
+  modalLoading.value = true; modalError.value = null
+  try {
+    await $fetch(`/api/maintenance-types/${mtEditTarget.value.id}`, { method: 'PATCH', body: { label: mtForm.value.label.trim() } })
+    await refreshMaintenanceTypes(); mtEditTarget.value = null
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
+  finally { modalLoading.value = false }
+}
+async function confirmMtDelete(): Promise<void> {
+  if (!mtDeleteTarget.value) return
+  modalLoading.value = true; modalError.value = null
+  try {
+    await $fetch(`/api/maintenance-types/${mtDeleteTarget.value.id}`, { method: 'DELETE' })
+    await refreshMaintenanceTypes(); mtDeleteTarget.value = null
   } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
   finally { modalLoading.value = false }
 }
@@ -354,6 +451,13 @@ function simpleIconUrl(slug: string): string {
             <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
           </svg>
         </button>
+        <NuxtLink to="/maintenance" class="btn icon-only" title="Maintenance">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+          </svg>
+        </NuxtLink>
         <NuxtLink to="/" class="btn icon-only" title="Retour à l'annuaire">
           <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
                fill="none" stroke="currentColor" stroke-width="2"
@@ -591,19 +695,77 @@ function simpleIconUrl(slug: string): string {
       </div>
       <div class="admin-table-wrap">
         <table class="admin-table">
-          <thead><tr><th>Nom</th><th>Agence</th><th>Contact</th><th></th></tr></thead>
+          <thead><tr><th>Nom</th><th>Agence</th><th>Contact</th><th>Quota mensuel</th><th></th></tr></thead>
           <tbody>
             <tr v-if="!clients?.length">
-              <td colspan="4" class="admin-empty">Aucun client.</td>
+              <td colspan="5" class="admin-empty">Aucun client.</td>
             </tr>
             <tr v-for="c in clients" :key="c.id">
               <td>{{ c.name }}</td>
               <td>{{ c.agency || '—' }}</td>
               <td>{{ c.contact_name || '—' }}</td>
+              <td>{{ c.monthly_quota_minutes != null ? `${c.monthly_quota_minutes / 60} h` : '—' }}</td>
               <td>
                 <div class="admin-row-actions">
                   <button class="icon-btn" title="Modifier" @click="openClientEdit(c)">&#9998;</button>
                   <button class="icon-btn del" title="Supprimer" @click="clientDeleteTarget = c; resetModal()">&#10005;</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── Développeurs ─────────────────────────────────────────── -->
+    <div v-if="activeTab === 'developers'" class="admin-section">
+      <div class="admin-section-header">
+        <span class="admin-section-title">Développeurs ({{ developers?.length ?? 0 }})</span>
+        <button class="btn primary" @click="openDevAdd">+ Ajouter</button>
+      </div>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Prénom</th><th>Nom</th><th>Titre</th><th>Agence</th><th></th></tr></thead>
+          <tbody>
+            <tr v-if="!developers?.length">
+              <td colspan="5" class="admin-empty">Aucun développeur.</td>
+            </tr>
+            <tr v-for="d in developers" :key="d.id">
+              <td>{{ d.first_name }}</td>
+              <td>{{ d.last_name }}</td>
+              <td>{{ d.job_title || '—' }}</td>
+              <td>{{ d.agency || '—' }}</td>
+              <td>
+                <div class="admin-row-actions">
+                  <button class="icon-btn" title="Modifier" @click="openDevEdit(d)">&#9998;</button>
+                  <button class="icon-btn del" title="Supprimer" @click="devDeleteTarget = d; resetModal()">&#10005;</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── Types maintenance ────────────────────────────────────── -->
+    <div v-if="activeTab === 'maintenance-types'" class="admin-section">
+      <div class="admin-section-header">
+        <span class="admin-section-title">Types maintenance ({{ maintenanceTypes?.length ?? 0 }})</span>
+        <button class="btn primary" @click="openMtAdd">+ Ajouter</button>
+      </div>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Label</th><th></th></tr></thead>
+          <tbody>
+            <tr v-if="!maintenanceTypes?.length">
+              <td colspan="2" class="admin-empty">Aucun type de maintenance.</td>
+            </tr>
+            <tr v-for="m in maintenanceTypes" :key="m.id">
+              <td>{{ m.label }}</td>
+              <td>
+                <div class="admin-row-actions">
+                  <button class="icon-btn" title="Modifier" @click="openMtEdit(m)">&#9998;</button>
+                  <button class="icon-btn del" title="Supprimer" @click="mtDeleteTarget = m; resetModal()">&#10005;</button>
                 </div>
               </td>
             </tr>
@@ -853,6 +1015,10 @@ function simpleIconUrl(slug: string): string {
               </div>
               <div class="field"><label>Nom contact</label><input v-model="clientForm.contact_name" type="text"></div>
               <div class="field"><label>Email contact</label><input v-model="clientForm.contact_email" type="email"></div>
+              <div class="field">
+                <label>Quota mensuel (heures)</label>
+                <input v-model.number="clientForm.monthly_quota_hours" type="number" min="0" step="0.5" placeholder="ex: 40">
+              </div>
               <div class="field"><label>Notes</label><textarea v-model="clientForm.notes" class="field-input" rows="3" /></div>
               <div class="modal-btns">
                 <button type="button" class="btn" :disabled="modalLoading" @click="clientAddOpen ? closeClientAdd() : closeClientEdit()">Annuler</button>
@@ -868,6 +1034,69 @@ function simpleIconUrl(slug: string): string {
       <Transition name="modal">
         <AppConfirmModal v-if="clientDeleteTarget" title="Supprimer le client" :loading="modalLoading" confirm-label="Supprimer" @confirm="confirmClientDelete" @cancel="closeClientDelete">
           <p class="modal-msg">Supprimer <strong>{{ clientDeleteTarget.name }}</strong> définitivement ?</p>
+        </AppConfirmModal>
+      </Transition>
+
+      <!-- Modale Add/Edit Développeur -->
+      <Transition name="modal">
+        <div v-if="devAddOpen || devEditTarget" class="modal-overlay" @click.self="devAddOpen ? closeDevAdd() : closeDevEdit()">
+          <div class="modal-card">
+            <h3 class="modal-title">{{ devAddOpen ? 'Ajouter un développeur' : 'Modifier le développeur' }}</h3>
+            <p v-if="modalError" class="modal-error">{{ modalError }}</p>
+            <form @submit.prevent="devAddOpen ? confirmDevAdd() : confirmDevEdit()">
+              <div class="field"><label>Prénom *</label><input v-model="devForm.first_name" type="text" required></div>
+              <div class="field"><label>Nom *</label><input v-model="devForm.last_name" type="text" required></div>
+              <div class="field">
+                <label>Titre de poste</label>
+                <input v-model="devForm.job_title" type="text" placeholder="Développeur full-stack senior">
+              </div>
+              <div class="field">
+                <label>Agence</label>
+                <AppSelect
+                  v-model="devForm.agency"
+                  :options="(agencies ?? []).map(a => ({ value: a.name, label: a.name }))"
+                  placeholder="— Aucune —"
+                />
+              </div>
+              <div class="modal-btns">
+                <button type="button" class="btn" :disabled="modalLoading" @click="devAddOpen ? closeDevAdd() : closeDevEdit()">Annuler</button>
+                <button type="submit" class="btn primary" :disabled="modalLoading">
+                  <span v-if="modalLoading" class="spinner" />
+                  {{ modalLoading ? 'Enregistrement…' : (devAddOpen ? 'Créer' : 'Enregistrer') }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </Transition>
+      <Transition name="modal">
+        <AppConfirmModal v-if="devDeleteTarget" title="Supprimer le développeur" :loading="modalLoading" confirm-label="Supprimer" @confirm="confirmDevDelete" @cancel="closeDevDelete">
+          <p class="modal-msg">Supprimer <strong>{{ devDeleteTarget.first_name }} {{ devDeleteTarget.last_name }}</strong> définitivement ?</p>
+        </AppConfirmModal>
+      </Transition>
+
+      <!-- Modale Add/Edit Type maintenance -->
+      <Transition name="modal">
+        <div v-if="mtAddOpen || mtEditTarget" class="modal-overlay" @click.self="mtAddOpen ? closeMtAdd() : closeMtEdit()">
+          <div class="modal-card">
+            <h3 class="modal-title">{{ mtAddOpen ? 'Ajouter un type de maintenance' : 'Modifier le type' }}</h3>
+            <p v-if="modalError" class="modal-error">{{ modalError }}</p>
+            <form @submit.prevent="mtAddOpen ? confirmMtAdd() : confirmMtEdit()">
+              <div class="field"><label>Label *</label><input v-model="mtForm.label" type="text" placeholder="Maj WordPress" required></div>
+              <div class="modal-btns">
+                <button type="button" class="btn" :disabled="modalLoading" @click="mtAddOpen ? closeMtAdd() : closeMtEdit()">Annuler</button>
+                <button type="submit" class="btn primary" :disabled="modalLoading">
+                  <span v-if="modalLoading" class="spinner" />
+                  {{ modalLoading ? 'Enregistrement…' : (mtAddOpen ? 'Créer' : 'Enregistrer') }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </Transition>
+      <Transition name="modal">
+        <AppConfirmModal v-if="mtDeleteTarget" title="Supprimer le type" :loading="modalLoading" confirm-label="Supprimer" @confirm="confirmMtDelete" @cancel="closeMtDelete">
+          <p class="modal-msg">Supprimer <strong>{{ mtDeleteTarget.label }}</strong> définitivement ?</p>
         </AppConfirmModal>
       </Transition>
 

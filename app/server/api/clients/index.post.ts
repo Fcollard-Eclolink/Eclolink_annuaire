@@ -1,9 +1,10 @@
 interface ClientCreate {
-  name         : string
-  agency       ?: string | null
-  contact_name ?: string | null
-  contact_email?: string | null
-  notes        ?: string | null
+  name                 : string
+  agency               ?: string | null
+  contact_name         ?: string | null
+  contact_email        ?: string | null
+  notes                ?: string | null
+  monthly_quota_minutes?: number | null
 }
 
 export default defineEventHandler(async (event): Promise<Client> => {
@@ -12,7 +13,7 @@ export default defineEventHandler(async (event): Promise<Client> => {
 
   const res = await sbFetch(event, '/rest/v1/eclolink_clients', {
     method : 'POST',
-    body   : JSON.stringify({ id: crypto.randomUUID(), ...body, name: body.name.trim() }),
+    body   : JSON.stringify({ id: crypto.randomUUID(), ...body, name: body.name.trim(), monthly_quota_minutes: body.monthly_quota_minutes ?? null }),
     headers: { Prefer: 'return=representation' },
   })
 
