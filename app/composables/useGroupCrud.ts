@@ -15,6 +15,8 @@ export function useGroupCrud(
   groups: Ref<Group[] | null>,
   sites : Ref<Site[]  | null>,
 ) {
+  const { add: toast } = useToast()
+
   // ── Suppression ───────────────────────────────────────────────
   const deleteTarget  = ref<Group | null>(null)
   const deleteLoading = ref(false)
@@ -44,8 +46,10 @@ export function useGroupCrud(
         }
       }
       deleteTarget.value = null
+      toast('Serveur supprimé.')
     } catch {
       deleteError.value = 'Erreur lors de la suppression.'
+      toast('Erreur lors de la suppression.', 'error')
     } finally {
       deleteLoading.value = false
     }
@@ -95,8 +99,10 @@ export function useGroupCrud(
         if (idx !== -1) groups.value[idx] = updated
       }
       editTarget.value = null
+      toast('Serveur mis à jour.')
     } catch {
       editError.value = 'Erreur lors de la sauvegarde.'
+      toast('Erreur lors de la sauvegarde.', 'error')
     } finally {
       editLoading.value = false
     }
@@ -137,8 +143,10 @@ export function useGroupCrud(
       if (groups.value) groups.value = [...groups.value, created]
         .sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true }))
       isAddOpen.value = false
+      toast('Serveur créé.')
     } catch {
       addError.value = 'Erreur lors de la création.'
+      toast('Erreur lors de la création.', 'error')
     } finally {
       addLoading.value = false
     }

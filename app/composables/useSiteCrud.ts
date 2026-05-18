@@ -44,6 +44,8 @@ function formBody(f: SiteEditForm): Record<string, string | null> {
 }
 
 export function useSiteCrud(sites: Ref<Site[] | null>) {
+  const { add: toast } = useToast()
+
   // ── Suppression ───────────────────────────────────────────────
   const deleteTarget  = ref<Site | null>(null)
   const deleteLoading = ref(false)
@@ -68,8 +70,10 @@ export function useSiteCrud(sites: Ref<Site[] | null>) {
       const id = deleteTarget.value.id
       if (sites.value) sites.value = sites.value.filter(s => s.id !== id)
       deleteTarget.value = null
+      toast('Site supprimé.')
     } catch {
       deleteError.value = 'Erreur lors de la suppression.'
+      toast('Erreur lors de la suppression.', 'error')
     } finally {
       deleteLoading.value = false
     }
@@ -121,8 +125,10 @@ export function useSiteCrud(sites: Ref<Site[] | null>) {
         if (idx !== -1) sites.value[idx] = updated
       }
       editTarget.value = null
+      toast('Site mis à jour.')
     } catch {
       editError.value = 'Erreur lors de la sauvegarde.'
+      toast('Erreur lors de la sauvegarde.', 'error')
     } finally {
       editLoading.value = false
     }
@@ -156,8 +162,10 @@ export function useSiteCrud(sites: Ref<Site[] | null>) {
       if (sites.value) sites.value = [...sites.value, created]
         .sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true }))
       isAddOpen.value = false
+      toast('Site créé.')
     } catch {
       addError.value = 'Erreur lors de la création.'
+      toast('Erreur lors de la création.', 'error')
     } finally {
       addLoading.value = false
     }

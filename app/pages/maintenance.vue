@@ -178,6 +178,7 @@ const deleteTarget = ref<Maintenance | null>(null)
 const form         = ref<MaintenanceForm>(emptyForm())
 const modalLoading = ref(false)
 const modalError   = ref<string | null>(null)
+const { add: toast } = useToast()
 
 function resetModal(): void {
   modalLoading.value = false
@@ -237,7 +238,8 @@ async function confirmAdd(): Promise<void> {
     await $fetch('/api/maintenances', { method: 'POST', body: bodyFromForm() })
     await refreshMaintenances()
     addOpen.value = false
-  } catch (e: unknown) { modalError.value = extractError(e) }
+    toast('Intervention créée.')
+  } catch (e: unknown) { modalError.value = extractError(e); toast(extractError(e), 'error') }
   finally { modalLoading.value = false }
 }
 async function confirmEdit(): Promise<void> {
@@ -247,7 +249,8 @@ async function confirmEdit(): Promise<void> {
     await $fetch(`/api/maintenances/${editTarget.value.id}`, { method: 'PATCH', body: bodyFromForm() })
     await refreshMaintenances()
     editTarget.value = null
-  } catch (e: unknown) { modalError.value = extractError(e) }
+    toast('Intervention mise à jour.')
+  } catch (e: unknown) { modalError.value = extractError(e); toast(extractError(e), 'error') }
   finally { modalLoading.value = false }
 }
 async function confirmDelete(): Promise<void> {
@@ -257,7 +260,8 @@ async function confirmDelete(): Promise<void> {
     await $fetch(`/api/maintenances/${deleteTarget.value.id}`, { method: 'DELETE' })
     await refreshMaintenances()
     deleteTarget.value = null
-  } catch (e: unknown) { modalError.value = extractError(e) }
+    toast('Intervention supprimée.')
+  } catch (e: unknown) { modalError.value = extractError(e); toast(extractError(e), 'error') }
   finally { modalLoading.value = false }
 }
 
@@ -450,6 +454,7 @@ const hasActiveFilters = computed(() =>
                   v-model="form.site_id"
                   :options="(sites ?? []).map(s => ({ value: s.id, label: s.name }))"
                   placeholder="— Sélectionner —"
+                  searchable
                 />
               </div>
               <div class="field">
@@ -458,6 +463,7 @@ const hasActiveFilters = computed(() =>
                   v-model="form.client_id"
                   :options="(clients ?? []).map(c => ({ value: c.id, label: c.name }))"
                   placeholder="— Aucun —"
+                  searchable
                 />
               </div>
               <div class="field">

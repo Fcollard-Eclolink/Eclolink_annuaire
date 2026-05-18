@@ -61,6 +61,8 @@ function resetModal(): void {
   modalError.value   = null
 }
 
+const { add: toast } = useToast()
+
 // ── Technologies CRUD ─────────────────────────────────────────
 interface TechForm {
   label           : string
@@ -102,8 +104,10 @@ async function confirmTechAdd(): Promise<void> {
     })
     await refreshTechs()
     techAddOpen.value = false
+    toast('Technologie ajoutée.')
   } catch (e: unknown) {
     modalError.value = e instanceof Error ? e.message : 'Erreur'
+    toast(modalError.value, 'error')
   } finally {
     modalLoading.value = false
   }
@@ -124,8 +128,10 @@ async function confirmTechEdit(): Promise<void> {
     })
     await refreshTechs()
     techEditTarget.value = null
+    toast('Technologie mise à jour.')
   } catch (e: unknown) {
     modalError.value = e instanceof Error ? e.message : 'Erreur'
+    toast(modalError.value, 'error')
   } finally {
     modalLoading.value = false
   }
@@ -138,8 +144,10 @@ async function confirmTechDelete(): Promise<void> {
     await $fetch(`/api/technologies/${techDeleteTarget.value.id}`, { method: 'DELETE' })
     await refreshTechs()
     techDeleteTarget.value = null
+    toast('Technologie supprimée.')
   } catch (e: unknown) {
     modalError.value = e instanceof Error ? e.message : 'Erreur'
+    toast(modalError.value, 'error')
   } finally {
     modalLoading.value = false
   }
@@ -163,7 +171,8 @@ async function confirmAgencyAdd(): Promise<void> {
     await $fetch('/api/agencies', { method: 'POST', body: { name: agencyName.value.trim() } })
     await refreshAgencies()
     agencyAddOpen.value = false
-  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
+    toast('Agence ajoutée.')
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
   finally { modalLoading.value = false }
 }
 
@@ -174,7 +183,8 @@ async function confirmAgencyEdit(): Promise<void> {
     await $fetch(`/api/agencies/${agencyEditTarget.value.id}`, { method: 'PATCH', body: { name: agencyName.value.trim() } })
     await refreshAgencies()
     agencyEditTarget.value = null
-  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
+    toast('Agence mise à jour.')
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
   finally { modalLoading.value = false }
 }
 
@@ -185,7 +195,8 @@ async function confirmAgencyDelete(): Promise<void> {
     await $fetch(`/api/agencies/${agencyDeleteTarget.value.id}`, { method: 'DELETE' })
     await refreshAgencies()
     agencyDeleteTarget.value = null
-  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
+    toast('Agence supprimée.')
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
   finally { modalLoading.value = false }
 }
 
@@ -213,7 +224,8 @@ function makeLogoCrud<T extends { id: string; name: string; simpleicons_slug: st
     try {
       await $fetch(apiPath, { method: 'POST', body: { name: form.value.name.trim(), simpleicons_slug: form.value.simpleicons_slug.trim() || null } })
       await refresh(); addOpen.value = false
-    } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
+      toast(`${form.value.name.trim()} ajouté.`)
+    } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
     finally { modalLoading.value = false }
   }
 
@@ -223,7 +235,8 @@ function makeLogoCrud<T extends { id: string; name: string; simpleicons_slug: st
     try {
       await $fetch(`${apiPath}/${editTarget.value.id}`, { method: 'PATCH', body: { name: form.value.name.trim(), simpleicons_slug: form.value.simpleicons_slug.trim() || null } })
       await refresh(); editTarget.value = null
-    } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
+      toast(`${form.value.name.trim()} mis à jour.`)
+    } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
     finally { modalLoading.value = false }
   }
 
@@ -233,7 +246,8 @@ function makeLogoCrud<T extends { id: string; name: string; simpleicons_slug: st
     try {
       await $fetch(`${apiPath}/${deleteTarget.value.id}`, { method: 'DELETE' })
       await refresh(); deleteTarget.value = null
-    } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
+      toast('Entrée supprimée.')
+    } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
     finally { modalLoading.value = false }
   }
 
@@ -263,7 +277,8 @@ async function confirmPmAdd(): Promise<void> {
   try {
     await $fetch('/api/project-managers', { method: 'POST', body: { first_name: pmForm.value.first_name.trim(), last_name: pmForm.value.last_name.trim(), agency: pmForm.value.agency.trim() || null } })
     await refreshPms(); pmAddOpen.value = false
-  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
+    toast('Cheffe de projet ajoutée.')
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
   finally { modalLoading.value = false }
 }
 
@@ -273,7 +288,8 @@ async function confirmPmEdit(): Promise<void> {
   try {
     await $fetch(`/api/project-managers/${pmEditTarget.value.id}`, { method: 'PATCH', body: { first_name: pmForm.value.first_name.trim(), last_name: pmForm.value.last_name.trim(), agency: pmForm.value.agency.trim() || null } })
     await refreshPms(); pmEditTarget.value = null
-  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
+    toast('Cheffe de projet mise à jour.')
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
   finally { modalLoading.value = false }
 }
 
@@ -283,7 +299,8 @@ async function confirmPmDelete(): Promise<void> {
   try {
     await $fetch(`/api/project-managers/${pmDeleteTarget.value.id}`, { method: 'DELETE' })
     await refreshPms(); pmDeleteTarget.value = null
-  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
+    toast('Cheffe de projet supprimée.')
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
   finally { modalLoading.value = false }
 }
 
@@ -307,7 +324,8 @@ async function confirmClientAdd(): Promise<void> {
     const quotaH = typeof clientForm.value.monthly_quota_hours === 'number' ? clientForm.value.monthly_quota_hours : parseFloat(String(clientForm.value.monthly_quota_hours))
     await $fetch('/api/clients', { method: 'POST', body: { name: clientForm.value.name.trim(), agency: clientForm.value.agency.trim() || null, contact_name: clientForm.value.contact_name.trim() || null, contact_email: clientForm.value.contact_email.trim() || null, notes: clientForm.value.notes.trim() || null, monthly_quota_minutes: !isNaN(quotaH) && quotaH > 0 ? Math.round(quotaH * 60) : null } })
     await refreshClients(); clientAddOpen.value = false
-  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
+    toast('Client ajouté.')
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
   finally { modalLoading.value = false }
 }
 
@@ -318,7 +336,8 @@ async function confirmClientEdit(): Promise<void> {
     const quotaH = typeof clientForm.value.monthly_quota_hours === 'number' ? clientForm.value.monthly_quota_hours : parseFloat(String(clientForm.value.monthly_quota_hours))
     await $fetch(`/api/clients/${clientEditTarget.value.id}`, { method: 'PATCH', body: { name: clientForm.value.name.trim(), agency: clientForm.value.agency.trim() || null, contact_name: clientForm.value.contact_name.trim() || null, contact_email: clientForm.value.contact_email.trim() || null, notes: clientForm.value.notes.trim() || null, monthly_quota_minutes: !isNaN(quotaH) && quotaH > 0 ? Math.round(quotaH * 60) : null } })
     await refreshClients(); clientEditTarget.value = null
-  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
+    toast('Client mis à jour.')
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
   finally { modalLoading.value = false }
 }
 
@@ -328,7 +347,8 @@ async function confirmClientDelete(): Promise<void> {
   try {
     await $fetch(`/api/clients/${clientDeleteTarget.value.id}`, { method: 'DELETE' })
     await refreshClients(); clientDeleteTarget.value = null
-  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
+    toast('Client supprimé.')
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
   finally { modalLoading.value = false }
 }
 
@@ -360,7 +380,8 @@ async function confirmDevAdd(): Promise<void> {
   try {
     await $fetch('/api/developers', { method: 'POST', body: devBody() })
     await refreshDevelopers(); devAddOpen.value = false
-  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
+    toast('Développeur ajouté.')
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
   finally { modalLoading.value = false }
 }
 async function confirmDevEdit(): Promise<void> {
@@ -369,7 +390,8 @@ async function confirmDevEdit(): Promise<void> {
   try {
     await $fetch(`/api/developers/${devEditTarget.value.id}`, { method: 'PATCH', body: devBody() })
     await refreshDevelopers(); devEditTarget.value = null
-  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
+    toast('Développeur mis à jour.')
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
   finally { modalLoading.value = false }
 }
 async function confirmDevDelete(): Promise<void> {
@@ -378,7 +400,8 @@ async function confirmDevDelete(): Promise<void> {
   try {
     await $fetch(`/api/developers/${devDeleteTarget.value.id}`, { method: 'DELETE' })
     await refreshDevelopers(); devDeleteTarget.value = null
-  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
+    toast('Développeur supprimé.')
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
   finally { modalLoading.value = false }
 }
 
@@ -401,7 +424,8 @@ async function confirmMtAdd(): Promise<void> {
   try {
     await $fetch('/api/maintenance-types', { method: 'POST', body: { label: mtForm.value.label.trim() } })
     await refreshMaintenanceTypes(); mtAddOpen.value = false
-  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
+    toast('Type de maintenance ajouté.')
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
   finally { modalLoading.value = false }
 }
 async function confirmMtEdit(): Promise<void> {
@@ -410,7 +434,8 @@ async function confirmMtEdit(): Promise<void> {
   try {
     await $fetch(`/api/maintenance-types/${mtEditTarget.value.id}`, { method: 'PATCH', body: { label: mtForm.value.label.trim() } })
     await refreshMaintenanceTypes(); mtEditTarget.value = null
-  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
+    toast('Type de maintenance mis à jour.')
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
   finally { modalLoading.value = false }
 }
 async function confirmMtDelete(): Promise<void> {
@@ -419,7 +444,8 @@ async function confirmMtDelete(): Promise<void> {
   try {
     await $fetch(`/api/maintenance-types/${mtDeleteTarget.value.id}`, { method: 'DELETE' })
     await refreshMaintenanceTypes(); mtDeleteTarget.value = null
-  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur' }
+    toast('Type de maintenance supprimé.')
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
   finally { modalLoading.value = false }
 }
 
