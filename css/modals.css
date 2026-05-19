@@ -255,11 +255,19 @@
     .btn  { width: 100%; }
 }
 
+.login-logo {
+    display: block;
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 1rem;
+}
+
 .login-title {
     font-size: 17px;
     font-weight: 500;
     color: var(--text);
     margin-bottom: 1.5rem;
+    text-align: center;
 }
 
 .login-error {

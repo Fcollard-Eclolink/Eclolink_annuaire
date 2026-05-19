@@ -48,7 +48,7 @@ function render() {
   } else {
     [...groups].sort(localeSort).forEach(g => {
       const gs   = (sitesByGroup.get(g.id) || []).slice().sort(localeSort);
-      const open = !collapsed[g.id];
+      const open = collapsed[g.id] === false;
       const hasInfo = g.hoster || g.ip_local || g.ip_public || g.web_server;
 
       html += `
@@ -79,7 +79,7 @@ function render() {
 
     const ungrouped = (sitesByGroup.get('__none__') || []).slice().sort(localeSort);
     if (ungrouped.length) {
-      const open = !collapsed['__none__'];
+      const open = collapsed['__none__'] === false;
       html += `
         <div class="group-card">
           <div class="group-head" onclick="toggleGroup('__none__')">
@@ -225,7 +225,7 @@ function hideSiteInfo() {
 }
 
 function toggleGroup(id) {
-  collapsed[id] = !collapsed[id];
+  collapsed[id] = collapsed[id] === false ? true : false;
   saveCollapsed();
   render();
 }
