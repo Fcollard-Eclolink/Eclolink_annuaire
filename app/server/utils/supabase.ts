@@ -19,11 +19,21 @@ export interface SupabaseUser {
 const COOKIE_ACCESS  = 'sb_access'  as const
 const COOKIE_REFRESH = 'sb_refresh' as const
 
-function cookieOpts(maxAge: number) {
+declare const process: { env: { NODE_ENV?: string } }
+
+interface CookieOpts {
+  httpOnly: boolean
+  secure  : boolean
+  sameSite: 'lax'
+  path    : string
+  maxAge  : number
+}
+
+function cookieOpts(maxAge: number): CookieOpts {
   return {
     httpOnly : true,
     secure   : process.env.NODE_ENV === 'production',
-    sameSite : 'lax' as const,
+    sameSite : 'lax',
     path     : '/',
     maxAge,
   }

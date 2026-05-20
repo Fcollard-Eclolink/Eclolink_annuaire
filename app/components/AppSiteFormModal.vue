@@ -50,7 +50,7 @@ const emit = defineEmits<{ close: []; submit: [] }>()
           <label>Serveur</label>
           <AppSelect
             v-model="form.group_id"
-            :options="groups.map(g => ({ value: g.id, label: g.name }))"
+            :options="groups.map((g: Group) => ({ value: g.id, label: g.name }))"
             placeholder="— Aucun —"
           />
         </div>
@@ -58,7 +58,7 @@ const emit = defineEmits<{ close: []; submit: [] }>()
           <label>Cheffe de projet</label>
           <AppSelect
             v-model="form.project_manager_id"
-            :options="projectManagers.map(pm => ({ value: pm.id, label: `${pm.first_name} ${pm.last_name}` }))"
+            :options="projectManagers.map((pm: ProjectManager) => ({ value: pm.id, label: `${pm.first_name} ${pm.last_name}` }))"
             placeholder="— Aucune —"
           />
         </div>
@@ -66,7 +66,7 @@ const emit = defineEmits<{ close: []; submit: [] }>()
           <label>Client</label>
           <AppSelect
             v-model="form.client_id"
-            :options="clients.map(c => ({ value: c.id, label: c.name }))"
+            :options="clients.map((c: Client) => ({ value: c.id, label: c.name }))"
             placeholder="— Aucun —"
           />
         </div>
@@ -78,14 +78,14 @@ const emit = defineEmits<{ close: []; submit: [] }>()
           <label>Zone DNS</label>
           <AppIconSelect
             v-model="form.dns_zone"
-            :options="dnsProviders.map(d => ({ value: d.name, label: d.name, slug: d.simpleicons_slug }))"
+            :options="dnsProviders.map((d: DnsProvider) => ({ value: d.name, label: d.name, slug: d.simpleicons_slug }))"
           />
         </div>
         <div class="field">
           <label>Registrar</label>
           <AppIconSelect
             v-model="form.registrar"
-            :options="hosters.map(h => ({ value: h.name, label: h.name, slug: h.simpleicons_slug }))"
+            :options="hosters.map((h: Hoster) => ({ value: h.name, label: h.name, slug: h.simpleicons_slug }))"
           />
         </div>
         <div class="field">

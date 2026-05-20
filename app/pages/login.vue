@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { SupabaseUser } from '~/server/utils/supabase'
+
 definePageMeta({ middleware: [] }) // page publique, pas de guard
 
 const { user } = useAuth()
@@ -20,7 +22,7 @@ async function submit() {
     })
     // Peuple l'état user AVANT de naviguer — sinon le middleware
     // voit encore user=null et renvoie silencieusement vers /login
-    user.value = await $fetch('/api/auth/me')
+    user.value = await $fetch<SupabaseUser>('/api/auth/me')
     await navigateTo('/')
   } catch {
     error.value    = 'Email ou mot de passe incorrect.'

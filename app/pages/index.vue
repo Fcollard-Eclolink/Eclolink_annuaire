@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Site, ProjectManager } from '~/server/utils/types'
+import type { Site, Group, ProjectManager } from '~/server/utils/types'
 import type { FilterOption } from '~/components/AppFilterSelect.vue'
 import { techTags } from '~/composables/useTechBadge'
 
@@ -68,7 +68,7 @@ const sitesByGroup = computed(() => {
     map.get(key)!.push(s)
   }
   for (const list of map.values()) {
-    list.sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true }))
+    list.sort((a: Site, b: Site): number => a.name.localeCompare(b.name, 'fr', { numeric: true }))
   }
   return map
 })
@@ -103,70 +103,75 @@ const filterTechs    = ref<string[]>([])
 const filterAgencies = ref<string[]>([])
 const filterPms      = ref<string[]>([])
 
-function matchesCombination(s: Site, opts: {
-  groups: string[]; techs: string[]; agencies: string[]; pms: string[]
-}): boolean {
-  if (opts.groups.length   && !opts.groups.includes(s.group_id ?? ''))                 return false
-  if (opts.techs.length    && !opts.techs.some(t => techTags(s).includes(t)))          return false
-  if (opts.agencies.length && !opts.agencies.includes(s.agency ?? ''))                 return false
-  if (opts.pms.length      && !opts.pms.includes(s.project_manager_id ?? ''))          return false
+interface FilterOpts {
+  groups  : string[]
+  techs   : string[]
+  agencies: string[]
+  pms     : string[]
+}
+
+function matchesCombination(s: Site, opts: FilterOpts): boolean {
+  if (opts.groups.length   && !opts.groups.includes(s.group_id ?? ''))                          return false
+  if (opts.techs.length    && !opts.techs.some((t: string) => techTags(s).includes(t)))         return false
+  if (opts.agencies.length && !opts.agencies.includes(s.agency ?? ''))                          return false
+  if (opts.pms.length      && !opts.pms.includes(s.project_manager_id ?? ''))                   return false
   return true
 }
 
-const baseSitesForGroup   = computed(() =>
-  sites.value.filter(s => matchesCombination(s, { groups: [], techs: filterTechs.value, agencies: filterAgencies.value, pms: filterPms.value })),
+const baseSitesForGroup   = computed((): Site[] =>
+  sites.value.filter((s: Site) => matchesCombination(s, { groups: [], techs: filterTechs.value, agencies: filterAgencies.value, pms: filterPms.value })),
 )
-const baseSitesForTech    = computed(() =>
-  sites.value.filter(s => matchesCombination(s, { groups: filterGroups.value, techs: [], agencies: filterAgencies.value, pms: filterPms.value })),
+const baseSitesForTech    = computed((): Site[] =>
+  sites.value.filter((s: Site) => matchesCombination(s, { groups: filterGroups.value, techs: [], agencies: filterAgencies.value, pms: filterPms.value })),
 )
-const baseSitesForAgency  = computed(() =>
-  sites.value.filter(s => matchesCombination(s, { groups: filterGroups.value, techs: filterTechs.value, agencies: [], pms: filterPms.value })),
+const baseSitesForAgency  = computed((): Site[] =>
+  sites.value.filter((s: Site) => matchesCombination(s, { groups: filterGroups.value, techs: filterTechs.value, agencies: [], pms: filterPms.value })),
 )
-const baseSitesForPm      = computed(() =>
-  sites.value.filter(s => matchesCombination(s, { groups: filterGroups.value, techs: filterTechs.value, agencies: filterAgencies.value, pms: [] })),
+const baseSitesForPm      = computed((): Site[] =>
+  sites.value.filter((s: Site) => matchesCombination(s, { groups: filterGroups.value, techs: filterTechs.value, agencies: filterAgencies.value, pms: [] })),
 )
 
 const filterGroupOptions = computed((): FilterOption[] =>
-  groups.value.map(g => ({
+  groups.value.map((g: Group): FilterOption => ({
     id: g.id, label: g.name,
-    disabled: !baseSitesForGroup.value.some(s => s.group_id === g.id),
+    disabled: !baseSitesForGroup.value.some((s: Site) => s.group_id === g.id),
   })),
 )
 const filterTechOptions = computed((): FilterOption[] => {
   const allTechs = new Set<string>()
   for (const s of sites.value) for (const t of techTags(s)) allTechs.add(t)
-  return [...allTechs].sort().map(t => ({
+  return [...allTechs].sort().map((t: string): FilterOption => ({
     id: t, label: t,
-    disabled: !baseSitesForTech.value.some(s => techTags(s).includes(t)),
+    disabled: !baseSitesForTech.value.some((s: Site) => techTags(s).includes(t)),
   }))
 })
 const filterAgencyOptions = computed((): FilterOption[] => {
   const allAgencies = new Set<string>()
   for (const s of sites.value) if (s.agency) allAgencies.add(s.agency)
-  return [...allAgencies].sort().map(a => ({
+  return [...allAgencies].sort().map((a: string): FilterOption => ({
     id: a, label: a,
-    disabled: !baseSitesForAgency.value.some(s => s.agency === a),
+    disabled: !baseSitesForAgency.value.some((s: Site) => s.agency === a),
   }))
 })
 const filterPmOptions = computed((): FilterOption[] =>
-  pms.value.map(pm => ({
+  pms.value.map((pm: ProjectManager): FilterOption => ({
     id: pm.id, label: `${pm.first_name} ${pm.last_name}`,
-    disabled: !baseSitesForPm.value.some(s => s.project_manager_id === pm.id),
+    disabled: !baseSitesForPm.value.some((s: Site) => s.project_manager_id === pm.id),
   })),
 )
 
-const filteredSitesByGroup = computed(() => {
+const filteredSitesByGroup = computed((): Map<string, Site[]> => {
   const result = new Map<string, Site[]>()
   for (const [groupId, list] of sitesByGroup.value) {
-    result.set(groupId, list.filter(s => matchesCombination(s, {
+    result.set(groupId, list.filter((s: Site) => matchesCombination(s, {
       groups: filterGroups.value, techs: filterTechs.value,
       agencies: filterAgencies.value, pms: filterPms.value,
     })))
   }
   return result
 })
-const filteredGroups = computed(() =>
-  groups.value.filter(g => {
+const filteredGroups = computed((): Group[] =>
+  groups.value.filter((g: Group): boolean => {
     if (filterGroups.value.length && !filterGroups.value.includes(g.id)) return false
     if (filterTechs.value.length || filterAgencies.value.length || filterPms.value.length) {
       return (filteredSitesByGroup.value.get(g.id) ?? []).length > 0
@@ -174,9 +179,9 @@ const filteredGroups = computed(() =>
     return true
   }),
 )
-const filteredUngrouped = computed(() => {
+const filteredUngrouped = computed((): Site[] => {
   if (filterGroups.value.length) return []
-  return (sitesByGroup.value.get('__none__') ?? []).filter(s => matchesCombination(s, {
+  return (sitesByGroup.value.get('__none__') ?? []).filter((s: Site) => matchesCombination(s, {
     groups: [], techs: filterTechs.value, agencies: filterAgencies.value, pms: filterPms.value,
   }))
 })
@@ -185,7 +190,7 @@ const filteredUngrouped = computed(() => {
 const activeFilterChips = computed((): ActiveFilterChip[] => {
   const chips: ActiveFilterChip[] = []
   for (const id of filterGroups.value) {
-    const g = groups.value.find(g => g.id === id)
+    const g = groups.value.find((g: Group) => g.id === id)
     if (g) chips.push({ category: 'group', value: id, label: g.name, catLabel: 'Serveur' })
   }
   for (const t of filterTechs.value)
@@ -193,7 +198,7 @@ const activeFilterChips = computed((): ActiveFilterChip[] => {
   for (const a of filterAgencies.value)
     chips.push({ category: 'agency', value: a, label: a, catLabel: 'Agence' })
   for (const id of filterPms.value) {
-    const pm = pms.value.find(p => p.id === id)
+    const pm = pms.value.find((p: ProjectManager) => p.id === id)
     if (pm) chips.push({ category: 'pm', value: id, label: `${pm.first_name} ${pm.last_name}`, catLabel: 'Cheffe' })
   }
   return chips
@@ -201,10 +206,10 @@ const activeFilterChips = computed((): ActiveFilterChip[] => {
 
 function removeFilterChip(chip: ActiveFilterChip): void {
   switch (chip.category) {
-    case 'group':  filterGroups.value   = filterGroups.value.filter(v => v !== chip.value);   break
-    case 'tech':   filterTechs.value    = filterTechs.value.filter(v => v !== chip.value);    break
-    case 'agency': filterAgencies.value = filterAgencies.value.filter(v => v !== chip.value); break
-    case 'pm':     filterPms.value      = filterPms.value.filter(v => v !== chip.value);      break
+    case 'group':  filterGroups.value   = filterGroups.value.filter((v: string) => v !== chip.value);   break
+    case 'tech':   filterTechs.value    = filterTechs.value.filter((v: string) => v !== chip.value);    break
+    case 'agency': filterAgencies.value = filterAgencies.value.filter((v: string) => v !== chip.value); break
+    case 'pm':     filterPms.value      = filterPms.value.filter((v: string) => v !== chip.value);      break
   }
 }
 

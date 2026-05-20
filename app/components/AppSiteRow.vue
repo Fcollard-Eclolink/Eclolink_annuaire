@@ -116,7 +116,7 @@ const highlightedName = computed((): string => {
         <span v-if="site.agency" class="site-tag--agency">{{ site.agency }}</span>
         <!-- Technologies -->
         <span v-for="tech in techTags(site)" :key="tech" class="site-tech-badge">
-          <img v-if="techIconUrl(tech)" :src="techIconUrl(tech)" width="11" height="11" :alt="tech"
+          <img v-if="techIconUrl(tech)" :src="techIconUrl(tech) ?? undefined" width="11" height="11" :alt="tech"
                @error="($event.target as HTMLImageElement).style.display='none'">
           <!-- eslint-disable-next-line vue/no-v-html -->
           <span v-else-if="techIconSvg(tech)" class="tech-svg-icon" v-html="techIconSvg(tech)" />

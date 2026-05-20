@@ -60,7 +60,7 @@ const refreshDevelopers        = refs.refreshDevelopers
 const refreshMaintenanceTypes  = refs.refreshMaintenanceTypes
 
 // Lazy fetch sites uniquement quand l'onglet Technologies est activé (seul consommateur)
-watch(() => activeTab.value, (tab) => {
+watch((): TabId => activeTab.value, (tab: TabId): void => {
   if (tab === 'technologies') void refs.loadSites()
 }, { immediate: true })
 
@@ -228,7 +228,7 @@ interface LogoForm { name: string; simpleicons_slug: string }
 
 function makeLogoCrud<T extends { id: string; name: string; simpleicons_slug: string | null }>(
   apiPath: string,
-  data: Ref<T[] | null>,
+  _data: Ref<T[]>,
   refresh: () => Promise<void>,
 ) {
   const addOpen      = ref(false)
@@ -981,7 +981,7 @@ function simpleIconUrl(slug: string): string {
                 <label>Agence</label>
                 <AppSelect
                   v-model="pmForm.agency"
-                  :options="agencies.map(a => ({ value: a.name, label: a.name }))"
+                  :options="agencies.map((a: Agency) => ({ value: a.name, label: a.name }))"
                   placeholder="— Aucune —"
                 />
               </div>
@@ -1014,7 +1014,7 @@ function simpleIconUrl(slug: string): string {
                 <label>Agence</label>
                 <AppSelect
                   v-model="clientForm.agency"
-                  :options="agencies.map(a => ({ value: a.name, label: a.name }))"
+                  :options="agencies.map((a: Agency) => ({ value: a.name, label: a.name }))"
                   placeholder="— Aucune —"
                 />
               </div>
@@ -1059,7 +1059,7 @@ function simpleIconUrl(slug: string): string {
                 <label>Agence</label>
                 <AppSelect
                   v-model="devForm.agency"
-                  :options="agencies.map(a => ({ value: a.name, label: a.name }))"
+                  :options="agencies.map((a: Agency) => ({ value: a.name, label: a.name }))"
                   placeholder="— Aucune —"
                 />
               </div>

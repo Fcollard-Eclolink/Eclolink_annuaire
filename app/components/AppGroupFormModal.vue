@@ -30,7 +30,7 @@ const emit = defineEmits<{ close: []; submit: [] }>()
           <label>Hébergeur</label>
           <AppIconSelect
             v-model="form.hoster"
-            :options="hosters.map(h => ({ value: h.name, label: h.name, slug: h.simpleicons_slug }))"
+            :options="hosters.map((h: Hoster) => ({ value: h.name, label: h.name, slug: h.simpleicons_slug }))"
           />
         </div>
         <div class="field">
@@ -45,7 +45,7 @@ const emit = defineEmits<{ close: []; submit: [] }>()
           <label>Serveur web</label>
           <AppIconSelect
             v-model="form.web_server"
-            :options="webServers.map(ws => ({ value: ws.name, label: ws.name, slug: ws.simpleicons_slug }))"
+            :options="webServers.map((ws: WebServer) => ({ value: ws.name, label: ws.name, slug: ws.simpleicons_slug }))"
           />
         </div>
         <div class="modal-btns">

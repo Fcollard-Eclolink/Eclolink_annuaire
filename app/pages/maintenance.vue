@@ -46,10 +46,10 @@ const clientById = computed((): Map<string, Client> => {
 // ── Helpers ───────────────────────────────────────────────────
 function parseTypes(csv: string | null): string[] {
   if (!csv?.trim()) return []
-  return csv.split(',').map(v => v.trim()).filter(Boolean)
+  return csv.split(',').map((v: string) => v.trim()).filter(Boolean)
 }
 function typeLabels(m: Maintenance): string[] {
-  return parseTypes(m.types).map(id => typeById.value.get(id)?.label ?? id)
+  return parseTypes(m.types).map((id: string): string => typeById.value.get(id)?.label ?? id)
 }
 function siteName(id: string): string {
   return siteById.value.get(id)?.name ?? '— Site supprimé —'
@@ -86,27 +86,27 @@ const filterClients   = ref<string[]>([])
 const onlyIncidents   = ref(false)
 
 const siteOptions = computed((): FilterOption[] =>
-  sites.value.map(s => ({ id: s.id, label: s.name, disabled: false })),
+  sites.value.map((s: Site): FilterOption => ({ id: s.id, label: s.name, disabled: false })),
 )
 const devOptions = computed((): FilterOption[] =>
-  developers.value.map(d => ({ id: d.id, label: `${d.first_name} ${d.last_name}`, disabled: false })),
+  developers.value.map((d: Developer): FilterOption => ({ id: d.id, label: `${d.first_name} ${d.last_name}`, disabled: false })),
 )
 const typeOptions = computed((): FilterOption[] =>
-  maintenanceTypes.value.map(t => ({ id: t.id, label: t.label, disabled: false })),
+  maintenanceTypes.value.map((t: MaintenanceType): FilterOption => ({ id: t.id, label: t.label, disabled: false })),
 )
 const clientOptions = computed((): FilterOption[] =>
-  clients.value.map(c => ({ id: c.id, label: c.name, disabled: false })),
+  clients.value.map((c: Client): FilterOption => ({ id: c.id, label: c.name, disabled: false })),
 )
 
 const filtered = computed((): Maintenance[] => {
   const q = query.value.trim().toLowerCase()
-  return maintenances.value.filter(m => {
+  return maintenances.value.filter((m: Maintenance): boolean => {
     if (filterSites.value.length && !filterSites.value.includes(m.site_id)) return false
     if (filterDevs.value.length && (!m.developer_id || !filterDevs.value.includes(m.developer_id))) return false
     if (filterClients.value.length && (!m.client_id || !filterClients.value.includes(m.client_id))) return false
     if (filterTypes.value.length) {
       const ids = parseTypes(m.types)
-      if (!filterTypes.value.some(f => ids.includes(f))) return false
+      if (!filterTypes.value.some((f: string) => ids.includes(f))) return false
     }
     if (onlyIncidents.value && !m.has_incident) return false
     if (q) {
@@ -379,7 +379,7 @@ const hasActiveFilters = computed(() =>
                 <label>Site *</label>
                 <AppSelect
                   v-model="form.site_id"
-                  :options="sites.map(s => ({ value: s.id, label: s.name }))"
+                  :options="sites.map((s: Site) => ({ value: s.id, label: s.name }))"
                   placeholder="— Sélectionner —"
                   searchable
                 />
@@ -388,7 +388,7 @@ const hasActiveFilters = computed(() =>
                 <label>Client</label>
                 <AppSelect
                   v-model="form.client_id"
-                  :options="clients.map(c => ({ value: c.id, label: c.name }))"
+                  :options="clients.map((c: Client) => ({ value: c.id, label: c.name }))"
                   placeholder="— Aucun —"
                   searchable
                 />
@@ -405,7 +405,7 @@ const hasActiveFilters = computed(() =>
                 <label>Développeur</label>
                 <AppSelect
                   v-model="form.developer_id"
-                  :options="developers.map(d => ({ value: d.id, label: d.job_title ? `${d.first_name} ${d.last_name} — ${d.job_title}` : `${d.first_name} ${d.last_name}` }))"
+                  :options="developers.map((d: Developer) => ({ value: d.id, label: d.job_title ? `${d.first_name} ${d.last_name} — ${d.job_title}` : `${d.first_name} ${d.last_name}` }))"
                   placeholder="— Aucun —"
                 />
               </div>
@@ -413,7 +413,7 @@ const hasActiveFilters = computed(() =>
                 <label>Type(s) d'intervention</label>
                 <AppMultiSelect
                   v-model="form.types"
-                  :options="maintenanceTypes.map(t => ({ id: t.id, label: t.label }))"
+                  :options="maintenanceTypes.map((t: MaintenanceType) => ({ id: t.id, label: t.label }))"
                   placeholder="— Aucun —"
                 />
               </div>
