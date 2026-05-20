@@ -23,26 +23,51 @@ const tabs: { id: TabId; label: string }[] = [
   { id: 'maintenance-types', label: 'Types maintenance' },
 ]
 
-// ── Data fetching ─────────────────────────────────────────────
-const { data: technologies, refresh: refreshTechs }     = await useFetch<Technology[]>('/api/technologies')
-const { data: agencies,     refresh: refreshAgencies }   = await useFetch<Agency[]>('/api/agencies')
-const { data: hosters,      refresh: refreshHosters }    = await useFetch<Hoster[]>('/api/hosters')
-const { data: webServers,   refresh: refreshWebServers } = await useFetch<WebServer[]>('/api/web-servers')
-const { data: dnsProviders, refresh: refreshDns }        = await useFetch<DnsProvider[]>('/api/dns-providers')
-const { data: pms,          refresh: refreshPms }        = await useFetch<ProjectManager[]>('/api/project-managers')
-const { data: clients,      refresh: refreshClients }    = await useFetch<Client[]>('/api/clients')
-const { data: developers,   refresh: refreshDevelopers } = await useFetch<Developer[]>('/api/developers')
-const { data: maintenanceTypes, refresh: refreshMaintenanceTypes } = await useFetch<MaintenanceType[]>('/api/maintenance-types')
-const { data: sites }                                    = await useFetch<Site[]>('/api/sites')
+// ── Data fetching via cache partagé ───────────────────────────
+const refs = useReferenceData()
+await Promise.all([
+  refs.loadTechnologies(),
+  refs.loadAgencies(),
+  refs.loadHosters(),
+  refs.loadWebServers(),
+  refs.loadDnsProviders(),
+  refs.loadProjectManagers(),
+  refs.loadClients(),
+  refs.loadDevelopers(),
+  refs.loadMaintenanceTypes(),
+  // sites : différé jusqu'à l'activation de l'onglet "Technologies"
+])
 
-// Peuple le state partagé pour que techTags() fonctionne
-const refTechs = useState<Technology[]>('ref:techs', () => [])
-watchEffect(() => { if (technologies.value) refTechs.value = technologies.value })
+const technologies     = refs.technologies
+const agencies         = refs.agencies
+const hosters          = refs.hosters
+const webServers       = refs.webServers
+const dnsProviders     = refs.dnsProviders
+const pms              = refs.projectManagers
+const clients          = refs.clients
+const developers       = refs.developers
+const maintenanceTypes = refs.maintenanceTypes
+const sites            = refs.sites
+
+const refreshTechs             = refs.refreshTechnologies
+const refreshAgencies          = refs.refreshAgencies
+const refreshHosters           = refs.refreshHosters
+const refreshWebServers        = refs.refreshWebServers
+const refreshDns               = refs.refreshDnsProviders
+const refreshPms               = refs.refreshProjectManagers
+const refreshClients           = refs.refreshClients
+const refreshDevelopers        = refs.refreshDevelopers
+const refreshMaintenanceTypes  = refs.refreshMaintenanceTypes
+
+// Lazy fetch sites uniquement quand l'onglet Technologies est activé (seul consommateur)
+watch(() => activeTab.value, (tab) => {
+  if (tab === 'technologies') void refs.loadSites()
+}, { immediate: true })
 
 // Nombre de sites par technologie
 const techSiteCount = computed((): Map<string, number> => {
   const map = new Map<string, number>()
-  for (const site of sites.value ?? []) {
+  for (const site of sites.value) {
     for (const tag of techTags(site)) {
       map.set(tag, (map.get(tag) ?? 0) + 1)
     }
@@ -956,7 +981,7 @@ function simpleIconUrl(slug: string): string {
                 <label>Agence</label>
                 <AppSelect
                   v-model="pmForm.agency"
-                  :options="(agencies ?? []).map(a => ({ value: a.name, label: a.name }))"
+                  :options="agencies.map(a => ({ value: a.name, label: a.name }))"
                   placeholder="— Aucune —"
                 />
               </div>
@@ -989,7 +1014,7 @@ function simpleIconUrl(slug: string): string {
                 <label>Agence</label>
                 <AppSelect
                   v-model="clientForm.agency"
-                  :options="(agencies ?? []).map(a => ({ value: a.name, label: a.name }))"
+                  :options="agencies.map(a => ({ value: a.name, label: a.name }))"
                   placeholder="— Aucune —"
                 />
               </div>
@@ -1034,7 +1059,7 @@ function simpleIconUrl(slug: string): string {
                 <label>Agence</label>
                 <AppSelect
                   v-model="devForm.agency"
-                  :options="(agencies ?? []).map(a => ({ value: a.name, label: a.name }))"
+                  :options="agencies.map(a => ({ value: a.name, label: a.name }))"
                   placeholder="— Aucune —"
                 />
               </div>
@@ -1083,3 +1108,5 @@ function simpleIconUrl(slug: string): string {
     </Teleport>
   </div>
 </template>
+
+<style src="~/assets/css/admin.css"></style>

@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { Group, Site, ProjectManager, Client, Technology, Hoster, WebServer, DnsProvider } from '~/server/utils/types'
-import type { SiteEditForm } from '~/composables/useSiteCrud'
+import type { Site, ProjectManager } from '~/server/utils/types'
 import type { FilterOption } from '~/components/AppFilterSelect.vue'
 import { techTags } from '~/composables/useTechBadge'
 
@@ -13,53 +12,56 @@ interface ActiveFilterChip {
 
 definePageMeta({ middleware: 'auth' })
 
-const { user, logout } = useAuth()
+// ── Modales lourdes : code-splitting (chunks séparés, chargés à l'ouverture) ──
+const AppGroupFormModal = defineAsyncComponent(() => import('~/components/AppGroupFormModal.vue'))
+const AppSiteFormModal  = defineAsyncComponent(() => import('~/components/AppSiteFormModal.vue'))
 
-// ── Chargement ────────────────────────────────────────────────────
-const [
-  { data: groups,       error: errGroups,  refresh: refreshGroups  },
-  { data: sites,        error: errSites,   refresh: refreshSites   },
-  { data: pms,          error: errPms,     refresh: refreshPms     },
-  { data: clients },
-  { data: fetchedTechs },
-  { data: fetchedHosters },
-  { data: fetchedWebServers },
-  { data: fetchedDnsProviders },
-] = await Promise.all([
-  useFetch<Group[]>('/api/groups'),
-  useFetch<Site[]>('/api/sites'),
-  useFetch<ProjectManager[]>('/api/project-managers'),
-  useFetch<Client[]>('/api/clients'),
-  useFetch<Technology[]>('/api/technologies'),
-  useFetch<Hoster[]>('/api/hosters'),
-  useFetch<WebServer[]>('/api/web-servers'),
-  useFetch<DnsProvider[]>('/api/dns-providers'),
-])
+// ── Chargement initial via cache partagé useReferenceData ─────────
+const refs = useReferenceData()
+const loadError = ref<unknown>(null)
+try {
+  // dnsProviders : différé jusqu'à l'ouverture d'une modale site (non nécessaire au render initial)
+  await Promise.all([
+    refs.loadGroups(),
+    refs.loadSites(),
+    refs.loadProjectManagers(),
+    refs.loadClients(),
+    refs.loadTechnologies(),
+    refs.loadHosters(),
+    refs.loadWebServers(),
+  ])
+} catch (e: unknown) {
+  loadError.value = e
+}
 
-// Populate shared state for useTechBadge
-const refTechs = useState<Technology[]>('ref:techs', () => [])
-watchEffect(() => { if (fetchedTechs.value) refTechs.value = fetchedTechs.value })
+const groups              = refs.groups
+const sites               = refs.sites
+const pms                 = refs.projectManagers
+const clients             = refs.clients
+const fetchedTechs        = refs.technologies
+const fetchedHosters      = refs.hosters
+const fetchedWebServers   = refs.webServers
+const fetchedDnsProviders = refs.dnsProviders
 
-const hasError     = computed(() => errGroups.value || errSites.value || errPms.value)
-const reloading    = ref(false)
+const hasError  = computed(() => !!loadError.value)
+const reloading = ref(false)
 
 async function reloadAll(): Promise<void> {
   reloading.value = true
-  await Promise.all([refreshGroups(), refreshSites(), refreshPms()])
+  await Promise.all([refs.refreshGroups(), refs.refreshSites(), refs.refreshProjectManagers()])
   reloading.value = false
 }
 
 // ── Lookup cheffes de projet ──────────────────────────────────────
 const pmById = computed(() => {
   const map = new Map<string, ProjectManager>()
-  for (const pm of pms.value ?? []) map.set(pm.id, pm)
+  for (const pm of pms.value) map.set(pm.id, pm)
   return map
 })
 
 // ── Groupage des sites ────────────────────────────────────────────
 const sitesByGroup = computed(() => {
   const map = new Map<string, Site[]>()
-  if (!sites.value) return map
   for (const s of sites.value) {
     const key = s.group_id ?? '__none__'
     if (!map.has(key)) map.set(key, [])
@@ -70,8 +72,6 @@ const sitesByGroup = computed(() => {
   }
   return map
 })
-
-const ungrouped = computed(() => sitesByGroup.value.get('__none__') ?? [])
 
 // ── Recherche ─────────────────────────────────────────────────────
 const { query, inputRef, isActive, results, serverLabel, focus, clear } =
@@ -103,12 +103,8 @@ const filterTechs    = ref<string[]>([])
 const filterAgencies = ref<string[]>([])
 const filterPms      = ref<string[]>([])
 
-/** Retourne true si le site satisfait toutes les catégories données (AND inter-cat, OR intra-cat). */
 function matchesCombination(s: Site, opts: {
-  groups   : string[]
-  techs    : string[]
-  agencies : string[]
-  pms      : string[]
+  groups: string[]; techs: string[]; agencies: string[]; pms: string[]
 }): boolean {
   if (opts.groups.length   && !opts.groups.includes(s.group_id ?? ''))                 return false
   if (opts.techs.length    && !opts.techs.some(t => techTags(s).includes(t)))          return false
@@ -117,30 +113,28 @@ function matchesCombination(s: Site, opts: {
   return true
 }
 
-// Sites de base pour calculer les options désactivées (on exclut la catégorie concernée)
 const baseSitesForGroup   = computed(() =>
-  (sites.value ?? []).filter(s => matchesCombination(s, { groups: [], techs: filterTechs.value, agencies: filterAgencies.value, pms: filterPms.value }))
+  sites.value.filter(s => matchesCombination(s, { groups: [], techs: filterTechs.value, agencies: filterAgencies.value, pms: filterPms.value })),
 )
 const baseSitesForTech    = computed(() =>
-  (sites.value ?? []).filter(s => matchesCombination(s, { groups: filterGroups.value, techs: [], agencies: filterAgencies.value, pms: filterPms.value }))
+  sites.value.filter(s => matchesCombination(s, { groups: filterGroups.value, techs: [], agencies: filterAgencies.value, pms: filterPms.value })),
 )
 const baseSitesForAgency  = computed(() =>
-  (sites.value ?? []).filter(s => matchesCombination(s, { groups: filterGroups.value, techs: filterTechs.value, agencies: [], pms: filterPms.value }))
+  sites.value.filter(s => matchesCombination(s, { groups: filterGroups.value, techs: filterTechs.value, agencies: [], pms: filterPms.value })),
 )
 const baseSitesForPm      = computed(() =>
-  (sites.value ?? []).filter(s => matchesCombination(s, { groups: filterGroups.value, techs: filterTechs.value, agencies: filterAgencies.value, pms: [] }))
+  sites.value.filter(s => matchesCombination(s, { groups: filterGroups.value, techs: filterTechs.value, agencies: filterAgencies.value, pms: [] })),
 )
 
-// Options des filtres avec état disabled
 const filterGroupOptions = computed((): FilterOption[] =>
-  (groups.value ?? []).map(g => ({
+  groups.value.map(g => ({
     id: g.id, label: g.name,
     disabled: !baseSitesForGroup.value.some(s => s.group_id === g.id),
-  }))
+  })),
 )
 const filterTechOptions = computed((): FilterOption[] => {
   const allTechs = new Set<string>()
-  for (const s of sites.value ?? []) for (const t of techTags(s)) allTechs.add(t)
+  for (const s of sites.value) for (const t of techTags(s)) allTechs.add(t)
   return [...allTechs].sort().map(t => ({
     id: t, label: t,
     disabled: !baseSitesForTech.value.some(s => techTags(s).includes(t)),
@@ -148,20 +142,19 @@ const filterTechOptions = computed((): FilterOption[] => {
 })
 const filterAgencyOptions = computed((): FilterOption[] => {
   const allAgencies = new Set<string>()
-  for (const s of sites.value ?? []) if (s.agency) allAgencies.add(s.agency)
+  for (const s of sites.value) if (s.agency) allAgencies.add(s.agency)
   return [...allAgencies].sort().map(a => ({
     id: a, label: a,
     disabled: !baseSitesForAgency.value.some(s => s.agency === a),
   }))
 })
 const filterPmOptions = computed((): FilterOption[] =>
-  (pms.value ?? []).map(pm => ({
+  pms.value.map(pm => ({
     id: pm.id, label: `${pm.first_name} ${pm.last_name}`,
     disabled: !baseSitesForPm.value.some(s => s.project_manager_id === pm.id),
-  }))
+  })),
 )
 
-// Vue filtrée
 const filteredSitesByGroup = computed(() => {
   const result = new Map<string, Site[]>()
   for (const [groupId, list] of sitesByGroup.value) {
@@ -173,13 +166,13 @@ const filteredSitesByGroup = computed(() => {
   return result
 })
 const filteredGroups = computed(() =>
-  (groups.value ?? []).filter(g => {
+  groups.value.filter(g => {
     if (filterGroups.value.length && !filterGroups.value.includes(g.id)) return false
     if (filterTechs.value.length || filterAgencies.value.length || filterPms.value.length) {
       return (filteredSitesByGroup.value.get(g.id) ?? []).length > 0
     }
     return true
-  })
+  }),
 )
 const filteredUngrouped = computed(() => {
   if (filterGroups.value.length) return []
@@ -192,7 +185,7 @@ const filteredUngrouped = computed(() => {
 const activeFilterChips = computed((): ActiveFilterChip[] => {
   const chips: ActiveFilterChip[] = []
   for (const id of filterGroups.value) {
-    const g = (groups.value ?? []).find(g => g.id === id)
+    const g = groups.value.find(g => g.id === id)
     if (g) chips.push({ category: 'group', value: id, label: g.name, catLabel: 'Serveur' })
   }
   for (const t of filterTechs.value)
@@ -200,7 +193,7 @@ const activeFilterChips = computed((): ActiveFilterChip[] => {
   for (const a of filterAgencies.value)
     chips.push({ category: 'agency', value: a, label: a, catLabel: 'Agence' })
   for (const id of filterPms.value) {
-    const pm = (pms.value ?? []).find(p => p.id === id)
+    const pm = pms.value.find(p => p.id === id)
     if (pm) chips.push({ category: 'pm', value: id, label: `${pm.first_name} ${pm.last_name}`, catLabel: 'Cheffe' })
   }
   return chips
@@ -225,9 +218,9 @@ const {
   deleteTarget: deleteGroup, deleteLoading: deleteGroupLoading, deleteError: deleteGroupError,
   openDeleteConfirm: openDeleteGroup, closeDeleteConfirm: closeDeleteGroup, confirmDelete: confirmDeleteGroup,
   editTarget: editGroup, editForm: editGroupForm, editLoading: editGroupLoading, editError: editGroupError,
-  openEditModal: openEditGroup, closeEditModal: closeEditGroup, saveEdit: saveGroupEdit,
+  openEditModal: openEditGroupRaw, closeEditModal: closeEditGroup, saveEdit: saveGroupEdit,
   isAddOpen: isAddGroupOpen, addForm: addGroupForm, addLoading: addGroupLoading, addError: addGroupError,
-  openAddModal: openAddGroup, closeAddModal: closeAddGroup, confirmAdd: confirmAddGroup,
+  openAddModal: openAddGroupRaw, closeAddModal: closeAddGroup, confirmAdd: confirmAddGroup,
 } = useGroupCrud(groups, sites)
 
 // ── CRUD sites ────────────────────────────────────────────────────
@@ -235,10 +228,17 @@ const {
   deleteTarget: deleteSite, deleteLoading: deleteSiteLoading, deleteError: deleteSiteError,
   openDeleteConfirm: openDeleteSite, closeDeleteConfirm: closeDeleteSite, confirmDelete: confirmDeleteSite,
   editTarget: editSite, editForm: editSiteForm, editLoading: editSiteLoading, editError: editSiteError,
-  openEditModal: openEditSite, closeEditModal: closeEditSite, saveEdit: saveSiteEdit,
+  openEditModal: openEditSiteRaw, closeEditModal: closeEditSite, saveEdit: saveSiteEdit,
   isAddOpen: isAddSiteOpen, addForm: addSiteForm, addLoading: addSiteLoading, addError: addSiteError,
-  openAddModal: openAddSite, closeAddModal: closeAddSite, confirmAdd: confirmAddSite,
+  openAddModal: openAddSiteRaw, closeAddModal: closeAddSite, confirmAdd: confirmAddSite,
 } = useSiteCrud(sites)
+
+// ── Wrappers : load dnsProviders à la 1re ouverture d'une modale site ─
+function openAddGroup(): void { openAddGroupRaw() }
+function openEditGroup(g: Parameters<typeof openEditGroupRaw>[0]): void { openEditGroupRaw(g) }
+
+function openAddSite(): void { void refs.loadDnsProviders(); openAddSiteRaw() }
+function openEditSite(s: Parameters<typeof openEditSiteRaw>[0]): void { void refs.loadDnsProviders(); openEditSiteRaw(s) }
 </script>
 
 <template>
@@ -248,7 +248,6 @@ const {
 
     <!-- ── Toolbar ──────────────────────────────────────────────── -->
     <div class="toolbar">
-      <!-- Barre de recherche -->
       <div class="search-bar-wrap">
         <svg class="search-bar-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14"
              viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -266,7 +265,6 @@ const {
         <button v-if="isActive" class="search-bar-clear" title="Effacer" @click="clear">&#10005;</button>
         <kbd v-else class="search-kbd">Ctrl K</kbd>
       </div>
-      <!-- Actions -->
       <div class="toolbar-actions">
         <button class="btn icon-only" :disabled="reloading" title="Recharger les données" @click="reloadAll">
           <svg :class="{ spinning: reloading }" xmlns="http://www.w3.org/2000/svg" width="14" height="14"
@@ -340,16 +338,14 @@ const {
       <!-- ── Vue normale : blocs serveurs ───────────────────────── -->
       <template v-else>
         <div class="servers-list">
-
-          <!-- Blocs serveurs -->
           <AppServerBlock
             v-for="group in filteredGroups"
             :key="group.id"
             :group="group"
             :sites="filteredSitesByGroup.get(group.id) ?? []"
             :pm-by-id="pmById"
-            :hosters="fetchedHosters ?? []"
-            :web-servers="fetchedWebServers ?? []"
+            :hosters="fetchedHosters"
+            :web-servers="fetchedWebServers"
             :expand-all-tick="expandAllTick"
             :collapse-all-tick="collapseAllTick"
             @edit-group="openEditGroup"
@@ -358,14 +354,13 @@ const {
             @delete-site="openDeleteSite"
           />
 
-          <!-- Sites sans serveur -->
           <AppServerBlock
             v-if="filteredUngrouped.length"
             :group="{ id: '__none__', name: 'Sans serveur', hoster: null, ip_public: null, ip_local: null, web_server: null }"
             :sites="filteredUngrouped"
             :pm-by-id="pmById"
-            :hosters="fetchedHosters ?? []"
-            :web-servers="fetchedWebServers ?? []"
+            :hosters="fetchedHosters"
+            :web-servers="fetchedWebServers"
             :name-is-muted="true"
             :expand-all-tick="expandAllTick"
             :collapse-all-tick="collapseAllTick"
@@ -376,12 +371,11 @@ const {
           <div v-if="!filteredGroups.length && !filteredUngrouped.length" class="empty-state">
             Aucun site enregistré.
           </div>
-
         </div>
       </template>
     </template>
 
-    <!-- ── Modale confirmation suppression SERVEUR ───────────────── -->
+    <!-- ── Confirmations suppression (légères, inline) ──────────── -->
     <Teleport to="body">
       <Transition name="modal">
         <AppConfirmModal
@@ -400,7 +394,6 @@ const {
       </Transition>
     </Teleport>
 
-    <!-- ── Modale confirmation suppression SITE ─────────────────── -->
     <Teleport to="body">
       <Transition name="modal">
         <AppConfirmModal
@@ -418,271 +411,84 @@ const {
       </Transition>
     </Teleport>
 
-    <!-- ── Modale édition SERVEUR ────────────────────────────────── -->
+    <!-- ── Modales lourdes : code-splittées via defineAsyncComponent ── -->
     <Teleport to="body">
       <Transition name="modal">
-        <div v-if="editGroup" class="modal-overlay" @click.self="closeEditGroup">
-          <div class="modal-card">
-            <h3 class="modal-title">Modifier le serveur</h3>
-            <p v-if="editGroupError" class="modal-error">{{ editGroupError }}</p>
-            <form @submit.prevent="saveGroupEdit">
-              <div class="field">
-                <label for="eg-name">Nom *</label>
-                <input id="eg-name" v-model="editGroupForm.name" type="text" placeholder="Nom du serveur" required>
-              </div>
-              <div class="field">
-                <label>Hébergeur</label>
-                <AppIconSelect v-model="editGroupForm.hoster" :options="(fetchedHosters ?? []).map(h => ({ value: h.name, label: h.name, slug: h.simpleicons_slug }))" />
-              </div>
-              <div class="field">
-                <label for="eg-ip-public">IP publique</label>
-                <input id="eg-ip-public" v-model="editGroupForm.ip_public" type="text" placeholder="1.2.3.4">
-              </div>
-              <div class="field">
-                <label for="eg-ip-local">IP locale</label>
-                <input id="eg-ip-local" v-model="editGroupForm.ip_local" type="text" placeholder="192.168.x.x">
-              </div>
-              <div class="field">
-                <label>Serveur web</label>
-                <AppIconSelect v-model="editGroupForm.web_server" :options="(fetchedWebServers ?? []).map(ws => ({ value: ws.name, label: ws.name, slug: ws.simpleicons_slug }))" />
-              </div>
-              <div class="modal-btns">
-                <button type="button" class="btn" :disabled="editGroupLoading" @click="closeEditGroup">
-                  Annuler
-                </button>
-                <button type="submit" class="btn primary" :disabled="editGroupLoading">
-                  <span v-if="editGroupLoading" class="spinner" />
-                  {{ editGroupLoading ? 'Enregistrement…' : 'Enregistrer' }}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <AppGroupFormModal
+          v-if="editGroup"
+          title="Modifier le serveur"
+          :form="editGroupForm"
+          :error="editGroupError"
+          :loading="editGroupLoading"
+          :hosters="fetchedHosters"
+          :web-servers="fetchedWebServers"
+          submit-label="Enregistrer"
+          submit-loading-label="Enregistrement…"
+          @close="closeEditGroup"
+          @submit="saveGroupEdit"
+        />
       </Transition>
     </Teleport>
 
-    <!-- ── Modale ajout SERVEUR ─────────────────────────────────── -->
     <Teleport to="body">
       <Transition name="modal">
-        <div v-if="isAddGroupOpen" class="modal-overlay" @click.self="closeAddGroup">
-          <div class="modal-card">
-            <h3 class="modal-title">Ajouter un serveur</h3>
-            <p v-if="addGroupError" class="modal-error">{{ addGroupError }}</p>
-            <form @submit.prevent="confirmAddGroup">
-              <div class="field">
-                <label for="ag-name">Nom *</label>
-                <input id="ag-name" v-model="addGroupForm.name" type="text" placeholder="Nom du serveur" required>
-              </div>
-              <div class="field">
-                <label>Hébergeur</label>
-                <AppIconSelect v-model="addGroupForm.hoster" :options="(fetchedHosters ?? []).map(h => ({ value: h.name, label: h.name, slug: h.simpleicons_slug }))" />
-              </div>
-              <div class="field">
-                <label for="ag-ip-public">IP publique</label>
-                <input id="ag-ip-public" v-model="addGroupForm.ip_public" type="text" placeholder="1.2.3.4">
-              </div>
-              <div class="field">
-                <label for="ag-ip-local">IP locale</label>
-                <input id="ag-ip-local" v-model="addGroupForm.ip_local" type="text" placeholder="192.168.x.x">
-              </div>
-              <div class="field">
-                <label>Serveur web</label>
-                <AppIconSelect v-model="addGroupForm.web_server" :options="(fetchedWebServers ?? []).map(ws => ({ value: ws.name, label: ws.name, slug: ws.simpleicons_slug }))" />
-              </div>
-              <div class="modal-btns">
-                <button type="button" class="btn" :disabled="addGroupLoading" @click="closeAddGroup">
-                  Annuler
-                </button>
-                <button type="submit" class="btn primary" :disabled="addGroupLoading">
-                  <span v-if="addGroupLoading" class="spinner" />
-                  {{ addGroupLoading ? 'Création…' : 'Créer' }}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <AppGroupFormModal
+          v-if="isAddGroupOpen"
+          title="Ajouter un serveur"
+          :form="addGroupForm"
+          :error="addGroupError"
+          :loading="addGroupLoading"
+          :hosters="fetchedHosters"
+          :web-servers="fetchedWebServers"
+          submit-label="Créer"
+          submit-loading-label="Création…"
+          @close="closeAddGroup"
+          @submit="confirmAddGroup"
+        />
       </Transition>
     </Teleport>
 
-    <!-- ── Modale ajout SITE ─────────────────────────────────────── -->
     <Teleport to="body">
       <Transition name="modal">
-        <div v-if="isAddSiteOpen" class="modal-overlay" @click.self="closeAddSite">
-          <div class="modal-card modal-card--scroll" style="max-width:520px">
-            <h3 class="modal-title">Ajouter un site</h3>
-            <form @submit.prevent="confirmAddSite">
-              <p v-if="addSiteError" class="modal-error">{{ addSiteError }}</p>
-              <div class="field">
-                <label for="as-name">Nom *</label>
-                <input id="as-name" v-model="addSiteForm.name" type="text" placeholder="Nom du site" required>
-              </div>
-              <div class="field">
-                <label for="as-url">URL</label>
-                <input id="as-url" v-model="addSiteForm.url" type="text" placeholder="https://exemple.fr">
-              </div>
-              <div class="field">
-                <label for="as-bo-url">Back-office</label>
-                <input id="as-bo-url" v-model="addSiteForm.bo_url" type="text" placeholder="https://exemple.fr/admin">
-              </div>
-              <div class="field">
-                <label for="as-gitlab">GitLab</label>
-                <input id="as-gitlab" v-model="addSiteForm.gitlab_url" type="text" placeholder="https://gitlab.com/…">
-              </div>
-              <div class="field">
-                <label for="as-agency">Agence</label>
-                <input id="as-agency" v-model="addSiteForm.agency" type="text" placeholder="Eclolink…">
-              </div>
-              <div class="field">
-                <label>Serveur</label>
-                <AppSelect
-                  v-model="addSiteForm.group_id"
-                  :options="(groups ?? []).map(g => ({ value: g.id, label: g.name }))"
-                  placeholder="— Aucun —"
-                />
-              </div>
-              <div class="field">
-                <label>Cheffe de projet</label>
-                <AppSelect
-                  v-model="addSiteForm.project_manager_id"
-                  :options="(pms ?? []).map(pm => ({ value: pm.id, label: `${pm.first_name} ${pm.last_name}` }))"
-                  placeholder="— Aucune —"
-                />
-              </div>
-              <div class="field">
-                <label>Client</label>
-                <AppSelect
-                  v-model="addSiteForm.client_id"
-                  :options="(clients ?? []).map(c => ({ value: c.id, label: c.name }))"
-                  placeholder="— Aucun —"
-                />
-              </div>
-              <div class="field">
-                <label for="as-php">Version PHP</label>
-                <input id="as-php" v-model="addSiteForm.php_version" type="text" placeholder="8.2">
-              </div>
-              <div class="field">
-                <label>Zone DNS</label>
-                <AppIconSelect v-model="addSiteForm.dns_zone" :options="(fetchedDnsProviders ?? []).map(d => ({ value: d.name, label: d.name, slug: d.simpleicons_slug }))" />
-              </div>
-              <div class="field">
-                <label>Registrar</label>
-                <AppIconSelect v-model="addSiteForm.registrar" :options="(fetchedHosters ?? []).map(h => ({ value: h.name, label: h.name, slug: h.simpleicons_slug }))" />
-              </div>
-              <div class="field">
-                <label>Mise en ligne</label>
-                <AppDateInput v-model="addSiteForm.go_live_date" />
-              </div>
-              <div class="field">
-                <label>Technologies</label>
-                <AppTechSelect v-model="addSiteForm.technologies" :techs="fetchedTechs ?? []" />
-              </div>
-              <div class="field">
-                <label for="as-notes">Notes</label>
-                <textarea id="as-notes" v-model="addSiteForm.notes" class="field-input" placeholder="Informations complémentaires…" />
-              </div>
-              <div class="modal-btns">
-                <button type="button" class="btn" :disabled="addSiteLoading" @click="closeAddSite">
-                  Annuler
-                </button>
-                <button type="submit" class="btn primary" :disabled="addSiteLoading">
-                  <span v-if="addSiteLoading" class="spinner" />
-                  {{ addSiteLoading ? 'Création…' : 'Créer' }}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <AppSiteFormModal
+          v-if="isAddSiteOpen"
+          title="Ajouter un site"
+          :form="addSiteForm"
+          :error="addSiteError"
+          :loading="addSiteLoading"
+          :groups="groups"
+          :project-managers="pms"
+          :clients="clients"
+          :technologies="fetchedTechs"
+          :hosters="fetchedHosters"
+          :dns-providers="fetchedDnsProviders"
+          submit-label="Créer"
+          submit-loading-label="Création…"
+          @close="closeAddSite"
+          @submit="confirmAddSite"
+        />
       </Transition>
     </Teleport>
 
-    <!-- ── Modale édition SITE ───────────────────────────────────── -->
     <Teleport to="body">
       <Transition name="modal">
-        <div v-if="editSite" class="modal-overlay" @click.self="closeEditSite">
-          <div class="modal-card modal-card--scroll" style="max-width:520px">
-            <h3 class="modal-title">Modifier le site</h3>
-            <form @submit.prevent="saveSiteEdit">
-              <p v-if="editSiteError" class="modal-error">{{ editSiteError }}</p>
-              <div class="field">
-                <label for="es-name">Nom *</label>
-                <input id="es-name" v-model="editSiteForm.name" type="text" placeholder="Nom du site" required>
-              </div>
-              <div class="field">
-                <label for="es-url">URL</label>
-                <input id="es-url" v-model="editSiteForm.url" type="text" placeholder="https://exemple.fr">
-              </div>
-              <div class="field">
-                <label for="es-bo-url">Back-office</label>
-                <input id="es-bo-url" v-model="editSiteForm.bo_url" type="text" placeholder="https://exemple.fr/admin">
-              </div>
-              <div class="field">
-                <label for="es-gitlab">GitLab</label>
-                <input id="es-gitlab" v-model="editSiteForm.gitlab_url" type="text" placeholder="https://gitlab.com/…">
-              </div>
-              <div class="field">
-                <label for="es-agency">Agence</label>
-                <input id="es-agency" v-model="editSiteForm.agency" type="text" placeholder="Eclolink…">
-              </div>
-              <div class="field">
-                <label>Serveur</label>
-                <AppSelect
-                  v-model="editSiteForm.group_id"
-                  :options="(groups ?? []).map(g => ({ value: g.id, label: g.name }))"
-                  placeholder="— Aucun —"
-                />
-              </div>
-              <div class="field">
-                <label>Cheffe de projet</label>
-                <AppSelect
-                  v-model="editSiteForm.project_manager_id"
-                  :options="(pms ?? []).map(pm => ({ value: pm.id, label: `${pm.first_name} ${pm.last_name}` }))"
-                  placeholder="— Aucune —"
-                />
-              </div>
-              <div class="field">
-                <label>Client</label>
-                <AppSelect
-                  v-model="editSiteForm.client_id"
-                  :options="(clients ?? []).map(c => ({ value: c.id, label: c.name }))"
-                  placeholder="— Aucun —"
-                />
-              </div>
-              <div class="field">
-                <label for="es-php">Version PHP</label>
-                <input id="es-php" v-model="editSiteForm.php_version" type="text" placeholder="8.2">
-              </div>
-              <div class="field">
-                <label>Zone DNS</label>
-                <AppIconSelect v-model="editSiteForm.dns_zone" :options="(fetchedDnsProviders ?? []).map(d => ({ value: d.name, label: d.name, slug: d.simpleicons_slug }))" />
-              </div>
-              <div class="field">
-                <label>Registrar</label>
-                <AppIconSelect v-model="editSiteForm.registrar" :options="(fetchedHosters ?? []).map(h => ({ value: h.name, label: h.name, slug: h.simpleicons_slug }))" />
-              </div>
-              <div class="field">
-                <label>Mise en ligne</label>
-                <AppDateInput v-model="editSiteForm.go_live_date" />
-              </div>
-              <div class="field">
-                <label>Technologies</label>
-                <AppTechSelect v-model="editSiteForm.technologies" :techs="fetchedTechs ?? []" />
-              </div>
-              <div class="field">
-                <label for="es-notes">Notes</label>
-                <textarea id="es-notes" v-model="editSiteForm.notes" class="field-input" placeholder="Informations complémentaires…" />
-              </div>
-              <div class="modal-btns">
-                <button type="button" class="btn" :disabled="editSiteLoading" @click="closeEditSite">
-                  Annuler
-                </button>
-                <button type="submit" class="btn primary" :disabled="editSiteLoading">
-                  <span v-if="editSiteLoading" class="spinner" />
-                  {{ editSiteLoading ? 'Enregistrement…' : 'Enregistrer' }}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <AppSiteFormModal
+          v-if="editSite"
+          title="Modifier le site"
+          :form="editSiteForm"
+          :error="editSiteError"
+          :loading="editSiteLoading"
+          :groups="groups"
+          :project-managers="pms"
+          :clients="clients"
+          :technologies="fetchedTechs"
+          :hosters="fetchedHosters"
+          :dns-providers="fetchedDnsProviders"
+          submit-label="Enregistrer"
+          submit-loading-label="Enregistrement…"
+          @close="closeEditSite"
+          @submit="saveSiteEdit"
+        />
       </Transition>
     </Teleport>
 

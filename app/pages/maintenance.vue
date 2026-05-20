@@ -4,33 +4,42 @@ import type { FilterOption } from '~/components/AppFilterSelect.vue'
 
 definePageMeta({ middleware: 'auth' })
 
+// ── Data fetching via cache partagé ───────────────────────────
+const refs = useReferenceData()
+await Promise.all([
+  refs.loadMaintenances(),
+  refs.loadSites(),
+  refs.loadDevelopers(),
+  refs.loadMaintenanceTypes(),
+  refs.loadClients(),
+])
 
-// ── Data fetching ─────────────────────────────────────────────
-const { data: maintenances,     refresh: refreshMaintenances } = await useFetch<Maintenance[]>('/api/maintenances')
-const { data: sites }                                          = await useFetch<Site[]>('/api/sites')
-const { data: developers }                                     = await useFetch<Developer[]>('/api/developers')
-const { data: maintenanceTypes }                               = await useFetch<MaintenanceType[]>('/api/maintenance-types')
-const { data: clients }                                        = await useFetch<Client[]>('/api/clients')
+const maintenances        = refs.maintenances
+const sites               = refs.sites
+const developers          = refs.developers
+const maintenanceTypes    = refs.maintenanceTypes
+const clients             = refs.clients
+const refreshMaintenances = refs.refreshMaintenances
 
 // ── Lookup maps ───────────────────────────────────────────────
 const siteById = computed((): Map<string, Site> => {
   const m = new Map<string, Site>()
-  for (const s of sites.value ?? []) m.set(s.id, s)
+  for (const s of sites.value) m.set(s.id, s)
   return m
 })
 const devById = computed((): Map<string, Developer> => {
   const m = new Map<string, Developer>()
-  for (const d of developers.value ?? []) m.set(d.id, d)
+  for (const d of developers.value) m.set(d.id, d)
   return m
 })
 const typeById = computed((): Map<string, MaintenanceType> => {
   const m = new Map<string, MaintenanceType>()
-  for (const t of maintenanceTypes.value ?? []) m.set(t.id, t)
+  for (const t of maintenanceTypes.value) m.set(t.id, t)
   return m
 })
 const clientById = computed((): Map<string, Client> => {
   const m = new Map<string, Client>()
-  for (const c of clients.value ?? []) m.set(c.id, c)
+  for (const c of clients.value) m.set(c.id, c)
   return m
 })
 
@@ -68,40 +77,6 @@ function formatDate(iso: string): string {
   return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : iso
 }
 
-// ── Quota mensuel par client ──────────────────────────────────
-interface ClientQuota {
-  client  : Client
-  used    : number  // minutes consommées ce mois-ci
-  quota   : number  // quota en minutes (0 = illimité)
-  pct     : number  // pourcentage (0-100+)
-}
-
-const currentMonthQuotas = computed((): ClientQuota[] => {
-  const now   = new Date()
-  const year  = now.getFullYear()
-  const month = now.getMonth() + 1
-  const prefix = `${year}-${String(month).padStart(2, '0')}`
-
-  // Somme des minutes par client pour le mois courant
-  const usedByClient = new Map<string, number>()
-  for (const m of maintenances.value ?? []) {
-    if (!m.client_id || !m.duration_minutes) continue
-    if (!m.intervention_date.startsWith(prefix)) continue
-    usedByClient.set(m.client_id, (usedByClient.get(m.client_id) ?? 0) + m.duration_minutes)
-  }
-
-  // Ne lister que les clients avec quota défini OU avec du temps consommé ce mois-ci
-  return (clients.value ?? [])
-    .filter(c => c.monthly_quota_minutes != null || (usedByClient.get(c.id) ?? 0) > 0)
-    .map(c => {
-      const used  = usedByClient.get(c.id) ?? 0
-      const quota = c.monthly_quota_minutes ?? 0
-      const pct   = quota > 0 ? Math.round((used / quota) * 100) : 0
-      return { client: c, used, quota, pct }
-    })
-    .sort((a, b) => a.client.name.localeCompare(b.client.name))
-})
-
 // ── Filtres ───────────────────────────────────────────────────
 const query           = ref('')
 const filterSites     = ref<string[]>([])
@@ -111,21 +86,21 @@ const filterClients   = ref<string[]>([])
 const onlyIncidents   = ref(false)
 
 const siteOptions = computed((): FilterOption[] =>
-  (sites.value ?? []).map(s => ({ id: s.id, label: s.name, disabled: false })),
+  sites.value.map(s => ({ id: s.id, label: s.name, disabled: false })),
 )
 const devOptions = computed((): FilterOption[] =>
-  (developers.value ?? []).map(d => ({ id: d.id, label: `${d.first_name} ${d.last_name}`, disabled: false })),
+  developers.value.map(d => ({ id: d.id, label: `${d.first_name} ${d.last_name}`, disabled: false })),
 )
 const typeOptions = computed((): FilterOption[] =>
-  (maintenanceTypes.value ?? []).map(t => ({ id: t.id, label: t.label, disabled: false })),
+  maintenanceTypes.value.map(t => ({ id: t.id, label: t.label, disabled: false })),
 )
 const clientOptions = computed((): FilterOption[] =>
-  (clients.value ?? []).map(c => ({ id: c.id, label: c.name, disabled: false })),
+  clients.value.map(c => ({ id: c.id, label: c.name, disabled: false })),
 )
 
 const filtered = computed((): Maintenance[] => {
   const q = query.value.trim().toLowerCase()
-  return (maintenances.value ?? []).filter(m => {
+  return maintenances.value.filter(m => {
     if (filterSites.value.length && !filterSites.value.includes(m.site_id)) return false
     if (filterDevs.value.length && (!m.developer_id || !filterDevs.value.includes(m.developer_id))) return false
     if (filterClients.value.length && (!m.client_id || !filterClients.value.includes(m.client_id))) return false
@@ -404,7 +379,7 @@ const hasActiveFilters = computed(() =>
                 <label>Site *</label>
                 <AppSelect
                   v-model="form.site_id"
-                  :options="(sites ?? []).map(s => ({ value: s.id, label: s.name }))"
+                  :options="sites.map(s => ({ value: s.id, label: s.name }))"
                   placeholder="— Sélectionner —"
                   searchable
                 />
@@ -413,7 +388,7 @@ const hasActiveFilters = computed(() =>
                 <label>Client</label>
                 <AppSelect
                   v-model="form.client_id"
-                  :options="(clients ?? []).map(c => ({ value: c.id, label: c.name }))"
+                  :options="clients.map(c => ({ value: c.id, label: c.name }))"
                   placeholder="— Aucun —"
                   searchable
                 />
@@ -430,7 +405,7 @@ const hasActiveFilters = computed(() =>
                 <label>Développeur</label>
                 <AppSelect
                   v-model="form.developer_id"
-                  :options="(developers ?? []).map(d => ({ value: d.id, label: d.job_title ? `${d.first_name} ${d.last_name} — ${d.job_title}` : `${d.first_name} ${d.last_name}` }))"
+                  :options="developers.map(d => ({ value: d.id, label: d.job_title ? `${d.first_name} ${d.last_name} — ${d.job_title}` : `${d.first_name} ${d.last_name}` }))"
                   placeholder="— Aucun —"
                 />
               </div>
@@ -438,7 +413,7 @@ const hasActiveFilters = computed(() =>
                 <label>Type(s) d'intervention</label>
                 <AppMultiSelect
                   v-model="form.types"
-                  :options="(maintenanceTypes ?? []).map(t => ({ id: t.id, label: t.label }))"
+                  :options="maintenanceTypes.map(t => ({ id: t.id, label: t.label }))"
                   placeholder="— Aucun —"
                 />
               </div>
@@ -484,3 +459,6 @@ const hasActiveFilters = computed(() =>
     </Teleport>
   </div>
 </template>
+
+<style src="~/assets/css/maintenance.css"></style>
+<style src="~/assets/css/admin.css"></style>

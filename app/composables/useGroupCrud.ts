@@ -1,7 +1,7 @@
 import type { Ref } from 'vue'
 import type { Group, Site } from '~/server/utils/types'
 
-interface GroupForm {
+export interface GroupForm {
   name      : string
   hoster    : string
   ip_local  : string
@@ -12,8 +12,8 @@ interface GroupForm {
 const EMPTY: GroupForm = { name: '', hoster: '', ip_local: '', ip_public: '', web_server: '' }
 
 export function useGroupCrud(
-  groups: Ref<Group[] | null>,
-  sites : Ref<Site[]  | null>,
+  groups: Ref<Group[]>,
+  sites : Ref<Site[]>,
 ) {
   const { add: toast } = useToast()
 

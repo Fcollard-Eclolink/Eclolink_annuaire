@@ -43,7 +43,7 @@ function formBody(f: SiteEditForm): Record<string, string | null> {
   }
 }
 
-export function useSiteCrud(sites: Ref<Site[] | null>) {
+export function useSiteCrud(sites: Ref<Site[]>) {
   const { add: toast } = useToast()
 
   // ── Suppression ───────────────────────────────────────────────

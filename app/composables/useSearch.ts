@@ -8,8 +8,8 @@ function escapeHtml(s: string): string {
 }
 
 export function useSearch(
-  sites : Ref<Site[]  | null>,
-  groups: Ref<Group[] | null>,
+  sites : Ref<Site[]>,
+  groups: Ref<Group[]>,
 ) {
   const query    = ref('')
   const inputRef = ref<HTMLInputElement | null>(null)

@@ -1,8 +1,8 @@
 import type { Site } from '~/server/utils/types'
 import type { Technology } from '~/server/utils/types'
 
-/** State partagé — peuplé par index.vue au chargement. */
-const refTechs = () => useState<Technology[]>('ref:techs', () => [])
+/** State partagé — peuplé par useReferenceData. */
+const refTechs = () => useState<Technology[]>('ref:technologies', () => [])
 
 // Correspondances des anciens IDs statiques vers les labels actuels
 const LEGACY_IDS: Record<string, string> = {
