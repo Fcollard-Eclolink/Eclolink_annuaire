@@ -2,7 +2,7 @@
 .maintenance-wrap {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 1.5rem;
+  padding: var(--sp-24);
 }
 
 /* ── Filtres ─────────────────────────────────────────────────── */
@@ -10,72 +10,74 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  margin: 0 0 1rem;
+  gap: var(--sp-8);
+  margin: 0 0 var(--sp-16);
 }
 
 .maintenance-incident-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
+  gap: var(--sp-8);
+  font-size: var(--fs-14);
   color: var(--text);
   cursor: pointer;
   user-select: none;
-}
-.maintenance-incident-toggle input[type="checkbox"] {
-  cursor: pointer;
-  accent-color: var(--text);
+
+  input[type="checkbox"] {
+    cursor: pointer;
+    accent-color: var(--text);
+  }
 }
 
 /* ── Tableau ─────────────────────────────────────────────────── */
-.maintenance-table .maintenance-date {
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-  color: var(--text-muted);
+.maintenance-table {
+  .maintenance-date {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+  }
 }
 
 .maintenance-type-pills {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: var(--sp-4);
 }
+
 .maintenance-type-pill {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
-  font-size: 11px;
+  padding: var(--sp-4) var(--sp-8);
+  font-size: var(--fs-12);
   line-height: 1.4;
   background: var(--hover);
-  border: 0.5px solid var(--border);
-  border-radius: 10px;
+  border: var(--bw) solid var(--border);
+  border-radius: var(--sp-12);
   color: var(--text);
   white-space: nowrap;
 }
 
-.maintenance-incident-cell {
-  text-align: center;
-}
+.maintenance-incident-cell { text-align: center; }
+
 .maintenance-incident-dot {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: var(--sp-20);
+  height: var(--sp-20);
   border-radius: 50%;
   background: #dc2626;
   color: #fff;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semi);
   line-height: 1;
 }
 
 .maintenance-links {
   display: inline-flex;
-  gap: 4px;
-}
-.maintenance-links .icon-btn {
-  text-decoration: none;
+  gap: var(--sp-4);
+
+  .icon-btn { text-decoration: none; }
 }
 
 .maintenance-notes {
@@ -84,58 +86,58 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--fs-12);
 }
 
 .maintenance-duration {
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
-  font-size: 12px;
+  font-size: var(--fs-12);
   color: var(--text-muted);
 }
 
 /* ── Quotas mensuels ─────────────────────────────────────────── */
 .quota-section {
-  margin: 0 0 1.25rem;
-  padding: 1rem 1.25rem;
+  margin: 0 0 var(--sp-20);
+  padding: var(--sp-16) var(--sp-20);
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  border: var(--bw) solid var(--border);
+  border-radius: var(--sp-8);
 }
 
 .quota-title {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semi);
   text-transform: uppercase;
-  letter-spacing: .06em;
+  letter-spacing: 0.06em;
   color: var(--text-muted);
-  margin-bottom: .75rem;
+  margin-bottom: var(--sp-12);
 }
 
 .quota-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 12px;
+  gap: var(--sp-12);
 }
 
 .quota-card {
-  padding: .75rem 1rem;
+  padding: var(--sp-12) var(--sp-16);
   background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  border: var(--bw) solid var(--border);
+  border-radius: var(--sp-8);
 }
 
 .quota-card-header {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: .5rem;
+  gap: var(--sp-8);
+  margin-bottom: var(--sp-8);
 }
 
 .quota-client-name {
-  font-size: 13px;
-  font-weight: 500;
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
   color: var(--text);
   white-space: nowrap;
   overflow: hidden;
@@ -143,7 +145,7 @@
 }
 
 .quota-time {
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-variant-numeric: tabular-nums;
   color: var(--text-muted);
   white-space: nowrap;
@@ -151,28 +153,25 @@
 }
 
 .quota-bar-wrap {
-  height: 6px;
+  height: var(--sp-8);
   background: var(--border);
-  border-radius: 3px;
+  border-radius: var(--sp-4);
   overflow: hidden;
-  margin-bottom: .35rem;
+  margin-bottom: var(--sp-4);
 }
 
 .quota-bar-fill {
   height: 100%;
   background: #22c55e;
-  border-radius: 3px;
-  transition: width .3s;
+  border-radius: var(--sp-4);
+  transition: width 0.3s;
+
+  &.quota-bar-warn { background: #f59e0b; }
+  &.quota-bar-over { background: #ef4444; }
 }
-.quota-bar-fill.quota-bar-warn { background: #f59e0b; }
-.quota-bar-fill.quota-bar-over { background: #ef4444; }
 
 .quota-pct {
-  font-size: 11px;
+  font-size: var(--fs-12);
   color: var(--text-muted);
   text-align: right;
-}
-.quota-bar-over + .quota-pct,
-.quota-pct:has(+ *) {
-  /* fallback handled by template text */
 }

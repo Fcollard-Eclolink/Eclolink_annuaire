@@ -13,124 +13,139 @@ input[type="text"],
 input[type="email"],
 input[type="password"],
 input[type="number"] {
-  height: 36px;
-  padding: 0 12px;
-  border: 0.5px solid var(--border-input);
-  border-radius: 8px;
+  height: var(--sp-36);
+  padding: 0 var(--sp-12);
+  border: var(--bw) solid var(--border-input);
+  border-radius: var(--sp-8);
   background: var(--surface);
   color: var(--text);
-  font-size: 14px;
+  font-size: var(--fs-14);
   width: 100%;
   outline: none;
+
+  &:focus { border-color: #888; }
 }
-input:focus { border-color: #888; }
 
 select.field-input {
-  height: 36px;
-  padding: 0 12px;
-  border: 0.5px solid var(--border-input);
-  border-radius: 8px;
+  height: var(--sp-36);
+  padding: 0 var(--sp-12);
+  border: var(--bw) solid var(--border-input);
+  border-radius: var(--sp-8);
   background: var(--surface);
   color: var(--text);
-  font-size: 14px;
+  font-size: var(--fs-14);
   width: 100%;
   font-family: inherit;
   outline: none;
   cursor: pointer;
+
+  &:focus { border-color: #888; }
 }
-select.field-input:focus { border-color: #888; }
 
 textarea.field-input {
-  padding: 8px 12px;
-  border: 0.5px solid var(--border-input);
-  border-radius: 8px;
+  padding: var(--sp-8) var(--sp-12);
+  border: var(--bw) solid var(--border-input);
+  border-radius: var(--sp-8);
   background: var(--surface);
   color: var(--text);
-  font-size: 14px;
+  font-size: var(--fs-14);
   width: 100%;
   font-family: inherit;
   resize: vertical;
   min-height: 72px;
   outline: none;
   line-height: 1.5;
+
+  &:focus { border-color: #888; }
 }
-textarea.field-input:focus { border-color: #888; }
 
 /* ── Boutons ──────────────────────────────────────────────────── */
 .btn {
-  height: 36px;
-  padding: 0 14px;
-  border: 0.5px solid var(--border-input);
-  border-radius: 8px;
+  height: var(--sp-36);
+  padding: 0 var(--sp-16);
+  border: var(--bw) solid var(--border-input);
+  border-radius: var(--sp-8);
   background: transparent;
   color: var(--text);
   cursor: pointer;
-  font-size: 13px;
+  font-size: var(--fs-14);
   white-space: nowrap;
   font-family: inherit;
-}
-.btn:hover    { background: var(--hover); }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.btn.primary {
-  background: var(--btn-primary-bg);
-  color: var(--btn-primary-color);
-  border-color: var(--btn-primary-bg);
+  &:hover    { background: var(--hover); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  &.primary {
+    background: var(--btn-primary-bg);
+    color: var(--btn-primary-color);
+    border-color: var(--btn-primary-bg);
+
+    &:hover { opacity: 0.85; }
+  }
 }
-.btn.primary:hover { opacity: 0.85; }
 
 .btn-danger {
   background: var(--del-hover-color);
   color: #fff;
   border-color: var(--del-hover-color);
+
+  &:hover    { opacity: 0.85; background: var(--del-hover-color); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
 }
-.btn-danger:hover    { opacity: 0.85; background: var(--del-hover-color); }
-.btn-danger:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* Bouton icône générique */
 .icon-btn {
-  width: 28px;
-  height: 28px;
-  border: 0.5px solid var(--border-input);
-  border-radius: 6px;
+  width: var(--sp-28);
+  height: var(--sp-28);
+  border: var(--bw) solid var(--border-input);
+  border-radius: var(--sp-8);
   background: transparent;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: var(--fs-14);
   color: var(--text-muted);
   font-family: inherit;
   flex-shrink: 0;
-}
-.icon-btn:hover  { background: var(--hover); color: var(--text); }
-.icon-btn.active { background: var(--hover); color: var(--text); }
-.icon-btn.del:hover {
-  background: var(--del-hover-bg);
-  color: var(--del-hover-color);
-  border-color: var(--del-hover-border);
+
+  &:hover  { background: var(--hover); color: var(--text); }
+  &.active { background: var(--hover); color: var(--text); }
+
+  &.del:hover {
+    background: var(--del-hover-bg);
+    color: var(--del-hover-color);
+    border-color: var(--del-hover-border);
+  }
 }
 
 /* ── Champ de formulaire ──────────────────────────────────────── */
 .field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 1rem;
+  gap: var(--sp-8);
+  margin-bottom: var(--sp-16);
+
+  label {
+    font-size: var(--fs-14);
+    font-weight: var(--fw-medium);
+    color: var(--text);
+  }
 }
-.field label { font-size: 13px; font-weight: 500; color: var(--text); }
 
 /* ── Spinner ──────────────────────────────────────────────────── */
 .spinner {
   display: inline-block;
-  width: 14px;
-  height: 14px;
+  width: var(--sp-16);
+  height: var(--sp-16);
   border: 2px solid var(--btn-primary-color);
   border-top-color: transparent;
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
-  margin-right: 8px;
+  margin-right: var(--sp-8);
   vertical-align: middle;
 }
+
 .spinner-dark { border-color: #fff; border-top-color: transparent; }
+
 @keyframes spin { to { transform: rotate(360deg); } }

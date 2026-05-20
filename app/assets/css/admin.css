@@ -2,22 +2,21 @@
 .admin-wrap {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 1.5rem;
+  padding: var(--sp-24);
 }
-
 
 /* ── Tabs ─────────────────────────────────────────────────────── */
 .admin-tabs {
   display: flex;
-  gap: 4px;
-  border-bottom: 0.5px solid var(--border);
-  margin-bottom: 1.5rem;
+  gap: var(--sp-4);
+  border-bottom: var(--bw) solid var(--border);
+  margin-bottom: var(--sp-24);
   overflow-x: auto;
 }
 
 .admin-tab {
-  padding: 8px 16px;
-  font-size: 13px;
+  padding: var(--sp-8) var(--sp-16);
+  font-size: var(--fs-14);
   font-family: inherit;
   color: var(--text-muted);
   background: none;
@@ -26,20 +25,22 @@
   margin-bottom: -0.5px;
   cursor: pointer;
   white-space: nowrap;
-  transition: color 0.12s, border-color 0.12s;
-}
-.admin-tab:hover { color: var(--text); }
-.admin-tab.active {
-  color: var(--text);
-  font-weight: 500;
-  border-bottom-color: var(--text);
+  transition: color var(--t-fast), border-color var(--t-fast);
+
+  &:hover { color: var(--text); }
+
+  &.active {
+    color: var(--text);
+    font-weight: var(--fw-medium);
+    border-bottom-color: var(--text);
+  }
 }
 
 /* ── Table ────────────────────────────────────────────────────── */
 .admin-section {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--sp-16);
 }
 
 .admin-section-header {
@@ -49,40 +50,40 @@
 }
 
 .admin-section-title {
-  font-size: 15px;
-  font-weight: 500;
+  font-size: var(--fs-16);
+  font-weight: var(--fw-medium);
 }
 
 .admin-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
-}
+  font-size: var(--fs-14);
 
-.admin-table th {
-  text-align: left;
-  font-weight: 500;
-  padding: 8px 12px;
-  border-bottom: 0.5px solid var(--border);
-  color: var(--text-muted);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
+  th {
+    text-align: left;
+    font-weight: var(--fw-medium);
+    padding: var(--sp-8) var(--sp-12);
+    border-bottom: var(--bw) solid var(--border);
+    color: var(--text-muted);
+    font-size: var(--fs-12);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
 
-.admin-table td {
-  padding: 9px 12px;
-  border-bottom: 0.5px solid var(--border);
-  vertical-align: middle;
-}
+  td {
+    padding: var(--sp-8) var(--sp-12);
+    border-bottom: var(--bw) solid var(--border);
+    vertical-align: middle;
+  }
 
-.admin-table tr:last-child td { border-bottom: none; }
-.admin-table tr:hover td { background: var(--hover); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td      { background: var(--hover); }
+}
 
 .admin-table-wrap {
   background: var(--surface);
-  border: 0.5px solid var(--border);
-  border-radius: 10px;
+  border: var(--bw) solid var(--border);
+  border-radius: var(--sp-12);
   overflow: hidden;
 }
 
@@ -90,57 +91,58 @@
 .admin-logo-cell {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--sp-8);
 }
 
 .admin-logo-preview {
-  width: 18px;
-  height: 18px;
+  width: var(--sp-20);
+  height: var(--sp-20);
   object-fit: contain;
   flex-shrink: 0;
 }
 
 .admin-svg-preview {
-  width: 18px;
-  height: 18px;
+  width: var(--sp-20);
+  height: var(--sp-20);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+
+  svg { width: var(--sp-16); height: var(--sp-16); }
 }
-.admin-svg-preview svg { width: 16px; height: 16px; }
 
 /* ── Row actions ─────────────────────────────────────────────── */
 .admin-row-actions {
   display: flex;
-  gap: 4px;
+  gap: var(--sp-4);
   justify-content: flex-end;
 }
 
 /* ── Empty ───────────────────────────────────────────────────── */
 .admin-empty {
-  padding: 2rem;
+  padding: var(--sp-32);
   text-align: center;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: var(--fs-14);
 }
 
 /* ── Admin form fields ───────────────────────────────────────── */
 .admin-slug-preview {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 4px;
-}
+  gap: var(--sp-8);
+  margin-top: var(--sp-4);
 
-.admin-slug-preview img {
-  width: 16px;
-  height: 16px;
-  object-fit: contain;
+  img {
+    width: var(--sp-16);
+    height: var(--sp-16);
+    object-fit: contain;
+  }
 }
 
 .admin-slug-hint {
-  font-size: 11px;
+  font-size: var(--fs-12);
   color: var(--text-muted);
-  margin-top: 2px;
+  margin-top: var(--sp-4);
 }

@@ -3,25 +3,26 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 8px 10px 8px 36px;
-  border-bottom: 0.5px solid var(--border);
+  gap: var(--sp-12);
+  padding: var(--sp-8) var(--sp-12) var(--sp-8) var(--sp-36);
+  border-bottom: var(--bw) solid var(--border);
+
+  &:last-child { border-bottom: none; border-radius: 0 0 var(--sp-12) var(--sp-12); }
+  &:hover      { background: var(--hover); }
 }
-.site-row:last-child { border-bottom: none; border-radius: 0 0 10px 10px; }
-.site-row:hover { background: var(--hover); }
 
 .site-info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--sp-4);
   overflow: hidden;
   flex: 1;
   min-width: 0;
 }
 
 .site-name {
-  font-size: 13px;
-  font-weight: 500;
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -32,7 +33,7 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: var(--sp-4);
 }
 
 /* Bouton lien icône (URL, BO, GitLab) */
@@ -40,41 +41,43 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border: 0.5px solid var(--border);
-  border-radius: 6px;
+  width: var(--sp-24);
+  height: var(--sp-24);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--sp-8);
   color: var(--text-muted);
   text-decoration: none;
   flex-shrink: 0;
-  transition: background 0.12s, border-color 0.12s;
+  transition: background var(--t-fast), border-color var(--t-fast);
+
+  &:hover {
+    background: var(--hover);
+    color: var(--text);
+    border-color: var(--border-input);
+  }
+
+  &.site-link-btn--gitlab:hover { border-color: #FC6D26; }
 }
-.site-link-btn:hover {
-  background: var(--hover);
-  color: var(--text);
-  border-color: var(--border-input);
-}
-.site-link-btn--gitlab:hover { border-color: #FC6D26; }
 
 /* Séparateur entre boutons et tags */
 .site-meta-sep {
   display: inline-block;
   width: 1px;
-  height: 14px;
+  height: var(--sp-12);
   background: var(--border);
   flex-shrink: 0;
-  margin: 0 2px;
+  margin: 0 var(--sp-4);
 }
 
 /* Tag agence */
 .site-tag--agency {
-  font-size: 11px;
-  font-weight: 500;
+  font-size: var(--fs-12);
+  font-weight: var(--fw-medium);
   color: var(--text);
   background: var(--hover);
-  border: 0.5px solid var(--border-input);
-  border-radius: 20px;
-  padding: 1px 8px;
+  border: var(--bw) solid var(--border-input);
+  border-radius: var(--radius-full);
+  padding: var(--sp-4) var(--sp-8);
   flex-shrink: 0;
   white-space: nowrap;
 }
@@ -83,24 +86,26 @@
 .site-tech-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 11px;
+  gap: var(--sp-4);
+  font-size: var(--fs-12);
   color: var(--text-muted);
   background: var(--hover);
-  border: 0.5px solid var(--border);
-  border-radius: 20px;
-  padding: 1px 7px;
+  border: var(--bw) solid var(--border);
+  border-radius: var(--radius-full);
+  padding: var(--sp-4) var(--sp-8);
   flex-shrink: 0;
   white-space: nowrap;
+
+  img { display: block; flex-shrink: 0; }
+
+  .tech-svg-icon svg { width: var(--fs-12); height: var(--fs-12); }
 }
-.site-tech-badge img { display: block; flex-shrink: 0; }
-.site-tech-badge .tech-svg-icon svg { width: 11px; height: 11px; }
 
 /* Boutons d'action site */
 .site-actions {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--sp-4);
   flex-shrink: 0;
 }
 
@@ -108,19 +113,19 @@
 mark.search-hl {
   background: #fff3b0;
   color: inherit;
-  border-radius: 2px;
-  padding: 0 1px;
-  font-weight: 600;
+  border-radius: var(--sp-4);
+  padding: 0 var(--sp-4);
+  font-weight: var(--fw-semi);
 }
 
 /* Badge nom de serveur dans résultats recherche */
 .site-server-label {
-  font-size: 11px;
+  font-size: var(--fs-12);
   color: var(--text-muted);
   background: transparent;
-  border: 0.5px solid var(--border);
-  border-radius: 20px;
-  padding: 1px 8px;
+  border: var(--bw) solid var(--border);
+  border-radius: var(--radius-full);
+  padding: var(--sp-4) var(--sp-8);
   flex-shrink: 0;
   white-space: nowrap;
 }
