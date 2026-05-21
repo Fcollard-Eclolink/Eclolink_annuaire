@@ -7,6 +7,7 @@ services:
     volumes:
       - ./app:/app
       - /app/node_modules
+      - /app/.nuxt
     environment:
       - NODE_ENV=development
       - NUXT_HOST=0.0.0.0
