@@ -73,23 +73,15 @@ const sitesByGroup = computed(() => {
   return map
 })
 
-// ── Recherche ─────────────────────────────────────────────────────
-const { query, inputRef, isActive, results, serverLabel, focus, clear } =
-  useSearch(sites, groups)
+// ── Recherche (AppSearchBar gère Ctrl+K et le filtrage) ──────────
+const query    = ref('')
+const results  = ref<Site[]>([])
+const isActive = computed((): boolean => query.value.trim().length > 0)
 
-function onSearchKeydown(e: KeyboardEvent): void {
-  if (e.key === 'Escape') clear()
+function serverLabel(site: Site): string {
+  if (!site.group_id) return ''
+  return groups.value.find((g: Group): boolean => g.id === site.group_id)?.name ?? ''
 }
-
-function onGlobalKeydown(e: KeyboardEvent): void {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-    e.preventDefault()
-    focus()
-  }
-}
-
-onMounted(()  => document.addEventListener('keydown', onGlobalKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onGlobalKeydown))
 
 // ── Déplier / Replier tous ────────────────────────────────────────
 const expandAllTick    = ref(0)
@@ -253,23 +245,13 @@ function openEditSite(s: Parameters<typeof openEditSiteRaw>[0]): void { void ref
 
     <!-- ── Toolbar ──────────────────────────────────────────────── -->
     <div class="toolbar">
-      <div class="search-bar-wrap">
-        <svg class="search-bar-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14"
-             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-        </svg>
-        <input
-          ref="inputRef"
-          v-model="query"
-          type="text"
-          placeholder="Rechercher un site, URL, serveur... (Ctrl+K)"
-          autocomplete="off"
-          @keydown="onSearchKeydown"
-        >
-        <button v-if="isActive" class="search-bar-clear" title="Effacer" @click="clear">&#10005;</button>
-        <kbd v-else class="search-kbd">Ctrl K</kbd>
-      </div>
+      <AppSearchBar
+        v-model:query="query"
+        v-model:results="results"
+        :items="sites"
+        :fields="['name', 'url', 'bo_url', 'agency']"
+        placeholder="Rechercher un site, URL, serveur"
+      />
       <div class="toolbar-actions">
         <button class="btn icon-only" :disabled="reloading" title="Recharger les données" @click="reloadAll">
           <svg :class="{ spinning: reloading }" xmlns="http://www.w3.org/2000/svg" width="14" height="14"

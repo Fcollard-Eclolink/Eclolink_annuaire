@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Maintenance, Site, Developer, MaintenanceType, Client } from '~/server/utils/types'
 import type { FilterOption } from '~/components/AppFilterSelect.vue'
+import type { FilterDef } from '~/components/AppFilterBar.vue'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -77,55 +78,61 @@ function formatDate(iso: string): string {
   return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : iso
 }
 
-// ── Filtres ───────────────────────────────────────────────────
-const query           = ref('')
-const filterSites     = ref<string[]>([])
-const filterDevs      = ref<string[]>([])
-const filterTypes     = ref<string[]>([])
-const filterClients   = ref<string[]>([])
-const onlyIncidents   = ref(false)
+// ── Recherche → Filtres ──────────────────────────────────────
+// Pipeline : maintenances → searched (AppSearchBar) → afterFilters (AppFilterBar) → filtered (+ incident toggle)
+const searched      = ref<Maintenance[]>([])
+const afterFilters  = ref<Maintenance[]>([])
+const onlyIncidents = ref(false)
 
-const siteOptions = computed((): FilterOption[] =>
-  sites.value.map((s: Site): FilterOption => ({ id: s.id, label: s.name, disabled: false })),
-)
-const devOptions = computed((): FilterOption[] =>
-  developers.value.map((d: Developer): FilterOption => ({ id: d.id, label: `${d.first_name} ${d.last_name}`, disabled: false })),
-)
-const typeOptions = computed((): FilterOption[] =>
-  maintenanceTypes.value.map((t: MaintenanceType): FilterOption => ({ id: t.id, label: t.label, disabled: false })),
-)
-const clientOptions = computed((): FilterOption[] =>
-  clients.value.map((c: Client): FilterOption => ({ id: c.id, label: c.name, disabled: false })),
-)
+const filterDefs = computed((): FilterDef<Maintenance>[] => {
+  const present = new Set<string>()
+  for (const m of maintenances.value) {
+    const ag = siteById.value.get(m.site_id)?.agency
+    if (ag) present.add(ag)
+  }
+  const agencyOpts: FilterOption[] = [...present].sort().map((a: string): FilterOption => ({
+    id: a, label: a, disabled: false,
+  }))
+  const devOpts: FilterOption[] = developers.value.map((d: Developer): FilterOption => ({
+    id: d.id, label: `${d.first_name} ${d.last_name}`, disabled: false,
+  }))
+  const typeOpts: FilterOption[] = maintenanceTypes.value.map((t: MaintenanceType): FilterOption => ({
+    id: t.id, label: t.label, disabled: false,
+  }))
+  const clientOpts: FilterOption[] = clients.value.map((c: Client): FilterOption => ({
+    id: c.id, label: c.name, disabled: false,
+  }))
 
-const filtered = computed((): Maintenance[] => {
-  const q = query.value.trim().toLowerCase()
-  return maintenances.value.filter((m: Maintenance): boolean => {
-    if (filterSites.value.length && !filterSites.value.includes(m.site_id)) return false
-    if (filterDevs.value.length && (!m.developer_id || !filterDevs.value.includes(m.developer_id))) return false
-    if (filterClients.value.length && (!m.client_id || !filterClients.value.includes(m.client_id))) return false
-    if (filterTypes.value.length) {
-      const ids = parseTypes(m.types)
-      if (!filterTypes.value.some((f: string) => ids.includes(f))) return false
-    }
-    if (onlyIncidents.value && !m.has_incident) return false
-    if (q) {
-      const hay = [siteName(m.site_id), devName(m.developer_id), clientName(m.client_id), m.notes ?? '', ...typeLabels(m)]
-        .join(' ').toLowerCase()
-      if (!hay.includes(q)) return false
-    }
-    return true
-  })
+  return [
+    {
+      key: 'agency', label: 'Agences', options: agencyOpts,
+      match: (m: Maintenance, selected: string[]): boolean =>
+        selected.includes(siteById.value.get(m.site_id)?.agency ?? ''),
+    },
+    {
+      key: 'dev', label: 'Développeurs', options: devOpts,
+      match: (m: Maintenance, selected: string[]): boolean =>
+        !!m.developer_id && selected.includes(m.developer_id),
+    },
+    {
+      key: 'client', label: 'Clients', options: clientOpts,
+      match: (m: Maintenance, selected: string[]): boolean =>
+        !!m.client_id && selected.includes(m.client_id),
+    },
+    {
+      key: 'type', label: 'Types', options: typeOpts,
+      match: (m: Maintenance, selected: string[]): boolean => {
+        const ids = parseTypes(m.types)
+        return selected.some((id: string): boolean => ids.includes(id))
+      },
+    },
+  ]
 })
 
-function clearAllFilters(): void {
-  filterSites.value   = []
-  filterDevs.value    = []
-  filterTypes.value   = []
-  filterClients.value = []
-  onlyIncidents.value = false
-  query.value         = ''
-}
+const filtered = computed((): Maintenance[] => {
+  if (!onlyIncidents.value) return afterFilters.value
+  return afterFilters.value.filter((m: Maintenance): boolean => m.has_incident)
+})
 
 // ── CRUD ──────────────────────────────────────────────────────
 interface MaintenanceForm {
@@ -188,6 +195,14 @@ function closeAdd():    void { addOpen.value = false }
 function closeEdit():   void { editTarget.value = null }
 function closeDelete(): void { deleteTarget.value = null }
 
+// Auto-fill client_id depuis le site sélectionné (uniquement si client encore vide)
+watch((): string => form.value.site_id, (newSiteId: string): void => {
+  if (!newSiteId) return
+  if (form.value.client_id) return // on n'écrase pas un client déjà choisi
+  const site = siteById.value.get(newSiteId)
+  if (site?.client_id) form.value.client_id = site.client_id
+})
+
 function bodyFromForm(): Record<string, unknown> {
   const dur = typeof form.value.duration_minutes === 'number'
     ? form.value.duration_minutes
@@ -237,9 +252,9 @@ async function confirmDelete(): Promise<void> {
   finally { modalLoading.value = false }
 }
 
-const hasActiveFilters = computed(() =>
-  query.value.trim() !== '' || filterSites.value.length > 0 || filterDevs.value.length > 0
-  || filterTypes.value.length > 0 || filterClients.value.length > 0 || onlyIncidents.value,
+/** Différencie "aucune intervention en base" de "filtre trop restrictif". */
+const isFiltering = computed((): boolean =>
+  maintenances.value.length > 0 && filtered.value.length === 0,
 )
 </script>
 
@@ -250,32 +265,30 @@ const hasActiveFilters = computed(() =>
 
     <!-- Toolbar -->
     <div class="toolbar">
-      <div class="search-bar-wrap">
-        <svg class="search-bar-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14"
-             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-        </svg>
-        <input v-model="query" type="text" placeholder="Rechercher (site, dev, type, notes)..." autocomplete="off">
-        <button v-if="query" class="search-bar-clear" title="Effacer" @click="query = ''">&#10005;</button>
-      </div>
+      <AppSearchBar
+        v-model:results="searched"
+        :items="maintenances"
+        :fields="[(m) => siteName(m.site_id)]"
+        placeholder="Rechercher un site"
+      />
       <div class="toolbar-actions">
         <button class="btn primary" @click="openAdd">+ Intervention</button>
       </div>
     </div>
 
     <!-- Filtres -->
-    <div class="maintenance-filters">
-      <AppFilterSelect v-model="filterSites"   label="Sites"        :options="siteOptions" />
-      <AppFilterSelect v-model="filterDevs"    label="Développeurs" :options="devOptions" />
-      <AppFilterSelect v-model="filterClients" label="Clients"      :options="clientOptions" />
-      <AppFilterSelect v-model="filterTypes"   label="Types"        :options="typeOptions" />
-      <label class="maintenance-incident-toggle">
-        <input v-model="onlyIncidents" type="checkbox">
-        <span>Avec incident</span>
-      </label>
-      <button v-if="hasActiveFilters" class="btn ghost" @click="clearAllFilters">Réinitialiser</button>
-    </div>
+    <AppFilterBar
+      v-model:results="afterFilters"
+      :items="searched"
+      :filters="filterDefs"
+    >
+      <template #after>
+        <label class="maintenance-incident-toggle">
+          <input v-model="onlyIncidents" type="checkbox">
+          <span>Avec incident</span>
+        </label>
+      </template>
+    </AppFilterBar>
 
     <!-- Tableau -->
     <div class="admin-table-wrap">
@@ -297,7 +310,7 @@ const hasActiveFilters = computed(() =>
         <tbody>
           <tr v-if="!filtered.length">
             <td colspan="10" class="admin-empty">
-              {{ hasActiveFilters ? 'Aucune intervention ne correspond aux filtres.' : 'Aucune intervention enregistrée.' }}
+              {{ isFiltering ? 'Aucune intervention ne correspond aux filtres.' : 'Aucune intervention enregistrée.' }}
             </td>
           </tr>
           <tr v-for="m in filtered" :key="m.id">
