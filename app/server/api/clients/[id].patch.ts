@@ -3,8 +3,11 @@ interface ClientPatch {
   agency               ?: string | null
   contact_name         ?: string | null
   contact_email        ?: string | null
+  contact_phone        ?: string | null
   notes                ?: string | null
   monthly_quota_minutes?: number | null
+  monthly_amount       ?: number | null
+  has_maintenance      ?: boolean
 }
 
 export default defineEventHandler(async (event): Promise<Client> => {

@@ -12,7 +12,11 @@ body {
 input[type="text"],
 input[type="email"],
 input[type="password"],
-input[type="number"] {
+input[type="number"],
+input[type="tel"],
+input[type="url"],
+input[type="search"],
+input[type="date"] {
   height: var(--sp-36);
   padding: 0 var(--sp-12);
   border: var(--bw) solid var(--border-input);
@@ -116,6 +120,25 @@ textarea.field-input {
     background: var(--del-hover-bg);
     color: var(--del-hover-color);
     border-color: var(--del-hover-border);
+  }
+}
+
+/* ── Checkbox inline (label cliquable) ───────────────────────── */
+.checkbox-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-8);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-normal);
+  cursor: pointer;
+  user-select: none;
+
+  input[type="checkbox"] {
+    cursor: pointer;
+    accent-color: var(--text);
+    width: var(--sp-16);
+    height: var(--sp-16);
+    margin: 0;
   }
 }
 

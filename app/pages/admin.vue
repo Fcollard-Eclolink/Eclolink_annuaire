@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Technology, Agency, Hoster, WebServer, DnsProvider, ProjectManager, Client, Site, Developer, MaintenanceType } from '~/server/utils/types'
+import type { Technology, Agency, Hoster, WebServer, DnsProvider, ProjectManager, Site, Developer, MaintenanceType } from '~/server/utils/types'
 import { techTags } from '~/composables/useTechBadge'
 
 definePageMeta({ middleware: 'auth' })
@@ -7,7 +7,7 @@ definePageMeta({ middleware: 'auth' })
 const { user } = useAuth()
 
 // ── Tabs ──────────────────────────────────────────────────────
-type TabId = 'technologies' | 'agencies' | 'hosters' | 'web-servers' | 'dns-providers' | 'project-managers' | 'clients' | 'developers' | 'maintenance-types'
+type TabId = 'technologies' | 'agencies' | 'hosters' | 'web-servers' | 'dns-providers' | 'project-managers' | 'developers' | 'maintenance-types'
 
 const activeTab = ref<TabId>('technologies')
 
@@ -18,7 +18,6 @@ const tabs: { id: TabId; label: string }[] = [
   { id: 'web-servers',     label: 'Serveurs web'   },
   { id: 'dns-providers',   label: 'DNS'            },
   { id: 'project-managers', label: 'Cheffes de projet' },
-  { id: 'clients',         label: 'Clients'        },
   { id: 'developers',      label: 'Développeurs'   },
   { id: 'maintenance-types', label: 'Types maintenance' },
 ]
@@ -32,7 +31,6 @@ await Promise.all([
   refs.loadWebServers(),
   refs.loadDnsProviders(),
   refs.loadProjectManagers(),
-  refs.loadClients(),
   refs.loadDevelopers(),
   refs.loadMaintenanceTypes(),
   // sites : différé jusqu'à l'activation de l'onglet "Technologies"
@@ -44,7 +42,6 @@ const hosters          = refs.hosters
 const webServers       = refs.webServers
 const dnsProviders     = refs.dnsProviders
 const pms              = refs.projectManagers
-const clients          = refs.clients
 const developers       = refs.developers
 const maintenanceTypes = refs.maintenanceTypes
 const sites            = refs.sites
@@ -55,7 +52,6 @@ const refreshHosters           = refs.refreshHosters
 const refreshWebServers        = refs.refreshWebServers
 const refreshDns               = refs.refreshDnsProviders
 const refreshPms               = refs.refreshProjectManagers
-const refreshClients           = refs.refreshClients
 const refreshDevelopers        = refs.refreshDevelopers
 const refreshMaintenanceTypes  = refs.refreshMaintenanceTypes
 
@@ -323,54 +319,6 @@ async function confirmPmDelete(): Promise<void> {
     await $fetch(`/api/project-managers/${pmDeleteTarget.value.id}`, { method: 'DELETE' })
     await refreshPms(); pmDeleteTarget.value = null
     toast('Cheffe de projet supprimée.')
-  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
-  finally { modalLoading.value = false }
-}
-
-// ── Clients CRUD ──────────────────────────────────────────────
-interface ClientForm { name: string; agency: string; contact_name: string; contact_email: string; notes: string; monthly_quota_hours: number | string }
-
-const clientAddOpen      = ref(false)
-const clientEditTarget   = ref<Client | null>(null)
-const clientDeleteTarget = ref<Client | null>(null)
-const clientForm         = ref<ClientForm>({ name: '', agency: '', contact_name: '', contact_email: '', notes: '', monthly_quota_hours: '' })
-
-function openClientAdd(): void { clientForm.value = { name: '', agency: '', contact_name: '', contact_email: '', notes: '', monthly_quota_hours: '' }; clientAddOpen.value = true; resetModal() }
-function openClientEdit(c: Client): void { clientForm.value = { name: c.name, agency: c.agency ?? '', contact_name: c.contact_name ?? '', contact_email: c.contact_email ?? '', notes: c.notes ?? '', monthly_quota_hours: c.monthly_quota_minutes != null ? String(c.monthly_quota_minutes / 60) : '' }; clientEditTarget.value = c; resetModal() }
-function closeClientAdd():    void { clientAddOpen.value = false }
-function closeClientEdit():   void { clientEditTarget.value = null }
-function closeClientDelete(): void { clientDeleteTarget.value = null }
-
-async function confirmClientAdd(): Promise<void> {
-  modalLoading.value = true; modalError.value = null
-  try {
-    const quotaH = typeof clientForm.value.monthly_quota_hours === 'number' ? clientForm.value.monthly_quota_hours : parseFloat(String(clientForm.value.monthly_quota_hours))
-    await $fetch('/api/clients', { method: 'POST', body: { name: clientForm.value.name.trim(), agency: clientForm.value.agency.trim() || null, contact_name: clientForm.value.contact_name.trim() || null, contact_email: clientForm.value.contact_email.trim() || null, notes: clientForm.value.notes.trim() || null, monthly_quota_minutes: !isNaN(quotaH) && quotaH > 0 ? Math.round(quotaH * 60) : null } })
-    await refreshClients(); clientAddOpen.value = false
-    toast('Client ajouté.')
-  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
-  finally { modalLoading.value = false }
-}
-
-async function confirmClientEdit(): Promise<void> {
-  if (!clientEditTarget.value) return
-  modalLoading.value = true; modalError.value = null
-  try {
-    const quotaH = typeof clientForm.value.monthly_quota_hours === 'number' ? clientForm.value.monthly_quota_hours : parseFloat(String(clientForm.value.monthly_quota_hours))
-    await $fetch(`/api/clients/${clientEditTarget.value.id}`, { method: 'PATCH', body: { name: clientForm.value.name.trim(), agency: clientForm.value.agency.trim() || null, contact_name: clientForm.value.contact_name.trim() || null, contact_email: clientForm.value.contact_email.trim() || null, notes: clientForm.value.notes.trim() || null, monthly_quota_minutes: !isNaN(quotaH) && quotaH > 0 ? Math.round(quotaH * 60) : null } })
-    await refreshClients(); clientEditTarget.value = null
-    toast('Client mis à jour.')
-  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
-  finally { modalLoading.value = false }
-}
-
-async function confirmClientDelete(): Promise<void> {
-  if (!clientDeleteTarget.value) return
-  modalLoading.value = true; modalError.value = null
-  try {
-    await $fetch(`/api/clients/${clientDeleteTarget.value.id}`, { method: 'DELETE' })
-    await refreshClients(); clientDeleteTarget.value = null
-    toast('Client supprimé.')
   } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
   finally { modalLoading.value = false }
 }
@@ -692,36 +640,6 @@ function simpleIconUrl(slug: string): string {
       </div>
     </div>
 
-    <!-- ── Clients ──────────────────────────────────────────────── -->
-    <div v-if="activeTab === 'clients'" class="admin-section">
-      <div class="admin-section-header">
-        <span class="admin-section-title">Clients ({{ clients?.length ?? 0 }})</span>
-        <button class="btn primary" @click="openClientAdd">+ Ajouter</button>
-      </div>
-      <div class="admin-table-wrap">
-        <table class="admin-table">
-          <thead><tr><th>Nom</th><th>Agence</th><th>Contact</th><th>Quota mensuel</th><th></th></tr></thead>
-          <tbody>
-            <tr v-if="!clients?.length">
-              <td colspan="5" class="admin-empty">Aucun client.</td>
-            </tr>
-            <tr v-for="c in clients" :key="c.id">
-              <td>{{ c.name }}</td>
-              <td>{{ c.agency || '—' }}</td>
-              <td>{{ c.contact_name || '—' }}</td>
-              <td>{{ c.monthly_quota_minutes != null ? `${c.monthly_quota_minutes / 60} h` : '—' }}</td>
-              <td>
-                <div class="admin-row-actions">
-                  <button class="icon-btn" title="Modifier" @click="openClientEdit(c)">&#9998;</button>
-                  <button class="icon-btn del" title="Supprimer" @click="clientDeleteTarget = c; resetModal()">&#10005;</button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
     <!-- ── Développeurs ─────────────────────────────────────────── -->
     <div v-if="activeTab === 'developers'" class="admin-section">
       <div class="admin-section-header">
@@ -999,46 +917,6 @@ function simpleIconUrl(slug: string): string {
       <Transition name="modal">
         <AppConfirmModal v-if="pmDeleteTarget" title="Supprimer la cheffe de projet" :loading="modalLoading" confirm-label="Supprimer" @confirm="confirmPmDelete" @cancel="closePmDelete">
           <p class="modal-msg">Supprimer <strong>{{ pmDeleteTarget.first_name }} {{ pmDeleteTarget.last_name }}</strong> définitivement ?</p>
-        </AppConfirmModal>
-      </Transition>
-
-      <!-- Modale Add/Edit Client -->
-      <Transition name="modal">
-        <div v-if="clientAddOpen || clientEditTarget" class="modal-overlay" @click.self="clientAddOpen ? closeClientAdd() : closeClientEdit()">
-          <div class="modal-card">
-            <h3 class="modal-title">{{ clientAddOpen ? 'Ajouter un client' : 'Modifier le client' }}</h3>
-            <p v-if="modalError" class="modal-error">{{ modalError }}</p>
-            <form @submit.prevent="clientAddOpen ? confirmClientAdd() : confirmClientEdit()">
-              <div class="field"><label>Nom *</label><input v-model="clientForm.name" type="text" required></div>
-              <div class="field">
-                <label>Agence</label>
-                <AppSelect
-                  v-model="clientForm.agency"
-                  :options="agencies.map((a: Agency) => ({ value: a.name, label: a.name }))"
-                  placeholder="— Aucune —"
-                />
-              </div>
-              <div class="field"><label>Nom contact</label><input v-model="clientForm.contact_name" type="text"></div>
-              <div class="field"><label>Email contact</label><input v-model="clientForm.contact_email" type="email"></div>
-              <div class="field">
-                <label>Quota mensuel (heures)</label>
-                <input v-model.number="clientForm.monthly_quota_hours" type="number" min="0" step="0.5" placeholder="ex: 40">
-              </div>
-              <div class="field"><label>Notes</label><textarea v-model="clientForm.notes" class="field-input" rows="3" /></div>
-              <div class="modal-btns">
-                <button type="button" class="btn" :disabled="modalLoading" @click="clientAddOpen ? closeClientAdd() : closeClientEdit()">Annuler</button>
-                <button type="submit" class="btn primary" :disabled="modalLoading">
-                  <span v-if="modalLoading" class="spinner" />
-                  {{ modalLoading ? 'Enregistrement…' : (clientAddOpen ? 'Créer' : 'Enregistrer') }}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </Transition>
-      <Transition name="modal">
-        <AppConfirmModal v-if="clientDeleteTarget" title="Supprimer le client" :loading="modalLoading" confirm-label="Supprimer" @confirm="confirmClientDelete" @cancel="closeClientDelete">
-          <p class="modal-msg">Supprimer <strong>{{ clientDeleteTarget.name }}</strong> définitivement ?</p>
         </AppConfirmModal>
       </Transition>
 

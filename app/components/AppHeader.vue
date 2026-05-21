@@ -52,5 +52,6 @@ onMounted(initDark)
   <nav class="page-nav">
     <NuxtLink to="/" class="page-nav-link">Annuaire</NuxtLink>
     <NuxtLink to="/maintenance" class="page-nav-link">Maintenance</NuxtLink>
+    <NuxtLink to="/clients" class="page-nav-link">Clients</NuxtLink>
   </nav>
 </template>
