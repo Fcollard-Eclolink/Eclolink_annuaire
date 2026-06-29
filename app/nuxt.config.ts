@@ -7,10 +7,9 @@ export default defineNuxtConfig({
 
   vite: {
     server: {
-      hmr: {
-        port      : 24678,
-        clientPort: 24678,
-      },
+      // HMR désactivé : les changements de code nécessitent un refresh manuel
+      // du navigateur. Évite les bugs de state zombie sur les composables.
+      hmr: false,
     },
   },
 
