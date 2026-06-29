@@ -14,6 +14,57 @@
   margin: 0 0 var(--sp-16);
 }
 
+/* ── Filtre plage de dates (trigger button) ───────────────────── */
+.date-range-picker {
+  position: relative;
+  display: inline-flex;
+}
+
+.date-range-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-8);
+  height: var(--sp-36);
+  padding: 0 var(--sp-12);
+  border: var(--bw) solid var(--border-input);
+  border-radius: var(--sp-8);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--fs-12);
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--t-fast), border-color var(--t-fast);
+
+  &:hover { background: var(--hover); }
+
+  .date-range-picker.open & { border-color: #888; }
+  .date-range-picker.active & {
+    background: var(--hover);
+    font-weight: var(--fw-medium);
+  }
+}
+
+.date-range-trigger-label {
+  font-variant-numeric: tabular-nums;
+}
+
+.date-range-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--sp-16);
+  height: var(--sp-16);
+  background: none;
+  color: var(--text-muted);
+  font-size: var(--fs-12);
+  border-radius: var(--sp-4);
+  margin-left: var(--sp-4);
+  cursor: pointer;
+
+  &:hover { background: var(--border); color: var(--text); }
+}
+
 .maintenance-incident-toggle {
   display: inline-flex;
   align-items: center;
@@ -50,11 +101,21 @@
   padding: var(--sp-4) var(--sp-8);
   font-size: var(--fs-12);
   line-height: 1.4;
-  background: var(--hover);
-  border: var(--bw) solid var(--border);
   border-radius: var(--sp-12);
-  color: var(--text);
   white-space: nowrap;
+
+  /* Couleur déterministe par type — voir useTypeColor.ts.
+     `--pill-hue` est injecté via :style sur le pill (0-360). */
+  --pill-hue: 220;
+  background: hsl(var(--pill-hue) 65% 92%);
+  border: var(--bw) solid hsl(var(--pill-hue) 55% 78%);
+  color: hsl(var(--pill-hue) 50% 28%);
+}
+
+[data-theme="dark"] .maintenance-type-pill {
+  background: hsl(var(--pill-hue) 50% 18%);
+  border-color: hsl(var(--pill-hue) 45% 32%);
+  color: hsl(var(--pill-hue) 60% 82%);
 }
 
 .maintenance-incident-cell { text-align: center; }
@@ -174,4 +235,69 @@
   font-size: var(--fs-12);
   color: var(--text-muted);
   text-align: right;
+}
+
+/* ── Onglet "Sites sous maintenance" ─────────────────────────── */
+.maintenance-sites-link-col {
+  width: var(--sp-64);
+  text-align: center;
+}
+
+.maintenance-sites-link-cell {
+  text-align: center;
+
+  .icon-btn { text-decoration: none; }
+}
+
+.maintenance-sites-muted {
+  color: var(--text-muted);
+  font-size: var(--fs-12);
+}
+
+/* ── TODO list mensuelle ─────────────────────────────────────── */
+.maintenance-todo-header {
+  margin: 0 0 var(--sp-16);
+  font-size: var(--fs-14);
+  color: var(--text-muted);
+
+  strong {
+    color: var(--text);
+    font-weight: var(--fw-semi);
+  }
+}
+
+.maintenance-todo-subtitle {
+  margin: var(--sp-24) 0 var(--sp-8);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semi);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+
+  &:first-of-type { margin-top: 0; }
+}
+
+.maintenance-todo-check-cell {
+  width: var(--sp-40);
+  text-align: center;
+}
+
+.maintenance-todo-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--sp-24);
+  height: var(--sp-24);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--sp-4);
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+
+  &:hover {
+    background: #22c55e;
+    color: #fff;
+    border-color: #22c55e;
+  }
 }
