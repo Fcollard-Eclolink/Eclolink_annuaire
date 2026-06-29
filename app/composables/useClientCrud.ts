@@ -3,7 +3,7 @@ import type { ClientForm } from '~/components/AppClientFormModal.vue'
 
 const EMPTY: ClientForm = {
   name: '', agency: '', contact_name: '', contact_email: '', contact_phone: '',
-  notes: '', monthly_quota_hours: '', monthly_amount: '', has_maintenance: false,
+  notes: '', monthly_quota_hours: '', monthly_amount: '',
 }
 
 function bodyFromForm(f: ClientForm): Record<string, unknown> {
@@ -18,7 +18,6 @@ function bodyFromForm(f: ClientForm): Record<string, unknown> {
     notes                : f.notes.trim()         || null,
     monthly_quota_minutes: !isNaN(quotaH) && quotaH > 0  ? Math.round(quotaH * 60) : null,
     monthly_amount       : !isNaN(amount) && amount >= 0 ? amount : null,
-    has_maintenance      : f.has_maintenance,
   }
 }
 
@@ -62,7 +61,6 @@ export function useClientCrud() {
       notes               : c.notes         ?? '',
       monthly_quota_hours : c.monthly_quota_minutes != null ? String(c.monthly_quota_minutes / 60) : '',
       monthly_amount      : c.monthly_amount        != null ? String(c.monthly_amount)             : '',
-      has_maintenance     : c.has_maintenance,
     }
     editTarget.value = c
     resetState()

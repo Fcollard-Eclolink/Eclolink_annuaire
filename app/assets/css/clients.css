@@ -279,36 +279,6 @@
   &:hover { border-bottom-color: var(--text); }
 }
 
-/* Stats */
-.client-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--sp-12);
-}
-
-.client-stat {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-4);
-  padding: var(--sp-12);
-  background: var(--bg);
-  border: var(--bw) solid var(--border);
-  border-radius: var(--sp-8);
-  text-align: center;
-}
-
-.client-stat-value {
-  font-size: var(--fs-18);
-  font-weight: var(--fw-semi);
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-}
-
-.client-stat-label {
-  font-size: var(--fs-12);
-  color: var(--text-muted);
-}
-
 /* Header de la section sites */
 .client-sites-header {
   display: flex;
@@ -510,4 +480,9 @@
   font-weight: var(--fw-medium);
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
+}
+
+.client-quota-no-quota {
+  font-size: var(--fs-14);
+  color: var(--text-muted);
 }

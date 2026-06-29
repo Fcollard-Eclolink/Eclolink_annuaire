@@ -184,16 +184,14 @@ async function detachSite(siteId: string): Promise<void> {
   }
 }
 
-// ── Quota mois courant ───────────────────────────────────────
-const currentMonth = computed((): string => {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-})
+/** Nombre de sites sous contrat de maintenance pour ce client. */
+const maintenanceSitesCount = computed((): number =>
+  clientSites.value.filter((s: Site): boolean => s.has_maintenance).length,
+)
 
-const currentMonthLabel = computed((): string => {
-  const now = new Date()
-  return now.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
-})
+// ── Quota mois courant ───────────────────────────────────────
+const currentMonth      = computed((): string => currentMonthPrefix())
+const monthLabel        = computed((): string => currentMonthLabel())
 
 const usedThisMonth = computed((): number => {
   let total = 0
@@ -218,18 +216,6 @@ const quotaClass = computed((): string => {
   return ''
 })
 
-// ── Stats globales ───────────────────────────────────────────
-const totalInterventions = computed((): number => clientMaintenances.value.length)
-
-const totalMinutes = computed((): number => {
-  let t = 0
-  for (const m of clientMaintenances.value) if (m.duration_minutes) t += m.duration_minutes
-  return t
-})
-
-const incidentsCount = computed((): number =>
-  clientMaintenances.value.filter((m: Maintenance): boolean => m.has_incident).length,
-)
 </script>
 
 <template>
@@ -255,7 +241,9 @@ const incidentsCount = computed((): number =>
         <div class="client-detail-header-left">
           <div class="client-detail-title-wrap">
             <h2 class="client-detail-title">{{ client.name }}</h2>
-            <span v-if="client.has_maintenance" class="client-card-badge">Maintenance</span>
+            <span v-if="maintenanceSitesCount" class="client-card-badge">
+              {{ maintenanceSitesCount }} site{{ maintenanceSitesCount > 1 ? 's' : '' }} sous maintenance
+            </span>
           </div>
           <div v-if="client.agency" class="client-detail-subtitle">{{ client.agency }}</div>
         </div>
@@ -290,8 +278,8 @@ const incidentsCount = computed((): number =>
               </dd>
             </div>
             <div class="client-info-row">
-              <dt>Maintenance</dt>
-              <dd>{{ client.has_maintenance ? 'Oui' : 'Non' }}</dd>
+              <dt>Sites sous maintenance</dt>
+              <dd>{{ maintenanceSitesCount }} / {{ clientSites.length }}</dd>
             </div>
             <div class="client-info-row">
               <dt>Quota mensuel</dt>
@@ -308,41 +296,27 @@ const incidentsCount = computed((): number =>
           </dl>
         </div>
 
-        <!-- Stats -->
-        <div class="client-detail-card">
-          <h3 class="client-detail-card-title">Statistiques</h3>
-          <div class="client-stats-grid">
-            <div class="client-stat">
-              <div class="client-stat-value">{{ totalInterventions }}</div>
-              <div class="client-stat-label">Interventions totales</div>
+        <!-- Consommation du mois courant -->
+        <div class="client-detail-card client-quota-block">
+          <h3 class="client-detail-card-title">
+            Consommation — {{ monthLabel }}
+          </h3>
+          <template v-if="client.monthly_quota_minutes">
+            <div class="client-quota-header">
+              <span class="client-quota-time">
+                {{ formatDuration(usedThisMonth) }} / {{ formatDuration(client.monthly_quota_minutes) }}
+              </span>
+              <span class="client-quota-pct">{{ quotaPct }} %</span>
             </div>
-            <div class="client-stat">
-              <div class="client-stat-value">{{ formatDuration(totalMinutes) }}</div>
-              <div class="client-stat-label">Temps total</div>
+            <div class="quota-bar-wrap">
+              <div class="quota-bar-fill" :class="quotaClass" :style="{ width: Math.min(quotaPct, 100) + '%' }" />
             </div>
-            <div class="client-stat">
-              <div class="client-stat-value">{{ incidentsCount }}</div>
-              <div class="client-stat-label">Incidents</div>
-            </div>
+          </template>
+          <div v-else class="client-quota-no-quota">
+            {{ formatDuration(usedThisMonth) }} consommé ce mois — aucun quota défini.
           </div>
         </div>
 
-      </div>
-
-      <!-- Quota du mois -->
-      <div v-if="client.monthly_quota_minutes" class="client-detail-card client-quota-block">
-        <h3 class="client-detail-card-title">
-          Consommation — {{ currentMonthLabel }}
-        </h3>
-        <div class="client-quota-header">
-          <span class="client-quota-time">
-            {{ formatDuration(usedThisMonth) }} / {{ formatDuration(client.monthly_quota_minutes) }}
-          </span>
-          <span class="client-quota-pct">{{ quotaPct }} %</span>
-        </div>
-        <div class="quota-bar-wrap">
-          <div class="quota-bar-fill" :class="quotaClass" :style="{ width: Math.min(quotaPct, 100) + '%' }" />
-        </div>
       </div>
 
       <!-- Sites du client -->
@@ -366,9 +340,10 @@ const incidentsCount = computed((): number =>
               <div v-if="s.url" class="client-site-url">{{ s.url }}</div>
             </div>
             <div class="client-site-meta">
+              <span v-if="s.has_maintenance" class="client-card-badge">Maintenance</span>
               <span v-if="s.agency" class="client-site-agency">{{ s.agency }}</span>
               <span class="client-site-count">{{ siteInterventionCount(s.id) }} intervention{{ siteInterventionCount(s.id) > 1 ? 's' : '' }}</span>
-              <a v-if="s.url" :href="s.url" target="_blank" rel="noopener" class="icon-btn" title="Ouvrir le site">
+              <a v-if="safeHref(s.url)" :href="safeHref(s.url)" target="_blank" rel="noopener" class="icon-btn" title="Ouvrir le site">
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
                      fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
@@ -419,7 +394,12 @@ const incidentsCount = computed((): number =>
                 <td class="maintenance-duration">{{ formatDuration(m.duration_minutes) }}</td>
                 <td>
                   <div class="maintenance-type-pills">
-                    <span v-for="label in typeLabels(m)" :key="label" class="maintenance-type-pill">{{ label }}</span>
+                    <span
+                      v-for="label in typeLabels(m)"
+                      :key="label"
+                      class="maintenance-type-pill"
+                      :style="{ '--pill-hue': typePillHue(label) }"
+                    >{{ label }}</span>
                   </div>
                 </td>
                 <td class="maintenance-incident-cell">

@@ -12,14 +12,26 @@ const refs = useReferenceData()
 await Promise.all([
   refs.loadClients(),
   refs.loadMaintenances(),
+  refs.loadSites(),
   refs.loadAgencies(),
   refs.loadMaintenanceTypes(),
 ])
 
 const clients          = refs.clients
 const maintenances     = refs.maintenances
+const sites            = refs.sites
 const agencies         = refs.agencies
 const maintenanceTypes = refs.maintenanceTypes
+
+/** Pour chaque client, nombre de sites sous contrat de maintenance. */
+const maintenanceSitesByClient = computed((): Map<string, number> => {
+  const map = new Map<string, number>()
+  for (const s of sites.value) {
+    if (!s.client_id || !s.has_maintenance) continue
+    map.set(s.client_id, (map.get(s.client_id) ?? 0) + 1)
+  }
+  return map
+})
 
 // ── CRUD ─────────────────────────────────────────────────────
 const {
@@ -101,8 +113,7 @@ const filterDefs = computed((): FilterDef<Client>[] => {
 
 // ── Consommation du mois courant ─────────────────────────────
 const currentMonthUsed = computed((): Map<string, number> => {
-  const now    = new Date()
-  const prefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  const prefix = currentMonthPrefix()
   const map    = new Map<string, number>()
   for (const m of maintenances.value) {
     if (!m.client_id || !m.duration_minutes) continue
@@ -134,8 +145,7 @@ function quotaClass(pct: number): string {
 }
 
 function countMaintenancesThisMonth(clientId: string): number {
-  const now    = new Date()
-  const prefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  const prefix = currentMonthPrefix()
   let n = 0
   for (const m of maintenances.value) {
     if (m.client_id === clientId && m.intervention_date.startsWith(prefix)) n++
@@ -197,7 +207,9 @@ function handleDelete(e: Event, c: Client): void {
           <div class="client-card-header">
             <div class="client-card-name-wrap">
               <span class="client-card-name">{{ c.name }}</span>
-              <span v-if="c.has_maintenance" class="client-card-badge">Maintenance</span>
+              <span v-if="maintenanceSitesByClient.get(c.id)" class="client-card-badge">
+                {{ maintenanceSitesByClient.get(c.id) }} site{{ (maintenanceSitesByClient.get(c.id) ?? 0) > 1 ? 's' : '' }} sous maintenance
+              </span>
             </div>
             <span v-if="c.agency" class="client-card-agency">{{ c.agency }}</span>
           </div>
