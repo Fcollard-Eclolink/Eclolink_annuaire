@@ -10,7 +10,6 @@ export interface ClientForm {
   notes               : string
   monthly_quota_hours : number | string
   monthly_amount      : number | string
-  has_maintenance     : boolean
 }
 
 defineProps<{
@@ -27,7 +26,7 @@ const emit = defineEmits<{ close: []; submit: [] }>()
 </script>
 
 <template>
-  <div class="modal-overlay" @click.self="emit('close')">
+  <div class="modal-overlay" v-modal-close="() => emit('close')">
     <div class="modal-card">
       <h3 class="modal-title">{{ title }}</h3>
       <p v-if="error" class="modal-error">{{ error }}</p>
@@ -55,12 +54,6 @@ const emit = defineEmits<{ close: []; submit: [] }>()
         <div class="field">
           <label>Téléphone contact</label>
           <input v-model="form.contact_phone" type="tel" placeholder="ex: 01 23 45 67 89">
-        </div>
-        <div class="field">
-          <label class="checkbox-row">
-            <input v-model="form.has_maintenance" type="checkbox">
-            <span>Sous contrat de maintenance</span>
-          </label>
         </div>
         <div class="field">
           <label>Quota mensuel (heures)</label>

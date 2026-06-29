@@ -60,7 +60,7 @@ void isOpen
 </script>
 
 <template>
-  <div class="modal-overlay" @click.self="emit('close')">
+  <div class="modal-overlay" v-modal-close="() => emit('close')">
     <div class="modal-card modal-card--scroll" style="max-width:520px">
       <h3 class="modal-title">Ajouter des sites à <strong>{{ clientName }}</strong></h3>
       <p v-if="error" class="modal-error">{{ error }}</p>

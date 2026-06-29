@@ -96,15 +96,8 @@
   cursor: pointer;
   padding: 0;
 
-  &:hover { background: var(--hover); color: var(--text); }
-}
-
-.date-hidden-picker {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
-  pointer-events: none;
+  &:hover         { background: var(--hover); color: var(--text); }
+  &.active        { background: var(--hover); color: var(--text); border-color: #888; }
 }
 
 /* ── Select avec icône ────────────────────────────────────────── */

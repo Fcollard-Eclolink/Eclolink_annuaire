@@ -704,7 +704,7 @@ function simpleIconUrl(slug: string): string {
 
       <!-- Modale Add/Edit Technologie -->
       <Transition name="modal">
-        <div v-if="techAddOpen || techEditTarget" class="modal-overlay" @click.self="techAddOpen ? closeTechAdd() : closeTechEdit()">
+        <div v-if="techAddOpen || techEditTarget" class="modal-overlay" v-modal-close="() => techAddOpen ? closeTechAdd() : closeTechEdit()">
           <div class="modal-card">
             <h3 class="modal-title">{{ techAddOpen ? 'Ajouter une technologie' : 'Modifier la technologie' }}</h3>
             <p v-if="modalError" class="modal-error">{{ modalError }}</p>
@@ -755,7 +755,7 @@ function simpleIconUrl(slug: string): string {
 
       <!-- Modale Add/Edit Agence -->
       <Transition name="modal">
-        <div v-if="agencyAddOpen || agencyEditTarget" class="modal-overlay" @click.self="agencyAddOpen ? closeAgencyAdd() : closeAgencyEdit()">
+        <div v-if="agencyAddOpen || agencyEditTarget" class="modal-overlay" v-modal-close="() => agencyAddOpen ? closeAgencyAdd() : closeAgencyEdit()">
           <div class="modal-card">
             <h3 class="modal-title">{{ agencyAddOpen ? 'Ajouter une agence' : 'Modifier l\'agence' }}</h3>
             <p v-if="modalError" class="modal-error">{{ modalError }}</p>
@@ -792,7 +792,7 @@ function simpleIconUrl(slug: string): string {
 
       <!-- Modale Add/Edit Logo Entity (Hébergeur / Serveur web / DNS) -->
       <Transition name="modal">
-        <div v-if="hosterCrud.addOpen.value || hosterCrud.editTarget.value" class="modal-overlay" @click.self="hosterCrud.addOpen.value ? hosterCrud.closeAdd() : hosterCrud.closeEdit()">
+        <div v-if="hosterCrud.addOpen.value || hosterCrud.editTarget.value" class="modal-overlay" v-modal-close="() => hosterCrud.addOpen.value ? hosterCrud.closeAdd() : hosterCrud.closeEdit()">
           <div class="modal-card">
             <h3 class="modal-title">{{ hosterCrud.addOpen.value ? 'Ajouter un hébergeur' : 'Modifier l\'hébergeur' }}</h3>
             <p v-if="modalError" class="modal-error">{{ modalError }}</p>
@@ -824,7 +824,7 @@ function simpleIconUrl(slug: string): string {
 
       <!-- Serveur web modales -->
       <Transition name="modal">
-        <div v-if="webServerCrud.addOpen.value || webServerCrud.editTarget.value" class="modal-overlay" @click.self="webServerCrud.addOpen.value ? webServerCrud.closeAdd() : webServerCrud.closeEdit()">
+        <div v-if="webServerCrud.addOpen.value || webServerCrud.editTarget.value" class="modal-overlay" v-modal-close="() => webServerCrud.addOpen.value ? webServerCrud.closeAdd() : webServerCrud.closeEdit()">
           <div class="modal-card">
             <h3 class="modal-title">{{ webServerCrud.addOpen.value ? 'Ajouter un serveur web' : 'Modifier le serveur web' }}</h3>
             <p v-if="modalError" class="modal-error">{{ modalError }}</p>
@@ -856,7 +856,7 @@ function simpleIconUrl(slug: string): string {
 
       <!-- DNS modales -->
       <Transition name="modal">
-        <div v-if="dnsCrud.addOpen.value || dnsCrud.editTarget.value" class="modal-overlay" @click.self="dnsCrud.addOpen.value ? dnsCrud.closeAdd() : dnsCrud.closeEdit()">
+        <div v-if="dnsCrud.addOpen.value || dnsCrud.editTarget.value" class="modal-overlay" v-modal-close="() => dnsCrud.addOpen.value ? dnsCrud.closeAdd() : dnsCrud.closeEdit()">
           <div class="modal-card">
             <h3 class="modal-title">{{ dnsCrud.addOpen.value ? 'Ajouter un provider DNS' : 'Modifier le provider DNS' }}</h3>
             <p v-if="modalError" class="modal-error">{{ modalError }}</p>
@@ -888,7 +888,7 @@ function simpleIconUrl(slug: string): string {
 
       <!-- Modale Add/Edit PM -->
       <Transition name="modal">
-        <div v-if="pmAddOpen || pmEditTarget" class="modal-overlay" @click.self="pmAddOpen ? closePmAdd() : closePmEdit()">
+        <div v-if="pmAddOpen || pmEditTarget" class="modal-overlay" v-modal-close="() => pmAddOpen ? closePmAdd() : closePmEdit()">
           <div class="modal-card">
             <h3 class="modal-title">{{ pmAddOpen ? 'Ajouter une cheffe de projet' : 'Modifier la cheffe de projet' }}</h3>
             <p v-if="modalError" class="modal-error">{{ modalError }}</p>
@@ -922,7 +922,7 @@ function simpleIconUrl(slug: string): string {
 
       <!-- Modale Add/Edit Développeur -->
       <Transition name="modal">
-        <div v-if="devAddOpen || devEditTarget" class="modal-overlay" @click.self="devAddOpen ? closeDevAdd() : closeDevEdit()">
+        <div v-if="devAddOpen || devEditTarget" class="modal-overlay" v-modal-close="() => devAddOpen ? closeDevAdd() : closeDevEdit()">
           <div class="modal-card">
             <h3 class="modal-title">{{ devAddOpen ? 'Ajouter un développeur' : 'Modifier le développeur' }}</h3>
             <p v-if="modalError" class="modal-error">{{ modalError }}</p>
@@ -960,7 +960,7 @@ function simpleIconUrl(slug: string): string {
 
       <!-- Modale Add/Edit Type maintenance -->
       <Transition name="modal">
-        <div v-if="mtAddOpen || mtEditTarget" class="modal-overlay" @click.self="mtAddOpen ? closeMtAdd() : closeMtEdit()">
+        <div v-if="mtAddOpen || mtEditTarget" class="modal-overlay" v-modal-close="() => mtAddOpen ? closeMtAdd() : closeMtEdit()">
           <div class="modal-card">
             <h3 class="modal-title">{{ mtAddOpen ? 'Ajouter un type de maintenance' : 'Modifier le type' }}</h3>
             <p v-if="modalError" class="modal-error">{{ modalError }}</p>

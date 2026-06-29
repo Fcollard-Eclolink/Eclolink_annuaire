@@ -17,7 +17,7 @@ const emit = defineEmits<{ close: []; submit: [] }>()
 </script>
 
 <template>
-  <div class="modal-overlay" @click.self="emit('close')">
+  <div class="modal-overlay" v-modal-close="() => emit('close')">
     <div class="modal-card">
       <h3 class="modal-title">{{ title }}</h3>
       <p v-if="error" class="modal-error">{{ error }}</p>

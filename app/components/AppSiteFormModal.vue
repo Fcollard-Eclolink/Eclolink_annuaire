@@ -21,7 +21,7 @@ const emit = defineEmits<{ close: []; submit: [] }>()
 </script>
 
 <template>
-  <div class="modal-overlay" @click.self="emit('close')">
+  <div class="modal-overlay" v-modal-close="() => emit('close')">
     <div class="modal-card modal-card--scroll" style="max-width:520px">
       <h3 class="modal-title">{{ title }}</h3>
       <form @submit.prevent="emit('submit')">
@@ -95,6 +95,12 @@ const emit = defineEmits<{ close: []; submit: [] }>()
         <div class="field">
           <label>Technologies</label>
           <AppTechSelect v-model="form.technologies" :techs="technologies" />
+        </div>
+        <div class="field">
+          <label class="checkbox-row">
+            <input v-model="form.has_maintenance" type="checkbox">
+            <span>Sous contrat de maintenance</span>
+          </label>
         </div>
         <div class="field">
           <label>Notes</label>

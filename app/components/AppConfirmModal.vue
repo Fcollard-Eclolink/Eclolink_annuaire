@@ -14,7 +14,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="modal-overlay" @click.self="emit('cancel')">
+  <div class="modal-overlay" v-modal-close="() => emit('cancel')">
     <div class="modal-card">
       <h3 class="modal-title">{{ title }}</h3>
       <slot />
