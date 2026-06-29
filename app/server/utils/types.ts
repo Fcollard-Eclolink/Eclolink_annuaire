@@ -16,6 +16,7 @@ export interface Site {
   project_manager_id : string | null
   client_id          : string | null
   registrar          : string | null
+  has_maintenance    : boolean
 }
 
 export interface Client {
@@ -28,7 +29,6 @@ export interface Client {
   notes                 : string | null
   monthly_quota_minutes : number | null
   monthly_amount        : number | null
-  has_maintenance       : boolean
 }
 
 export interface Group {
@@ -92,15 +92,16 @@ export interface MaintenanceType {
 }
 
 export interface Maintenance {
-  id               : string
-  site_id          : string
-  client_id        : string | null
-  developer_id     : string | null
-  intervention_date: string
-  has_incident     : boolean
-  types            : string | null
-  notes            : string | null
-  duration_minutes : number | null
-  created_at       : string
+  id                    : string
+  site_id               : string
+  client_id             : string | null
+  developer_id          : string | null
+  intervention_date     : string
+  has_incident          : boolean
+  types                 : string | null
+  notes                 : string | null
+  duration_minutes      : number | null
+  is_monthly_maintenance: boolean
+  created_at            : string
 }
 
