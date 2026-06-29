@@ -14,9 +14,14 @@ export default defineEventHandler(async (event): Promise<Technology> => {
     throw createError({ statusCode: 400, message: 'Le label est requis' })
   }
 
+  // Sanitize SVG : strip event handlers, scripts, javascript: URLs (XSS prevention)
+  const safeBody = body.svg !== undefined
+    ? { ...body, svg: body.svg ? sanitizeSvg(body.svg) : null }
+    : body
+
   const res = await sbFetch(event, `/rest/v1/eclolink_technologies?id=eq.${encodeURIComponent(id)}`, {
     method : 'PATCH',
-    body   : JSON.stringify(body),
+    body   : JSON.stringify(safeBody),
     headers: { Prefer: 'return=representation' },
   })
 

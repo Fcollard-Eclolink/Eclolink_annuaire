@@ -9,9 +9,12 @@ export default defineEventHandler(async (event): Promise<Technology> => {
   const body = await readBody<TechnologyCreate>(event)
   if (!body.label?.trim()) throw createError({ statusCode: 400, message: 'Le label est requis' })
 
+  // Sanitize SVG : strip event handlers, scripts, javascript: URLs (XSS prevention)
+  const safeSvg = body.svg ? sanitizeSvg(body.svg) : null
+
   const res = await sbFetch(event, '/rest/v1/eclolink_technologies', {
     method : 'POST',
-    body   : JSON.stringify({ id: crypto.randomUUID(), ...body, label: body.label.trim() }),
+    body   : JSON.stringify({ id: crypto.randomUUID(), ...body, label: body.label.trim(), svg: safeSvg }),
     headers: { Prefer: 'return=representation' },
   })
 
