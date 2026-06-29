@@ -23,9 +23,12 @@ const props = withDefaults(defineProps<{
   fields      : FieldGetter<T>[]
   placeholder?: string
   shortcut   ?: boolean
+  /** Délai (ms) d'inactivité avant que la frappe ne déclenche le filtrage. */
+  debounceMs ?: number
 }>(), {
   placeholder: 'Rechercher',
   shortcut   : true,
+  debounceMs : 500,
 })
 
 const query    = defineModel<string>('query',   { default: '' })
@@ -40,8 +43,28 @@ function getValue(item: T, field: FieldGetter<T>): string {
   return val == null ? '' : String(val)
 }
 
-watchEffect((): void => {
-  const q = query.value.trim().toLowerCase()
+const searchQuery = ref<string>(query.value)
+let debounceTimer: ReturnType<typeof setTimeout> | null = null
+
+watch(query, (q: string): void => {
+  if (debounceTimer) {
+    clearTimeout(debounceTimer)
+    debounceTimer = null
+  }
+  if (q === '') {
+    searchQuery.value = ''
+    return
+  }
+  debounceTimer = setTimeout((): void => {
+    searchQuery.value = q
+    debounceTimer = null
+  }, props.debounceMs)
+})
+
+// watch (pas watchEffect) : `fields` peut changer de ref à chaque render parent
+// (literal inline) → tracker provoquerait une boucle infinie.
+function runFilter(): void {
+  const q = searchQuery.value.trim().toLowerCase()
   if (!q) {
     results.value = props.items
     return
@@ -51,7 +74,13 @@ watchEffect((): void => {
       getValue(item, field).toLowerCase().includes(q),
     ),
   )
-})
+}
+
+watch(
+  [searchQuery, (): T[] => props.items],
+  (): void => runFilter(),
+  { immediate: true },
+)
 
 function clear(): void {
   query.value = ''
@@ -74,6 +103,7 @@ onMounted((): void => {
 
 onUnmounted((): void => {
   document.removeEventListener('keydown', onGlobalKeydown)
+  if (debounceTimer) clearTimeout(debounceTimer)
 })
 
 defineExpose({ focus, clear })

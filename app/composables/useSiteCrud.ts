@@ -16,15 +16,17 @@ export interface SiteEditForm {
   client_id         : string
   registrar         : string
   notes             : string
+  has_maintenance   : boolean
 }
 
 const EMPTY_FORM: SiteEditForm = {
   name: '', url: '', bo_url: '', gitlab_url: '', agency: '',
   group_id: '', php_version: '', dns_zone: '', go_live_date: '',
   technologies: '', project_manager_id: '', client_id: '', registrar: '', notes: '',
+  has_maintenance: false,
 }
 
-function formBody(f: SiteEditForm): Record<string, string | null> {
+function formBody(f: SiteEditForm): Record<string, string | boolean | null> {
   return {
     name              : f.name.trim(),
     url               : f.url.trim()          || null,
@@ -40,6 +42,7 @@ function formBody(f: SiteEditForm): Record<string, string | null> {
     client_id         : f.client_id            || null,
     registrar         : f.registrar.trim()     || null,
     notes             : f.notes.trim()         || null,
+    has_maintenance   : f.has_maintenance,
   }
 }
 
@@ -102,6 +105,7 @@ export function useSiteCrud(sites: Ref<Site[]>) {
       client_id         : site.client_id         ?? '',
       registrar         : site.registrar         ?? '',
       notes             : site.notes             ?? '',
+      has_maintenance   : site.has_maintenance,
     }
     editError.value = ''
   }
@@ -114,21 +118,27 @@ export function useSiteCrud(sites: Ref<Site[]>) {
   async function saveEdit(): Promise<void> {
     if (!editTarget.value) return
     if (!editForm.value.name.trim()) { editError.value = 'Le nom est requis.'; return }
+    const targetId = editTarget.value.id
     editLoading.value = true
     editError.value   = ''
     try {
-      const updated = await $fetch<Site>(`/api/sites/${editTarget.value.id}`, {
+      const updated = await $fetch<Site>(`/api/sites/${targetId}`, {
         method: 'PATCH', body: formBody(editForm.value),
       })
-      if (sites.value) {
-        const idx = sites.value.findIndex(s => s.id === editTarget.value!.id)
-        if (idx !== -1) sites.value[idx] = updated
+      const idx = sites.value.findIndex((s: Site): boolean => s.id === targetId)
+      if (idx !== -1) {
+        // Nouvelle ref d'array (pas de mutation en place) pour les watchers shallow.
+        const next = sites.value.slice()
+        next[idx]  = updated
+        sites.value = next
       }
       editTarget.value = null
       toast('Site mis à jour.')
-    } catch {
-      editError.value = 'Erreur lors de la sauvegarde.'
-      toast('Erreur lors de la sauvegarde.', 'error')
+    } catch (e: unknown) {
+      console.error('[useSiteCrud] saveEdit failed', e)
+      const msg = e instanceof Error ? e.message : 'Erreur lors de la sauvegarde.'
+      editError.value = msg
+      toast(msg, 'error')
     } finally {
       editLoading.value = false
     }

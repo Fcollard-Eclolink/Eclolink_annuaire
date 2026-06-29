@@ -63,6 +63,8 @@ function escapeHtml(s: string): string {
   )
 }
 
+// safeHref auto-importé depuis utils/safeHref.ts
+
 const highlightedName = computed((): string => {
   const escaped = escapeHtml(props.site.name)
   const q = props.highlightQuery?.trim()
@@ -84,7 +86,7 @@ const highlightedName = computed((): string => {
         <span v-if="serverLabel && (site.url || site.bo_url || site.gitlab_url || site.agency || site.technologies)"
               class="site-meta-sep" />
         <!-- URL -->
-        <a v-if="site.url" class="site-link-btn" :href="site.url"
+        <a v-if="safeHref(site.url)" class="site-link-btn" :href="safeHref(site.url)"
            target="_blank" rel="noopener noreferrer" title="Visiter le site">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
                fill="none" stroke="currentColor" stroke-width="2"
@@ -94,7 +96,7 @@ const highlightedName = computed((): string => {
           </svg>
         </a>
         <!-- Back-office -->
-        <a v-if="site.bo_url" class="site-link-btn" :href="site.bo_url"
+        <a v-if="safeHref(site.bo_url)" class="site-link-btn" :href="safeHref(site.bo_url)"
            target="_blank" rel="noopener noreferrer" title="Back-office">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
                fill="none" stroke="currentColor" stroke-width="2"
@@ -103,7 +105,7 @@ const highlightedName = computed((): string => {
           </svg>
         </a>
         <!-- GitLab -->
-        <a v-if="site.gitlab_url" class="site-link-btn site-link-btn--gitlab" :href="site.gitlab_url"
+        <a v-if="safeHref(site.gitlab_url)" class="site-link-btn site-link-btn--gitlab" :href="safeHref(site.gitlab_url)"
            target="_blank" rel="noopener noreferrer" title="GitLab">
           <img src="https://cdn.simpleicons.org/gitlab/FC6D26" width="13" height="13" alt="GitLab">
         </a>

@@ -43,15 +43,22 @@ const hasActive = computed((): boolean =>
   Object.values(selections.value).some((v: string[]): boolean => v.length > 0),
 )
 
-watchEffect((): void => {
-  results.value = props.items.filter((item: T): boolean =>
-    props.filters.every((f: FilterDef<T>): boolean => {
-      const selected = selections.value[f.key] ?? []
-      if (!selected.length) return true
-      return f.match(item, selected)
-    }),
-  )
-})
+// watch (pas watchEffect) : `filters` peut être un literal inline qui change
+// de référence à chaque render parent → tracker provoquerait une boucle infinie
+// (cf. fix identique dans AppSearchBar).
+watch(
+  [(): T[] => props.items, selections],
+  (): void => {
+    results.value = props.items.filter((item: T): boolean =>
+      props.filters.every((f: FilterDef<T>): boolean => {
+        const selected = selections.value[f.key] ?? []
+        if (!selected.length) return true
+        return f.match(item, selected)
+      }),
+    )
+  },
+  { immediate: true },
+)
 
 function selectionFor(key: string): string[] {
   return selections.value[key] ?? []
