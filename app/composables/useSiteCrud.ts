@@ -12,7 +12,6 @@ export interface SiteEditForm {
   dns_zone          : string
   go_live_date      : string
   technologies      : string
-  project_manager_id: string
   client_id         : string
   registrar         : string
   notes             : string
@@ -22,7 +21,7 @@ export interface SiteEditForm {
 const EMPTY_FORM: SiteEditForm = {
   name: '', url: '', bo_url: '', gitlab_url: '', agency: '',
   group_id: '', php_version: '', dns_zone: '', go_live_date: '',
-  technologies: '', project_manager_id: '', client_id: '', registrar: '', notes: '',
+  technologies: '', client_id: '', registrar: '', notes: '',
   has_maintenance: false,
 }
 
@@ -38,7 +37,6 @@ function formBody(f: SiteEditForm): Record<string, string | boolean | null> {
     dns_zone          : f.dns_zone.trim()      || null,
     go_live_date      : f.go_live_date         || null,
     technologies      : f.technologies.trim()  || null,
-    project_manager_id: f.project_manager_id   || null,
     client_id         : f.client_id            || null,
     registrar         : f.registrar.trim()     || null,
     notes             : f.notes.trim()         || null,
@@ -101,7 +99,6 @@ export function useSiteCrud(sites: Ref<Site[]>) {
       dns_zone          : site.dns_zone          ?? '',
       go_live_date      : site.go_live_date      ?? '',
       technologies      : site.technologies      ?? '',
-      project_manager_id: site.project_manager_id ?? '',
       client_id         : site.client_id         ?? '',
       registrar         : site.registrar         ?? '',
       notes             : site.notes             ?? '',

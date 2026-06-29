@@ -5,6 +5,17 @@
   padding: var(--sp-24);
 }
 
+/* Lien client dans les tableaux → fiche client */
+.maintenance-client-link {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: var(--bw) solid var(--border-input);
+
+  &:hover {
+    border-bottom-color: var(--text);
+  }
+}
+
 /* ── Filtres ─────────────────────────────────────────────────── */
 .maintenance-filters {
   display: flex;

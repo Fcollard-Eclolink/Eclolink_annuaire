@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Group, ProjectManager, Client, Technology, Hoster, DnsProvider } from '~/server/utils/types'
+import type { Group, Client, Technology, Hoster, DnsProvider } from '~/server/utils/types'
 import type { SiteEditForm } from '~/composables/useSiteCrud'
 
 defineProps<{
@@ -8,7 +8,6 @@ defineProps<{
   error             : string | null
   loading           : boolean
   groups            : Group[]
-  projectManagers   : ProjectManager[]
   clients           : Client[]
   technologies      : Technology[]
   hosters           : Hoster[]
@@ -52,14 +51,6 @@ const emit = defineEmits<{ close: []; submit: [] }>()
             v-model="form.group_id"
             :options="groups.map((g: Group) => ({ value: g.id, label: g.name }))"
             placeholder="— Aucun —"
-          />
-        </div>
-        <div class="field">
-          <label>Cheffe de projet</label>
-          <AppSelect
-            v-model="form.project_manager_id"
-            :options="projectManagers.map((pm: ProjectManager) => ({ value: pm.id, label: `${pm.first_name} ${pm.last_name}` }))"
-            placeholder="— Aucune —"
           />
         </div>
         <div class="field">

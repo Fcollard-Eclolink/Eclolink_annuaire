@@ -458,7 +458,10 @@ function openAddForSite(site: Site): void {
           <tr v-for="m in filtered" :key="m.id">
             <td class="maintenance-date">{{ formatDate(m.intervention_date) }}</td>
             <td>{{ siteName(m.site_id) }}</td>
-            <td>{{ clientName(m.client_id) }}</td>
+            <td>
+              <NuxtLink v-if="m.client_id" :to="`/clients/${m.client_id}`" class="maintenance-client-link">{{ clientName(m.client_id) }}</NuxtLink>
+              <span v-else>—</span>
+            </td>
             <td>{{ devName(m.developer_id) }}</td>
             <td class="maintenance-duration">{{ formatDuration(m.duration_minutes) }}</td>
             <td>
@@ -578,7 +581,10 @@ function openAddForSite(site: Site): void {
               </td>
               <td>{{ s.name }}</td>
               <td>{{ groupName(s.group_id) }}</td>
-              <td>{{ s.client_id ? clientName(s.client_id) : '—' }}</td>
+              <td>
+                <NuxtLink v-if="s.client_id" :to="`/clients/${s.client_id}`" class="maintenance-client-link">{{ clientName(s.client_id) }}</NuxtLink>
+                <span v-else>—</span>
+              </td>
               <td>{{ s.agency || '—' }}</td>
               <td class="maintenance-sites-link-cell">
                 <a
@@ -644,7 +650,10 @@ function openAddForSite(site: Site): void {
               <td class="maintenance-date">{{ formatDate(row.maintenance.intervention_date) }}</td>
               <td>{{ row.site.name }}</td>
               <td>{{ groupName(row.site.group_id) }}</td>
-              <td>{{ row.site.client_id ? clientName(row.site.client_id) : '—' }}</td>
+              <td>
+                <NuxtLink v-if="row.site.client_id" :to="`/clients/${row.site.client_id}`" class="maintenance-client-link">{{ clientName(row.site.client_id) }}</NuxtLink>
+                <span v-else>—</span>
+              </td>
               <td>{{ devName(row.maintenance.developer_id) }}</td>
               <td>
                 <div class="maintenance-type-pills">

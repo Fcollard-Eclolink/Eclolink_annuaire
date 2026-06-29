@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import type { Group, Site, ProjectManager, Hoster, WebServer } from '~/server/utils/types'
+import type { Group, Site, Hoster, WebServer } from '~/server/utils/types'
 
 const props = defineProps<{
   group          : Group
   sites          : Site[]
-  pmById         : Map<string, ProjectManager>
   hosters       ?: Hoster[]
   webServers    ?: WebServer[]
   defaultOpen   ?: boolean
@@ -251,7 +250,6 @@ function logoSlug(name: string, list: { name: string; simpleicons_slug: string |
         v-for="site in sites"
         :key="site.id"
         :site="site"
-        :pm-by-id="pmById"
         @edit="emit('edit-site', $event)"
         @delete="emit('delete-site', $event)"
       />

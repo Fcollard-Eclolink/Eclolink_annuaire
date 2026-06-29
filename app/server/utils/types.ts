@@ -13,7 +13,6 @@ export interface Site {
   dns_zone           : string | null
   go_live_date       : string | null
   technologies       : string | null
-  project_manager_id : string | null
   client_id          : string | null
   registrar          : string | null
   has_maintenance    : boolean
@@ -29,6 +28,7 @@ export interface Client {
   notes                 : string | null
   monthly_quota_minutes : number | null
   monthly_amount        : number | null
+  project_manager_id    : string | null
 }
 
 export interface Group {

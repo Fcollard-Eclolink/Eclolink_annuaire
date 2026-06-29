@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Agency } from '~/server/utils/types'
+import type { Agency, ProjectManager } from '~/server/utils/types'
 
 export interface ClientForm {
   name                : string
@@ -10,6 +10,7 @@ export interface ClientForm {
   notes               : string
   monthly_quota_hours : number | string
   monthly_amount      : number | string
+  project_manager_id  : string
 }
 
 defineProps<{
@@ -18,6 +19,7 @@ defineProps<{
   error             : string | null
   loading           : boolean
   agencies          : Agency[]
+  projectManagers   : ProjectManager[]
   submitLabel       : string
   submitLoadingLabel: string
 }>()
@@ -40,6 +42,14 @@ const emit = defineEmits<{ close: []; submit: [] }>()
           <AppSelect
             v-model="form.agency"
             :options="agencies.map((a: Agency) => ({ value: a.name, label: a.name }))"
+            placeholder="— Aucune —"
+          />
+        </div>
+        <div class="field">
+          <label>Cheffe de projet</label>
+          <AppSelect
+            v-model="form.project_manager_id"
+            :options="projectManagers.map((pm: ProjectManager) => ({ value: pm.id, label: `${pm.first_name} ${pm.last_name}` }))"
             placeholder="— Aucune —"
           />
         </div>

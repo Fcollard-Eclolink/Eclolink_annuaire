@@ -7,6 +7,7 @@ interface ClientCreate {
   notes                ?: string | null
   monthly_quota_minutes?: number | null
   monthly_amount       ?: number | null
+  project_manager_id   ?: string | null
 }
 
 export default defineEventHandler(async (event): Promise<Client> => {
@@ -22,6 +23,7 @@ export default defineEventHandler(async (event): Promise<Client> => {
     notes                : clampString(body.notes, 5000),
     monthly_quota_minutes: validateOptionalNonNegativeNumber(body.monthly_quota_minutes, 'Quota mensuel'),
     monthly_amount       : validateOptionalNonNegativeNumber(body.monthly_amount,        'Montant forfait'),
+    project_manager_id   : body.project_manager_id ?? null,
   }
 
   const res = await sbFetch(event, '/rest/v1/eclolink_clients', {

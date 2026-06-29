@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { Site, Group, ProjectManager } from '~/server/utils/types'
+import type { Site, Group } from '~/server/utils/types'
 import type { FilterOption } from '~/components/AppFilterSelect.vue'
 import { techTags } from '~/composables/useTechBadge'
 
 interface ActiveFilterChip {
-  category: 'group' | 'tech' | 'agency' | 'pm'
+  category: 'group' | 'tech' | 'agency' | 'date'
   value   : string
   label   : string
   catLabel: string
@@ -24,7 +24,6 @@ try {
   await Promise.all([
     refs.loadGroups(),
     refs.loadSites(),
-    refs.loadProjectManagers(),
     refs.loadClients(),
     refs.loadTechnologies(),
     refs.loadHosters(),
@@ -36,7 +35,6 @@ try {
 
 const groups              = refs.groups
 const sites               = refs.sites
-const pms                 = refs.projectManagers
 const clients             = refs.clients
 const fetchedTechs        = refs.technologies
 const fetchedHosters      = refs.hosters
@@ -48,16 +46,9 @@ const reloading = ref(false)
 
 async function reloadAll(): Promise<void> {
   reloading.value = true
-  await Promise.all([refs.refreshGroups(), refs.refreshSites(), refs.refreshProjectManagers()])
+  await Promise.all([refs.refreshGroups(), refs.refreshSites()])
   reloading.value = false
 }
-
-// ── Lookup cheffes de projet ──────────────────────────────────────
-const pmById = computed(() => {
-  const map = new Map<string, ProjectManager>()
-  for (const pm of pms.value) map.set(pm.id, pm)
-  return map
-})
 
 // ── Groupage des sites ────────────────────────────────────────────
 const sitesByGroup = computed(() => {
@@ -89,38 +80,39 @@ const collapseAllTick  = ref(0)
 function expandAll():   void { expandAllTick.value++   }
 function collapseAll(): void { collapseAllTick.value++ }
 
-// ── Filtres (multi-sélection) ─────────────────────────────────────
+// ── Filtres (multi-sélection + plage de dates de mise en ligne) ───
 const filterGroups   = ref<string[]>([])
 const filterTechs    = ref<string[]>([])
 const filterAgencies = ref<string[]>([])
-const filterPms      = ref<string[]>([])
+const dateFrom       = ref<string>('')  // ISO YYYY-MM-DD (go_live_date)
+const dateTo         = ref<string>('')
 
 interface FilterOpts {
   groups  : string[]
   techs   : string[]
   agencies: string[]
-  pms     : string[]
+  from    : string
+  to      : string
 }
 
 function matchesCombination(s: Site, opts: FilterOpts): boolean {
   if (opts.groups.length   && !opts.groups.includes(s.group_id ?? ''))                          return false
   if (opts.techs.length    && !opts.techs.some((t: string) => techTags(s).includes(t)))         return false
   if (opts.agencies.length && !opts.agencies.includes(s.agency ?? ''))                          return false
-  if (opts.pms.length      && !opts.pms.includes(s.project_manager_id ?? ''))                   return false
+  // Plage de dates : un site sans date de mise en ligne est exclu dès qu'une borne est active
+  if (opts.from && (!s.go_live_date || s.go_live_date < opts.from))                             return false
+  if (opts.to   && (!s.go_live_date || s.go_live_date > opts.to))                               return false
   return true
 }
 
 const baseSitesForGroup   = computed((): Site[] =>
-  sites.value.filter((s: Site) => matchesCombination(s, { groups: [], techs: filterTechs.value, agencies: filterAgencies.value, pms: filterPms.value })),
+  sites.value.filter((s: Site) => matchesCombination(s, { groups: [], techs: filterTechs.value, agencies: filterAgencies.value, from: dateFrom.value, to: dateTo.value })),
 )
 const baseSitesForTech    = computed((): Site[] =>
-  sites.value.filter((s: Site) => matchesCombination(s, { groups: filterGroups.value, techs: [], agencies: filterAgencies.value, pms: filterPms.value })),
+  sites.value.filter((s: Site) => matchesCombination(s, { groups: filterGroups.value, techs: [], agencies: filterAgencies.value, from: dateFrom.value, to: dateTo.value })),
 )
 const baseSitesForAgency  = computed((): Site[] =>
-  sites.value.filter((s: Site) => matchesCombination(s, { groups: filterGroups.value, techs: filterTechs.value, agencies: [], pms: filterPms.value })),
-)
-const baseSitesForPm      = computed((): Site[] =>
-  sites.value.filter((s: Site) => matchesCombination(s, { groups: filterGroups.value, techs: filterTechs.value, agencies: filterAgencies.value, pms: [] })),
+  sites.value.filter((s: Site) => matchesCombination(s, { groups: filterGroups.value, techs: filterTechs.value, agencies: [], from: dateFrom.value, to: dateTo.value })),
 )
 
 const filterGroupOptions = computed((): FilterOption[] =>
@@ -145,19 +137,15 @@ const filterAgencyOptions = computed((): FilterOption[] => {
     disabled: !baseSitesForAgency.value.some((s: Site) => s.agency === a),
   }))
 })
-const filterPmOptions = computed((): FilterOption[] =>
-  pms.value.map((pm: ProjectManager): FilterOption => ({
-    id: pm.id, label: `${pm.first_name} ${pm.last_name}`,
-    disabled: !baseSitesForPm.value.some((s: Site) => s.project_manager_id === pm.id),
-  })),
-)
+
+const hasDateFilter = computed((): boolean => !!dateFrom.value || !!dateTo.value)
 
 const filteredSitesByGroup = computed((): Map<string, Site[]> => {
   const result = new Map<string, Site[]>()
   for (const [groupId, list] of sitesByGroup.value) {
     result.set(groupId, list.filter((s: Site) => matchesCombination(s, {
       groups: filterGroups.value, techs: filterTechs.value,
-      agencies: filterAgencies.value, pms: filterPms.value,
+      agencies: filterAgencies.value, from: dateFrom.value, to: dateTo.value,
     })))
   }
   return result
@@ -165,7 +153,7 @@ const filteredSitesByGroup = computed((): Map<string, Site[]> => {
 const filteredGroups = computed((): Group[] =>
   groups.value.filter((g: Group): boolean => {
     if (filterGroups.value.length && !filterGroups.value.includes(g.id)) return false
-    if (filterTechs.value.length || filterAgencies.value.length || filterPms.value.length) {
+    if (filterTechs.value.length || filterAgencies.value.length || hasDateFilter.value) {
       return (filteredSitesByGroup.value.get(g.id) ?? []).length > 0
     }
     return true
@@ -174,11 +162,17 @@ const filteredGroups = computed((): Group[] =>
 const filteredUngrouped = computed((): Site[] => {
   if (filterGroups.value.length) return []
   return (sitesByGroup.value.get('__none__') ?? []).filter((s: Site) => matchesCombination(s, {
-    groups: [], techs: filterTechs.value, agencies: filterAgencies.value, pms: filterPms.value,
+    groups: [], techs: filterTechs.value, agencies: filterAgencies.value, from: dateFrom.value, to: dateTo.value,
   }))
 })
 
 // ── Filtres actifs (chips) ────────────────────────────────────────
+function isoToDisplay(iso: string): string {
+  if (!iso) return ''
+  const p = iso.split('-')
+  return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : iso
+}
+
 const activeFilterChips = computed((): ActiveFilterChip[] => {
   const chips: ActiveFilterChip[] = []
   for (const id of filterGroups.value) {
@@ -189,9 +183,11 @@ const activeFilterChips = computed((): ActiveFilterChip[] => {
     chips.push({ category: 'tech', value: t, label: t, catLabel: 'Techno' })
   for (const a of filterAgencies.value)
     chips.push({ category: 'agency', value: a, label: a, catLabel: 'Agence' })
-  for (const id of filterPms.value) {
-    const pm = pms.value.find((p: ProjectManager) => p.id === id)
-    if (pm) chips.push({ category: 'pm', value: id, label: `${pm.first_name} ${pm.last_name}`, catLabel: 'Cheffe' })
+  if (hasDateFilter.value) {
+    const label = dateFrom.value && dateFrom.value === dateTo.value
+      ? isoToDisplay(dateFrom.value)
+      : `${isoToDisplay(dateFrom.value) || '…'} → ${isoToDisplay(dateTo.value) || '…'}`
+    chips.push({ category: 'date', value: 'date', label, catLabel: 'Mise en ligne' })
   }
   return chips
 })
@@ -201,13 +197,13 @@ function removeFilterChip(chip: ActiveFilterChip): void {
     case 'group':  filterGroups.value   = filterGroups.value.filter((v: string) => v !== chip.value);   break
     case 'tech':   filterTechs.value    = filterTechs.value.filter((v: string) => v !== chip.value);    break
     case 'agency': filterAgencies.value = filterAgencies.value.filter((v: string) => v !== chip.value); break
-    case 'pm':     filterPms.value      = filterPms.value.filter((v: string) => v !== chip.value);      break
+    case 'date':   dateFrom.value = ''; dateTo.value = '';                                              break
   }
 }
 
 function clearAllFilters(): void {
   filterGroups.value = []; filterTechs.value = []
-  filterAgencies.value = []; filterPms.value = []
+  filterAgencies.value = []; dateFrom.value = ''; dateTo.value = ''
 }
 
 // ── CRUD serveurs ─────────────────────────────────────────────────
@@ -249,8 +245,8 @@ function openEditSite(s: Parameters<typeof openEditSiteRaw>[0]): void { void ref
         v-model:query="query"
         v-model:results="results"
         :items="sites"
-        :fields="['name', 'url', 'bo_url', 'agency']"
-        placeholder="Rechercher un site, URL, serveur"
+        :fields="['name']"
+        placeholder="Rechercher un site par nom"
       />
       <div class="toolbar-actions">
         <button class="btn icon-only" :disabled="reloading" title="Recharger les données" @click="reloadAll">
@@ -280,7 +276,7 @@ function openEditSite(s: Parameters<typeof openEditSiteRaw>[0]): void { void ref
           <AppFilterSelect v-model="filterGroups"   label="Serveur"     :options="filterGroupOptions" />
           <AppFilterSelect v-model="filterTechs"    label="Technologie" :options="filterTechOptions" />
           <AppFilterSelect v-model="filterAgencies" label="Agence"      :options="filterAgencyOptions" />
-          <AppFilterSelect v-model="filterPms"      label="Cheffe"      :options="filterPmOptions" />
+          <AppDateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" />
         </div>
         <div class="filters-right">
           <button class="btn" title="Déplier tous les serveurs" @click="expandAll">Déplier</button>
@@ -314,7 +310,6 @@ function openEditSite(s: Parameters<typeof openEditSiteRaw>[0]): void { void ref
           v-for="site in results"
           :key="site.id"
           :site="site"
-          :pm-by-id="pmById"
           :highlight-query="query"
           :server-label="serverLabel(site)"
           @edit="openEditSite"
@@ -330,7 +325,6 @@ function openEditSite(s: Parameters<typeof openEditSiteRaw>[0]): void { void ref
             :key="group.id"
             :group="group"
             :sites="filteredSitesByGroup.get(group.id) ?? []"
-            :pm-by-id="pmById"
             :hosters="fetchedHosters"
             :web-servers="fetchedWebServers"
             :expand-all-tick="expandAllTick"
@@ -345,7 +339,6 @@ function openEditSite(s: Parameters<typeof openEditSiteRaw>[0]): void { void ref
             v-if="filteredUngrouped.length"
             :group="{ id: '__none__', name: 'Sans serveur', hoster: null, ip_public: null, ip_local: null, web_server: null }"
             :sites="filteredUngrouped"
-            :pm-by-id="pmById"
             :hosters="fetchedHosters"
             :web-servers="fetchedWebServers"
             :name-is-muted="true"
@@ -444,7 +437,6 @@ function openEditSite(s: Parameters<typeof openEditSiteRaw>[0]): void { void ref
           :error="addSiteError"
           :loading="addSiteLoading"
           :groups="groups"
-          :project-managers="pms"
           :clients="clients"
           :technologies="fetchedTechs"
           :hosters="fetchedHosters"
@@ -466,7 +458,6 @@ function openEditSite(s: Parameters<typeof openEditSiteRaw>[0]): void { void ref
           :error="editSiteError"
           :loading="editSiteLoading"
           :groups="groups"
-          :project-managers="pms"
           :clients="clients"
           :technologies="fetchedTechs"
           :hosters="fetchedHosters"

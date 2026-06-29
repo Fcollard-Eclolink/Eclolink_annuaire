@@ -9,7 +9,6 @@ interface SitePatch {
   dns_zone          ?: string | null
   go_live_date      ?: string | null
   technologies      ?: string | null
-  project_manager_id?: string | null
   client_id         ?: string | null
   registrar         ?: string | null
   notes             ?: string | null
@@ -34,7 +33,6 @@ export default defineEventHandler(async (event): Promise<Site> => {
   if (body.dns_zone           !== undefined) safePayload.dns_zone     = clampString(body.dns_zone,               100)
   if (body.go_live_date       !== undefined) safePayload.go_live_date = validateOptionalIsoDate(body.go_live_date, 'Date de mise en ligne')
   if (body.technologies       !== undefined) safePayload.technologies = clampString(body.technologies,           2000)
-  if (body.project_manager_id !== undefined) safePayload.project_manager_id = body.project_manager_id ?? null
   if (body.client_id          !== undefined) safePayload.client_id    = body.client_id ?? null
   if (body.registrar          !== undefined) safePayload.registrar    = clampString(body.registrar,              100)
   if (body.notes              !== undefined) safePayload.notes        = clampString(body.notes,                  5000)

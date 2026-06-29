@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import type { Site, ProjectManager } from '~/server/utils/types'
+import type { Site } from '~/server/utils/types'
 import { techTags, techIconUrl, techIconSvg } from '~/composables/useTechBadge'
 
 const props = defineProps<{
   site          : Site
-  pmById        : Map<string, ProjectManager>
   highlightQuery?: string
   serverLabel   ?: string
 }>()
@@ -47,14 +46,8 @@ onUnmounted(() => {
 })
 
 // ── Helpers ───────────────────────────────────────────────────────
-const pm = computed(() =>
-  props.site.project_manager_id
-    ? (props.pmById.get(props.site.project_manager_id) ?? null)
-    : null
-)
-
 function hasSiteInfo(site: Site): boolean {
-  return !!(site.dns_zone || site.php_version || site.go_live_date || pm.value || site.notes)
+  return !!(site.dns_zone || site.php_version || site.go_live_date || site.notes)
 }
 
 function escapeHtml(s: string): string {
@@ -138,10 +131,6 @@ const highlightedName = computed((): string => {
           @click="toggleInfo"
         >&#x2139;</button>
         <div v-if="isInfoOpen" class="info-popover">
-          <div v-if="pm" class="info-row">
-            <span class="info-label">Cheffe de projet</span>
-            <span class="info-val">{{ pm.first_name }} {{ pm.last_name }}</span>
-          </div>
           <div v-if="site.dns_zone" class="info-row">
             <span class="info-label">Zone DNS</span>
             <span class="info-val">{{ site.dns_zone }}</span>

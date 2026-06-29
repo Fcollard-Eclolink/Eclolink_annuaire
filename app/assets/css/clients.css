@@ -76,6 +76,21 @@
   color: var(--text-muted);
 }
 
+.client-card-pm {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-4);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-medium);
+  background: transparent;
+  border: var(--bw) solid var(--border-input);
+  border-radius: var(--radius-full);
+  padding: var(--sp-4) var(--sp-8);
+  color: var(--text-muted);
+
+  & svg { flex-shrink: 0; }
+}
+
 .client-card-contact {
   display: flex;
   flex-direction: column;

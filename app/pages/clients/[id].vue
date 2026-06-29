@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Client, Maintenance, Site, Developer, MaintenanceType } from '~/server/utils/types'
+import type { Client, Maintenance, Site, Developer, MaintenanceType, ProjectManager } from '~/server/utils/types'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -19,6 +19,7 @@ await Promise.all([
   refs.loadDevelopers(),
   refs.loadMaintenanceTypes(),
   refs.loadAgencies(),
+  refs.loadProjectManagers(),
 ])
 
 const clients          = refs.clients
@@ -27,6 +28,14 @@ const sites            = refs.sites
 const developers       = refs.developers
 const maintenanceTypes = refs.maintenanceTypes
 const agencies         = refs.agencies
+const projectManagers  = refs.projectManagers
+
+const clientPmName = computed((): string => {
+  const id = client.value?.project_manager_id
+  if (!id) return ''
+  const pm = projectManagers.value.find((p: ProjectManager): boolean => p.id === id)
+  return pm ? `${pm.first_name} ${pm.last_name}` : ''
+})
 
 // CRUD client
 const {
@@ -260,6 +269,10 @@ const quotaClass = computed((): string => {
           <h3 class="client-detail-card-title">Informations</h3>
           <dl class="client-info-list">
             <div class="client-info-row">
+              <dt>Cheffe de projet</dt>
+              <dd>{{ clientPmName || '—' }}</dd>
+            </div>
+            <div class="client-info-row">
               <dt>Contact</dt>
               <dd>{{ client.contact_name || '—' }}</dd>
             </div>
@@ -440,6 +453,7 @@ const quotaClass = computed((): string => {
           :error="clientError"
           :loading="clientLoading"
           :agencies="agencies"
+          :project-managers="projectManagers"
           submit-label="Enregistrer"
           submit-loading-label="Enregistrement…"
           @close="closeClientEdit"

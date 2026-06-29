@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Client, Agency, MaintenanceType } from '~/server/utils/types'
+import type { Client, Agency, MaintenanceType, ProjectManager } from '~/server/utils/types'
 import type { FilterOption } from '~/components/AppFilterSelect.vue'
 import type { FilterDef } from '~/components/AppFilterBar.vue'
 
@@ -15,6 +15,7 @@ await Promise.all([
   refs.loadSites(),
   refs.loadAgencies(),
   refs.loadMaintenanceTypes(),
+  refs.loadProjectManagers(),
 ])
 
 const clients          = refs.clients
@@ -22,6 +23,19 @@ const maintenances     = refs.maintenances
 const sites            = refs.sites
 const agencies         = refs.agencies
 const maintenanceTypes = refs.maintenanceTypes
+const projectManagers  = refs.projectManagers
+
+const pmById = computed((): Map<string, ProjectManager> => {
+  const m = new Map<string, ProjectManager>()
+  for (const pm of projectManagers.value) m.set(pm.id, pm)
+  return m
+})
+
+function pmName(id: string | null): string {
+  if (!id) return ''
+  const pm = pmById.value.get(id)
+  return pm ? `${pm.first_name} ${pm.last_name}` : ''
+}
 
 /** Pour chaque client, nombre de sites sous contrat de maintenance. */
 const maintenanceSitesByClient = computed((): Map<string, number> => {
@@ -91,6 +105,12 @@ const filterDefs = computed((): FilterDef<Client>[] => {
     id: c.id, label: c.name, disabled: false,
   }))
 
+  const presentPms = new Set<string>()
+  for (const c of clients.value) if (c.project_manager_id) presentPms.add(c.project_manager_id)
+  const pmOpts: FilterOption[] = projectManagers.value
+    .filter((pm: ProjectManager): boolean => presentPms.has(pm.id))
+    .map((pm: ProjectManager): FilterOption => ({ id: pm.id, label: `${pm.first_name} ${pm.last_name}`, disabled: false }))
+
   return [
     {
       key: 'maintTypes', label: 'Type de maintenance', options: maintOpts,
@@ -99,6 +119,10 @@ const filterDefs = computed((): FilterDef<Client>[] => {
         if (!types) return false
         return selected.some((t: string): boolean => types.has(t))
       },
+    },
+    {
+      key: 'pm', label: 'Cheffe', options: pmOpts,
+      match: (c: Client, selected: string[]): boolean => selected.includes(c.project_manager_id ?? ''),
     },
     {
       key: 'agency', label: 'Agence', options: agencyOpts,
@@ -210,6 +234,15 @@ function handleDelete(e: Event, c: Client): void {
               <span v-if="maintenanceSitesByClient.get(c.id)" class="client-card-badge">
                 {{ maintenanceSitesByClient.get(c.id) }} site{{ (maintenanceSitesByClient.get(c.id) ?? 0) > 1 ? 's' : '' }} sous maintenance
               </span>
+              <span v-if="pmName(c.project_manager_id)" class="client-card-pm" title="Cheffe de projet">
+                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                {{ pmName(c.project_manager_id) }}
+              </span>
             </div>
             <span v-if="c.agency" class="client-card-agency">{{ c.agency }}</span>
           </div>
@@ -260,6 +293,7 @@ function handleDelete(e: Event, c: Client): void {
           :error="clientError"
           :loading="clientLoading"
           :agencies="agencies"
+          :project-managers="projectManagers"
           submit-label="Créer"
           submit-loading-label="Création…"
           @close="closeClientAdd"
@@ -277,6 +311,7 @@ function handleDelete(e: Event, c: Client): void {
           :error="clientError"
           :loading="clientLoading"
           :agencies="agencies"
+          :project-managers="projectManagers"
           submit-label="Enregistrer"
           submit-loading-label="Enregistrement…"
           @close="closeClientEdit"
