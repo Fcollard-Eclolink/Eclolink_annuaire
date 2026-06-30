@@ -35,5 +35,6 @@ export default defineEventHandler(async (event): Promise<Client> => {
 
   const rows = (await res.json()) as Client[]
   if (!rows[0]) throw createError({ statusCode: 404, message: 'Client introuvable' })
+  void logActivity(event, 'update', 'client', id, null)
   return rows[0]
 })

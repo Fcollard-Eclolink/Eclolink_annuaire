@@ -10,8 +10,13 @@ export interface SupabaseTokenData {
 }
 
 export interface SupabaseUser {
-  id   : string
-  email: string
+  id        : string
+  email     : string
+  first_name: string
+  last_name : string
+  role      : 'sysadmin' | 'dev' | 'pm' | 'crea' | 'viewer'
+  agency    : string | null
+  job_title : string | null
 }
 
 // ── Constantes ────────────────────────────────────────────────────

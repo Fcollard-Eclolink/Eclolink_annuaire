@@ -35,5 +35,6 @@ export default defineEventHandler(async (event): Promise<Maintenance> => {
 
   const rows = (await res.json()) as Maintenance[]
   if (!rows[0]) throw createError({ statusCode: 404, message: 'Intervention introuvable' })
+  void logActivity(event, 'update', 'maintenance', rows[0].id, rows[0].site_id)
   return rows[0]
 })

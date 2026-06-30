@@ -34,5 +34,6 @@ export default defineEventHandler(async (event): Promise<Client> => {
 
   const rows = (await res.json()) as Client[]
   if (!rows[0]) throw createError({ statusCode: 500, message: 'Erreur lors de la création' })
+  void logActivity(event, 'create', 'client', rows[0].id, safePayload.name)
   return rows[0]
 })

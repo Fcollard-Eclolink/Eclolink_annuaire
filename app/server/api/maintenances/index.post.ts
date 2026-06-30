@@ -34,5 +34,6 @@ export default defineEventHandler(async (event): Promise<Maintenance> => {
 
   const rows = (await res.json()) as Maintenance[]
   if (!rows[0]) throw createError({ statusCode: 500, message: 'Erreur lors de la création' })
+  void logActivity(event, 'create', 'maintenance', rows[0].id, rows[0].site_id)
   return rows[0]
 })

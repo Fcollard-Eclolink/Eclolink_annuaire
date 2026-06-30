@@ -32,19 +32,41 @@ export interface Client {
 }
 
 export interface Group {
-  id        : string
-  name      : string
-  hoster    : string | null
-  ip_public : string | null
-  ip_local  : string | null
-  web_server: string | null
+  id         : string
+  name       : string
+  hoster     : string | null
+  ip_public  : string | null
+  ip_local   : string | null
+  web_server : string | null
+  database_id: string | null
 }
 
-export interface ProjectManager {
-  id        : string
+export interface Bdd {
+  id   : string
+  name : string
+  type : string | null
+  notes: string | null
+}
+
+export interface UserProfile {
+  user_id   : string
   first_name: string
   last_name : string
+  role      : 'sysadmin' | 'dev' | 'pm' | 'crea' | 'viewer'
   agency    : string | null
+  job_title : string | null
+  created_at: string
+}
+
+export interface ActivityLog {
+  id            : string
+  user_id       : string | null
+  user_email    : string
+  action        : 'create' | 'update' | 'delete'
+  resource_type : string
+  resource_id   : string | null
+  resource_label: string | null
+  created_at    : string
 }
 
 export interface Technology {
@@ -76,14 +98,6 @@ export interface DnsProvider {
   id              : string
   name            : string
   simpleicons_slug: string | null
-}
-
-export interface Developer {
-  id        : string
-  first_name: string
-  last_name : string
-  agency    : string | null
-  job_title : string | null
 }
 
 export interface MaintenanceType {
