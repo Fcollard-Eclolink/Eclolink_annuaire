@@ -279,9 +279,8 @@ async function saveModal() {
         agency            : agencyVal,
         go_live_date      : dateVal,
         dns_zone          : dnsVal,
-        group_id          : document.getElementById('f-group').value || null,
-        project_manager_id: null,
-        technologies      : JSON.stringify(techs),
+        group_id    : document.getElementById('f-group').value || null,
+        technologies: JSON.stringify(techs),
         notes             : (document.getElementById('f-notes').value || '').trim()
       };
       if (editId) {

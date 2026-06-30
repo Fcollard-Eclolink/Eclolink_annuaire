@@ -12,9 +12,8 @@ function normalizeSite(s) {
     php_version       : s.php_version        || '',
     agency            : s.agency             || '',
     go_live_date      : s.go_live_date       || '',
-    dns_zone          : s.dns_zone           || '',
-    project_manager_id: s.project_manager_id || null,
-    technologies      : tryParseJSON(s.technologies)
+    dns_zone    : s.dns_zone || '',
+    technologies: tryParseJSON(s.technologies)
   };
 }
 
