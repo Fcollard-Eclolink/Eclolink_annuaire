@@ -14,7 +14,7 @@ function getAvailableSites(excludeKey) {
     if (excludeKey !== 'servers'  && activeFilters.servers.length  && !activeFilters.servers.includes(s.groupId)) return false;
     if (excludeKey !== 'techs'    && activeFilters.techs.length    && !activeFilters.techs.some(t => (s.technologies || []).includes(t))) return false;
     if (excludeKey !== 'agencies' && activeFilters.agencies.length && !activeFilters.agencies.includes(s.agency)) return false;
-    if (excludeKey !== 'pms'      && activeFilters.pms.length      && !activeFilters.pms.includes(s.project_manager_id)) return false;
+
     return true;
   });
 }
@@ -23,7 +23,7 @@ function getAvailableSites(excludeKey) {
 function toggleFilterDropdown(type) {
   const dd = document.getElementById(`filter-dd-${type}`);
   const isOpen = dd?.classList.contains('open');
-  ['server', 'tech', 'agency', 'pm'].forEach(t => {
+  ['server', 'tech', 'agency'].forEach(t => {
     document.getElementById(`filter-dd-${t}`)?.classList.remove('open');
     document.getElementById(`filter-btn-${t}`)?.classList.remove('open');
   });
@@ -79,18 +79,6 @@ function renderFilterDropdown(type) {
     });
     if (!html) html = '<div class="filter-dd-empty">Aucune agence configurée</div>';
 
-  } else if (type === 'pm') {
-    if (!projectManagers.length) { dd.innerHTML = '<div class="filter-dd-empty">Aucune cheffe enregistrée</div>'; return; }
-    const available   = getAvailableSites('pms');
-    const availableIds = new Set(available.map(s => s.project_manager_id).filter(Boolean));
-    [...projectManagers].sort(pmSort).forEach(pm => {
-      const checked   = activeFilters.pms.includes(pm.id);
-      const hasResult = checked || availableIds.has(pm.id);
-      html += `<label class="filter-dd-item${checked ? ' checked' : ''}${!hasResult ? ' disabled' : ''}">
-        <input type="checkbox" ${checked ? 'checked' : ''} ${!hasResult ? 'disabled' : ''} onchange="toggleFilter('pms','${esc(pm.id)}')">
-        ${esc(pmDisplayName(pm))}
-      </label>`;
-    });
   }
 
   dd.innerHTML = html;
@@ -98,7 +86,7 @@ function renderFilterDropdown(type) {
 
 // Re-render les dropdowns ouverts
 function refreshOpenDropdowns() {
-  ['server', 'tech', 'agency', 'pm'].forEach(type => {
+  ['server', 'tech', 'agency'].forEach(type => {
     const dd = document.getElementById(`filter-dd-${type}`);
     if (dd?.classList.contains('open')) renderFilterDropdown(type);
   });
@@ -134,7 +122,7 @@ function clearAllFilters() {
   activeFilters.servers  = [];
   activeFilters.techs    = [];
   activeFilters.agencies = [];
-  activeFilters.pms      = [];
+
   applyFilterChange();
 }
 
@@ -160,11 +148,6 @@ function renderFilterChips() {
     chips.push(`<span class="filter-chip">${esc(ag)}<button onclick="removeFilter('agencies','${esc(ag)}')" title="Retirer">&#10005;</button></span>`);
   });
 
-  activeFilters.pms.forEach(pid => {
-    const pm = projectManagers.find(x => x.id === pid);
-    if (!pm) return;
-    chips.push(`<span class="filter-chip">${esc(pmDisplayName(pm))}<button onclick="removeFilter('pms','${esc(pid)}')" title="Retirer">&#10005;</button></span>`);
-  });
 
   if (chips.length) {
     container.innerHTML = chips.join('') +
@@ -181,12 +164,11 @@ function updateFilterBtnState() {
   document.getElementById('filter-btn-server')?.classList.toggle('active',  activeFilters.servers.length  > 0);
   document.getElementById('filter-btn-tech')?.classList.toggle('active',    activeFilters.techs.length    > 0);
   document.getElementById('filter-btn-agency')?.classList.toggle('active',  activeFilters.agencies.length > 0);
-  document.getElementById('filter-btn-pm')?.classList.toggle('active',      activeFilters.pms.length      > 0);
 }
 
 // Fermeture des dropdowns au clic extérieur
 document.addEventListener('click', e => {
-  ['server', 'tech', 'agency', 'pm'].forEach(type => {
+  ['server', 'tech', 'agency'].forEach(type => {
     const wrap = document.getElementById(`filter-wrap-${type}`);
     if (wrap && !wrap.contains(e.target)) {
       document.getElementById(`filter-dd-${type}`)?.classList.remove('open');

@@ -148,11 +148,6 @@ function openSiteModal(id, pgid) {
     ...[...AGENCIES].sort((a, b) => a.localeCompare(b, 'fr')).map(ag => ({ value: ag, label: ag }))
   ];
 
-  const pmOptions = [
-    { value: '', label: '— Aucune —' },
-    ...[...projectManagers].sort(pmSort).map(p => ({ value: p.id, label: pmDisplayName(p) }))
-  ];
-
   const techOpts = [...TECHS].sort((a, b) => a.label.localeCompare(b.label, 'fr')).map(t => `
     <label class="tech-option">
       <input type="checkbox" value="${t.id}" onchange="updateTechBox()">
@@ -181,10 +176,6 @@ function openSiteModal(id, pgid) {
     <div class="field">
       <label>Version PHP</label>
       <input id="f-php" type="text" value="${esc(s ? s.php_version || '' : '')}" placeholder="Ex : PHP 8.1, PHP 8.2...">
-    </div>
-    <div class="field">
-      <label>Cheffe de projet</label>
-      ${customSelectHTML('f-pm', pmOptions, s?.project_manager_id || '', '— Aucune —')}
     </div>
     <div class="field">
       <label>Agence</label>
@@ -289,7 +280,7 @@ async function saveModal() {
         go_live_date      : dateVal,
         dns_zone          : dnsVal,
         group_id          : document.getElementById('f-group').value || null,
-        project_manager_id: document.getElementById('f-pm').value    || null,
+        project_manager_id: null,
         technologies      : JSON.stringify(techs),
         notes             : (document.getElementById('f-notes').value || '').trim()
       };
@@ -344,15 +335,6 @@ async function executeDelete() {
       groups = groups.filter(g => g.id !== id);
       sites  = sites.map(s => s.groupId === id ? { ...s, groupId: null, group_id: null } : s);
       toast('Serveur supprimé');
-    } else if (type === 'project_manager') {
-      await sbDelete('eclolink_project_managers', id);
-      const assigned = sites.filter(s => s.project_manager_id === id);
-      await Promise.all(assigned.map(s => sbUpdate('eclolink_sites', s.id, { project_manager_id: null })));
-      projectManagers = projectManagers.filter(p => p.id !== id);
-      sites = sites.map(s => s.project_manager_id === id ? { ...s, project_manager_id: null } : s);
-      // Si la modale PM est ouverte, on la re-render
-      if (document.getElementById('pm-wrap').classList.contains('open')) renderPmList();
-      toast('Cheffe supprimée');
     } else {
       await sbDelete('eclolink_sites', id);
       sites = sites.filter(s => s.id !== id);

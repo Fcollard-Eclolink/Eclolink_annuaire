@@ -18,24 +18,13 @@ function normalizeSite(s) {
   };
 }
 
-function normalizePm(p) {
-  return {
-    id        : p.id,
-    first_name: p.first_name || '',
-    last_name : p.last_name  || '',
-    agency    : p.agency     || ''
-  };
-}
-
 async function fetchData() {
-  const [groupsRaw, sitesRaw, pmsRaw] = await Promise.all([
+  const [groupsRaw, sitesRaw] = await Promise.all([
     sbGet('eclolink_groups'),
     sbGet('eclolink_sites'),
-    sbGet('eclolink_project_managers')
   ]);
-  groups          = groupsRaw.map(normalizeGroup);
-  sites           = sitesRaw.map(normalizeSite);
-  projectManagers = pmsRaw.map(normalizePm);
+  groups = groupsRaw.map(normalizeGroup);
+  sites  = sitesRaw.map(normalizeSite);
 }
 
 // ── Chargement des données ────────────────────────────────────────
@@ -56,9 +45,7 @@ document.addEventListener('keydown', e => {
   const ctrl      = e.ctrlKey || e.metaKey;
   const isConfirm = document.getElementById('confirm-wrap').classList.contains('open');
   const isModal   = document.getElementById('modal-wrap').classList.contains('open');
-  const isPm      = document.getElementById('pm-wrap')?.classList.contains('open');
-
-  if (!isConfirm && !isModal && !isPm) {
+  if (!isConfirm && !isModal) {
     if (ctrl && e.key === 'k')               { e.preventDefault(); document.getElementById('search')?.focus(); return; }
     if (ctrl && e.shiftKey && e.key === 'G') { e.preventDefault(); openServerModal(); return; }
     if (ctrl && e.shiftKey && e.key === 'S') { e.preventDefault(); openSiteModal();   return; }
@@ -67,10 +54,6 @@ document.addEventListener('keydown', e => {
   if (isConfirm) {
     if (e.key === 'Escape') { e.preventDefault(); closeConfirm(); }
     if (e.key === 'Enter')  { e.preventDefault(); executeDelete(); }
-    return;
-  }
-  if (isPm) {
-    if (e.key === 'Escape') { e.preventDefault(); closePmModal(); }
     return;
   }
   if (isModal) {

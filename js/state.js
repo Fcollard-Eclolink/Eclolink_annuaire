@@ -1,13 +1,12 @@
 // ── État global de l'application ──────────────────────────────────
 let groups          = [];
 let sites           = [];
-let projectManagers = [];
-let collapsed       = {};
-let modalMode       = null;
-let editId          = null;
-let preGroupId      = null;
-let pendingDelete   = null;
-let activeFilters   = { servers: [], techs: [], agencies: [], pms: [] };
+let collapsed     = {};
+let modalMode     = null;
+let editId        = null;
+let preGroupId    = null;
+let pendingDelete = null;
+let activeFilters = { servers: [], techs: [], agencies: [] };
 
 // ── Utilitaire date ───────────────────────────────────────────────
 function formatDate(str) {

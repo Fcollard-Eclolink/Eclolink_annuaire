@@ -59,29 +59,10 @@
         </div>
       </div>
 
-      <!-- Modale Cheffes de projet -->
-      <div id="pm-wrap" class="overlay" onclick="if(event.target===this)closePmModal()">
-        <div class="modal">
-          <h3>Cheffes de projet</h3>
-          <p class="pm-hint">Modifie un nom et clique ailleurs pour enregistrer.</p>
-          <div id="pm-list"></div>
-          <div class="modal-btns">
-            <button class="btn" onclick="addNewPm()">+ Nouvelle cheffe</button>
-            <button class="btn primary" onclick="closePmModal()">Fermer</button>
-          </div>
-        </div>
-      </div>
-
       <!-- Header -->
       <div class="app-header">
         <h1>Annuaire des serveurs</h1>
         <div class="header-actions">
-          <button class="icon-btn" onclick="openPmModal()" title="Cheffes de projet"><svg viewBox="0 0 24 24"
-              width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-              stroke-linejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg></button>
           <button class="icon-btn" id="theme-btn" onclick="toggleTheme()"></button>
           <button class="icon-btn" onclick="logout()" title="Déconnexion"><svg viewBox="0 0 24 24" width="16"
               height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -128,12 +109,6 @@
             </button>
             <div class="filter-dd" id="filter-dd-agency"></div>
           </div>
-          <div class="filter-wrap" id="filter-wrap-pm">
-            <button class="btn filter-btn" id="filter-btn-pm" onclick="toggleFilterDropdown('pm')">
-              Cheffe <span class="filter-caret">&#9662;</span>
-            </button>
-            <div class="filter-dd" id="filter-dd-pm"></div>
-          </div>
         </div>
         <div class="filter-expand-actions">
           <button class="btn" onclick="expandAllServers()" title="Déplier tous les serveurs">Déplier tous</button>
@@ -169,7 +144,7 @@
   <script src="js/agencies.js"></script>
   <script src="js/filters.js"></script>
   <script src="js/modals.js"></script>
-  <script src="js/projectManagers.js"></script>
+
   <script src="js/app.js"></script>
 </body>
 

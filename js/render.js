@@ -4,8 +4,7 @@ function render() {
   const list       = document.getElementById('list');
   const hasFilters = activeFilters.servers.length  > 0
                   || activeFilters.techs.length    > 0
-                  || activeFilters.agencies.length > 0
-                  || activeFilters.pms.length      > 0;
+                  || activeFilters.agencies.length > 0;
 
   // Maps pour accès O(1) au lieu de find() O(n) dans les boucles
   const groupById    = new Map(groups.map(g => [g.id, g]));
@@ -28,7 +27,7 @@ function render() {
     if (activeFilters.servers.length  && !activeFilters.servers.includes(s.groupId)) return false;
     if (activeFilters.techs.length    && !activeFilters.techs.some(t => (s.technologies || []).includes(t))) return false;
     if (activeFilters.agencies.length && !activeFilters.agencies.includes(s.agency)) return false;
-    if (activeFilters.pms.length      && !activeFilters.pms.includes(s.project_manager_id)) return false;
+
     return true;
   });
 
@@ -113,7 +112,7 @@ function rowHTML(s, q, srvLabel) {
     .join('');
 
   const dateStr = formatDate(s.go_live_date);
-  const hasInfo = s.php_version || s.dns_zone || s.project_manager_id;
+  const hasInfo = s.php_version || s.dns_zone;
 
   return `
     <div class="site-row">
@@ -203,10 +202,7 @@ function toggleSiteInfo(sid, btn) {
 
   const rows = [];
   if (s.php_version) rows.push(`<div class="sti-row"><span class="sti-label">Version PHP</span><span class="sti-val">${esc(s.php_version)}</span></div>`);
-  if (s.project_manager_id) {
-    const pm = projectManagers.find(p => p.id === s.project_manager_id);
-    if (pm) rows.push(`<div class="sti-row"><span class="sti-label">Cheffe de projet</span><span class="sti-val">${esc(pm.first_name)}</span></div>`);
-  }
+
   if (s.dns_zone) {
     const dns = DNS_PROVIDERS.find(d => d.value === s.dns_zone);
     rows.push(`<div class="sti-row"><span class="sti-label">Zone DNS</span><span class="sti-val"><img src="${SI}/${esc(s.dns_zone)}" width="12" height="12" alt="" onerror="this.style.display='none'" style="vertical-align:middle;margin-right:4px;flex-shrink:0">${esc(dns ? dns.label : s.dns_zone)}</span></div>`);
