@@ -33,6 +33,7 @@ function extractError(e: unknown): string {
 export function useClientCrud() {
   const { add: toast }       = useToast()
   const { refreshClients }   = useReferenceData()
+  const { user }             = useAuth()
 
   const addOpen      = ref(false)
   const editTarget   = ref<Client | null>(null)
@@ -47,8 +48,12 @@ export function useClientCrud() {
   }
 
   function openAdd(): void {
-    form.value     = { ...EMPTY }
-    addOpen.value  = true
+    form.value = { ...EMPTY }
+    // Auto-fill : cheffe de projet → pré-remplir son propre compte (modifiable)
+    if (user.value && ['pm', 'sysadmin'].includes(user.value.role)) {
+      form.value.project_manager_id = user.value.id
+    }
+    addOpen.value = true
     resetState()
   }
 

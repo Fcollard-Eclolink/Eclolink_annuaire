@@ -11,7 +11,18 @@
   gap: var(--sp-4);
   border-bottom: var(--bw) solid var(--border);
   margin-bottom: var(--sp-24);
-  overflow: hidden;
+  overflow-x: auto;
+}
+
+/* Cellules de l'onglet Bases de données */
+.admin-bdd-servers {
+  font-size: var(--fs-12);
+}
+
+.admin-bdd-notes {
+  max-width: 280px;
+  color: var(--text-muted);
+  font-size: var(--fs-12);
 }
 
 .admin-tab {
@@ -145,4 +156,25 @@
   font-size: var(--fs-12);
   color: var(--text-muted);
   margin-top: var(--sp-4);
+}
+
+.admin-section-hint {
+  font-size: var(--fs-12);
+  color: var(--text-muted);
+}
+
+/* ── Badge rôle utilisateur ──────────────────────────────────── */
+.admin-role-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: var(--fs-12);
+  font-weight: var(--fw-medium);
+  background: var(--bg-secondary, #f3f4f6);
+  color: var(--text-secondary, #6b7280);
+
+  &[data-role="sysadmin"] { background: #fef3c7; color: #92400e; }
+  &[data-role="dev"]      { background: #dbeafe; color: #1e40af; }
+  &[data-role="pm"]       { background: #d1fae5; color: #065f46; }
+  &[data-role="crea"]     { background: #ede9fe; color: #5b21b6; }
 }

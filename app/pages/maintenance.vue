@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Maintenance, Site, Developer, MaintenanceType, Client, Group } from '~/server/utils/types'
+import type { Maintenance, Site, UserProfile, MaintenanceType, Client, Group } from '~/server/utils/types'
 import type { FilterOption } from '~/components/AppFilterSelect.vue'
 import type { FilterDef } from '~/components/AppFilterBar.vue'
 
@@ -10,7 +10,7 @@ const refs = useReferenceData()
 await Promise.all([
   refs.loadMaintenances(),
   refs.loadSites(),
-  refs.loadDevelopers(),
+  refs.loadUserProfiles(),
   refs.loadMaintenanceTypes(),
   refs.loadClients(),
   refs.loadGroups(),
@@ -18,11 +18,14 @@ await Promise.all([
 
 const maintenances        = refs.maintenances
 const sites               = refs.sites
-const developers          = refs.developers
+const devUsers            = refs.devUsers
 const maintenanceTypes    = refs.maintenanceTypes
 const clients             = refs.clients
 const groups              = refs.groups
 const refreshMaintenances = refs.refreshMaintenances
+
+// Auto-fill : si l'utilisateur connecté est dev/sysadmin, pré-remplir son nom
+const { user } = useAuth()
 
 // ── Lookup maps ───────────────────────────────────────────────
 const siteById = computed((): Map<string, Site> => {
@@ -30,9 +33,9 @@ const siteById = computed((): Map<string, Site> => {
   for (const s of sites.value) m.set(s.id, s)
   return m
 })
-const devById = computed((): Map<string, Developer> => {
-  const m = new Map<string, Developer>()
-  for (const d of developers.value) m.set(d.id, d)
+const devById = computed((): Map<string, UserProfile> => {
+  const m = new Map<string, UserProfile>()
+  for (const d of devUsers.value) m.set(d.user_id, d)
   return m
 })
 const typeById = computed((): Map<string, MaintenanceType> => {
@@ -106,8 +109,8 @@ const filterDefs = computed((): FilterDef<Maintenance>[] => {
   const agencyOpts: FilterOption[] = [...present].sort().map((a: string): FilterOption => ({
     id: a, label: a, disabled: false,
   }))
-  const devOpts: FilterOption[] = developers.value.map((d: Developer): FilterOption => ({
-    id: d.id, label: `${d.first_name} ${d.last_name}`, disabled: false,
+  const devOpts: FilterOption[] = devUsers.value.map((d: UserProfile): FilterOption => ({
+    id: d.user_id, label: `${d.first_name} ${d.last_name}`.trim() || d.user_id, disabled: false,
   }))
   const typeOpts: FilterOption[] = maintenanceTypes.value.map((t: MaintenanceType): FilterOption => ({
     id: t.id, label: t.label, disabled: false,
@@ -195,6 +198,10 @@ function extractError(e: unknown): string {
 
 function openAdd(): void {
   form.value = emptyForm()
+  // Auto-fill : dev/sysadmin → pré-remplir son propre nom (modifiable)
+  if (user.value && ['dev', 'sysadmin'].includes(user.value.role)) {
+    form.value.developer_id = user.value.id
+  }
   addOpen.value = true
   resetModal()
 }
@@ -720,7 +727,7 @@ function openAddForSite(site: Site): void {
                 <label>Développeur</label>
                 <AppSelect
                   v-model="form.developer_id"
-                  :options="developers.map((d: Developer) => ({ value: d.id, label: d.job_title ? `${d.first_name} ${d.last_name} — ${d.job_title}` : `${d.first_name} ${d.last_name}` }))"
+                  :options="devUsers.map((d: UserProfile) => ({ value: d.user_id, label: d.job_title ? `${d.first_name} ${d.last_name} — ${d.job_title}` : (`${d.first_name} ${d.last_name}`.trim() || d.user_id) }))"
                   placeholder="— Aucun —"
                 />
               </div>

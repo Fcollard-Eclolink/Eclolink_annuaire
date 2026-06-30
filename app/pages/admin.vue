@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Technology, Agency, Hoster, WebServer, DnsProvider, ProjectManager, Site, Developer, MaintenanceType } from '~/server/utils/types'
+import type { Technology, Agency, Hoster, WebServer, DnsProvider, UserProfile, Site, MaintenanceType, Bdd, Group } from '~/server/utils/types'
 import { techTags } from '~/composables/useTechBadge'
 
 definePageMeta({ middleware: 'auth' })
@@ -7,18 +7,18 @@ definePageMeta({ middleware: 'auth' })
 const { user } = useAuth()
 
 // ── Tabs ──────────────────────────────────────────────────────
-type TabId = 'technologies' | 'agencies' | 'hosters' | 'web-servers' | 'dns-providers' | 'project-managers' | 'developers' | 'maintenance-types'
+type TabId = 'technologies' | 'agencies' | 'hosters' | 'web-servers' | 'dns-providers' | 'databases' | 'users' | 'maintenance-types'
 
 const activeTab = ref<TabId>('technologies')
 
 const tabs: { id: TabId; label: string }[] = [
-  { id: 'technologies',    label: 'Technologies'   },
-  { id: 'agencies',        label: 'Agences'        },
-  { id: 'hosters',         label: 'Hébergeurs'     },
-  { id: 'web-servers',     label: 'Serveurs web'   },
-  { id: 'dns-providers',   label: 'DNS'            },
-  { id: 'project-managers', label: 'Cheffes de projet' },
-  { id: 'developers',      label: 'Développeurs'   },
+  { id: 'technologies',    label: 'Technologies'     },
+  { id: 'agencies',        label: 'Agences'          },
+  { id: 'hosters',         label: 'Hébergeurs'       },
+  { id: 'web-servers',     label: 'Serveurs web'     },
+  { id: 'dns-providers',   label: 'DNS'              },
+  { id: 'databases',       label: 'Bases de données' },
+  { id: 'users',           label: 'Utilisateurs'     },
   { id: 'maintenance-types', label: 'Types maintenance' },
 ]
 
@@ -30,9 +30,10 @@ await Promise.all([
   refs.loadHosters(),
   refs.loadWebServers(),
   refs.loadDnsProviders(),
-  refs.loadProjectManagers(),
-  refs.loadDevelopers(),
+  refs.loadUserProfiles(),
   refs.loadMaintenanceTypes(),
+  refs.loadDatabases(),
+  refs.loadGroups(),
   // sites : différé jusqu'à l'activation de l'onglet "Technologies"
 ])
 
@@ -41,19 +42,21 @@ const agencies         = refs.agencies
 const hosters          = refs.hosters
 const webServers       = refs.webServers
 const dnsProviders     = refs.dnsProviders
-const pms              = refs.projectManagers
-const developers       = refs.developers
+const userProfiles     = refs.userProfiles
 const maintenanceTypes = refs.maintenanceTypes
 const sites            = refs.sites
+const databases        = refs.databases
+const groups           = refs.groups
 
 const refreshTechs             = refs.refreshTechnologies
 const refreshAgencies          = refs.refreshAgencies
 const refreshHosters           = refs.refreshHosters
 const refreshWebServers        = refs.refreshWebServers
 const refreshDns               = refs.refreshDnsProviders
-const refreshPms               = refs.refreshProjectManagers
-const refreshDevelopers        = refs.refreshDevelopers
+const refreshUsers             = refs.refreshUserProfiles
 const refreshMaintenanceTypes  = refs.refreshMaintenanceTypes
+const refreshDatabases         = refs.refreshDatabases
+const refreshGroups            = refs.refreshGroups
 
 // Lazy fetch sites uniquement quand l'onglet Technologies est activé (seul consommateur)
 watch((): TabId => activeTab.value, (tab: TabId): void => {
@@ -277,101 +280,50 @@ const hosterCrud    = makeLogoCrud<Hoster>('/api/hosters', hosters, refreshHoste
 const webServerCrud = makeLogoCrud<WebServer>('/api/web-servers', webServers, refreshWebServers)
 const dnsCrud       = makeLogoCrud<DnsProvider>('/api/dns-providers', dnsProviders, refreshDns)
 
-// ── Project Managers CRUD ─────────────────────────────────────
-interface PmForm { first_name: string; last_name: string; agency: string }
-
-const pmAddOpen      = ref(false)
-const pmEditTarget   = ref<ProjectManager | null>(null)
-const pmDeleteTarget = ref<ProjectManager | null>(null)
-const pmForm         = ref<PmForm>({ first_name: '', last_name: '', agency: '' })
-
-function openPmAdd(): void  { pmForm.value = { first_name: '', last_name: '', agency: '' }; pmAddOpen.value = true; resetModal() }
-function openPmEdit(p: ProjectManager): void { pmForm.value = { first_name: p.first_name, last_name: p.last_name, agency: p.agency ?? '' }; pmEditTarget.value = p; resetModal() }
-function closePmAdd():    void { pmAddOpen.value = false }
-function closePmEdit():   void { pmEditTarget.value = null }
-function closePmDelete(): void { pmDeleteTarget.value = null }
-
-async function confirmPmAdd(): Promise<void> {
-  modalLoading.value = true; modalError.value = null
-  try {
-    await $fetch('/api/project-managers', { method: 'POST', body: { first_name: pmForm.value.first_name.trim(), last_name: pmForm.value.last_name.trim(), agency: pmForm.value.agency.trim() || null } })
-    await refreshPms(); pmAddOpen.value = false
-    toast('Cheffe de projet ajoutée.')
-  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
-  finally { modalLoading.value = false }
+// ── Users CRUD (édition profil uniquement — les comptes sont créés dans Supabase) ──
+const ROLE_LABELS: Record<string, string> = {
+  sysadmin: 'Sysadmin',
+  dev     : 'Développeur',
+  pm      : 'Cheffe de projet',
+  crea    : 'Créatif',
+  viewer  : 'Lecteur',
 }
 
-async function confirmPmEdit(): Promise<void> {
-  if (!pmEditTarget.value) return
-  modalLoading.value = true; modalError.value = null
-  try {
-    await $fetch(`/api/project-managers/${pmEditTarget.value.id}`, { method: 'PATCH', body: { first_name: pmForm.value.first_name.trim(), last_name: pmForm.value.last_name.trim(), agency: pmForm.value.agency.trim() || null } })
-    await refreshPms(); pmEditTarget.value = null
-    toast('Cheffe de projet mise à jour.')
-  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
-  finally { modalLoading.value = false }
-}
+interface UserForm { first_name: string; last_name: string; role: string; agency: string; job_title: string }
 
-async function confirmPmDelete(): Promise<void> {
-  if (!pmDeleteTarget.value) return
-  modalLoading.value = true; modalError.value = null
-  try {
-    await $fetch(`/api/project-managers/${pmDeleteTarget.value.id}`, { method: 'DELETE' })
-    await refreshPms(); pmDeleteTarget.value = null
-    toast('Cheffe de projet supprimée.')
-  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
-  finally { modalLoading.value = false }
-}
+const userEditTarget   = ref<UserProfile | null>(null)
+const userForm         = ref<UserForm>({ first_name: '', last_name: '', role: 'viewer', agency: '', job_title: '' })
 
-// ── Developers CRUD ───────────────────────────────────────────
-interface DevForm { first_name: string; last_name: string; agency: string; job_title: string }
-
-const devAddOpen      = ref(false)
-const devEditTarget   = ref<Developer | null>(null)
-const devDeleteTarget = ref<Developer | null>(null)
-const devForm         = ref<DevForm>({ first_name: '', last_name: '', agency: '', job_title: '' })
-
-function openDevAdd(): void  { devForm.value = { first_name: '', last_name: '', agency: '', job_title: '' }; devAddOpen.value = true; resetModal() }
-function openDevEdit(d: Developer): void { devForm.value = { first_name: d.first_name, last_name: d.last_name, agency: d.agency ?? '', job_title: d.job_title ?? '' }; devEditTarget.value = d; resetModal() }
-function closeDevAdd():    void { devAddOpen.value = false }
-function closeDevEdit():   void { devEditTarget.value = null }
-function closeDevDelete(): void { devDeleteTarget.value = null }
-
-function devBody(): Record<string, string | null> {
-  return {
-    first_name: devForm.value.first_name.trim(),
-    last_name : devForm.value.last_name.trim(),
-    agency    : devForm.value.agency.trim()    || null,
-    job_title : devForm.value.job_title.trim() || null,
+function openUserEdit(u: UserProfile): void {
+  userForm.value = {
+    first_name: u.first_name,
+    last_name : u.last_name,
+    role      : u.role,
+    agency    : u.agency    ?? '',
+    job_title : u.job_title ?? '',
   }
+  userEditTarget.value = u
+  resetModal()
 }
+function closeUserEdit(): void { userEditTarget.value = null }
 
-async function confirmDevAdd(): Promise<void> {
+async function confirmUserEdit(): Promise<void> {
+  if (!userEditTarget.value) return
   modalLoading.value = true; modalError.value = null
   try {
-    await $fetch('/api/developers', { method: 'POST', body: devBody() })
-    await refreshDevelopers(); devAddOpen.value = false
-    toast('Développeur ajouté.')
-  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
-  finally { modalLoading.value = false }
-}
-async function confirmDevEdit(): Promise<void> {
-  if (!devEditTarget.value) return
-  modalLoading.value = true; modalError.value = null
-  try {
-    await $fetch(`/api/developers/${devEditTarget.value.id}`, { method: 'PATCH', body: devBody() })
-    await refreshDevelopers(); devEditTarget.value = null
-    toast('Développeur mis à jour.')
-  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
-  finally { modalLoading.value = false }
-}
-async function confirmDevDelete(): Promise<void> {
-  if (!devDeleteTarget.value) return
-  modalLoading.value = true; modalError.value = null
-  try {
-    await $fetch(`/api/developers/${devDeleteTarget.value.id}`, { method: 'DELETE' })
-    await refreshDevelopers(); devDeleteTarget.value = null
-    toast('Développeur supprimé.')
+    await $fetch(`/api/users/${userEditTarget.value.user_id}`, {
+      method: 'PATCH',
+      body  : {
+        first_name: userForm.value.first_name.trim(),
+        last_name : userForm.value.last_name.trim(),
+        role      : userForm.value.role,
+        agency    : userForm.value.agency.trim()    || null,
+        job_title : userForm.value.job_title.trim() || null,
+      },
+    })
+    await refreshUsers()
+    userEditTarget.value = null
+    toast('Profil mis à jour.')
   } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
   finally { modalLoading.value = false }
 }
@@ -416,6 +368,91 @@ async function confirmMtDelete(): Promise<void> {
     await $fetch(`/api/maintenance-types/${mtDeleteTarget.value.id}`, { method: 'DELETE' })
     await refreshMaintenanceTypes(); mtDeleteTarget.value = null
     toast('Type de maintenance supprimé.')
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
+  finally { modalLoading.value = false }
+}
+
+// ── Databases (BDD) CRUD ──────────────────────────────────────
+interface BddForm { name: string; type: string; notes: string; server_ids: string }
+
+const bddAddOpen      = ref(false)
+const bddEditTarget   = ref<Bdd | null>(null)
+const bddDeleteTarget = ref<Bdd | null>(null)
+const bddForm         = ref<BddForm>({ name: '', type: '', notes: '', server_ids: '' })
+
+/** Serveurs actuellement rattachés à une BDD. */
+function serversForBdd(bddId: string): Group[] {
+  return groups.value.filter((g: Group): boolean => g.database_id === bddId)
+}
+function serverIdsCsv(bddId: string): string {
+  return serversForBdd(bddId).map((g: Group): string => g.id).join(',')
+}
+
+function openBddAdd(): void {
+  bddForm.value = { name: '', type: '', notes: '', server_ids: '' }
+  bddAddOpen.value = true
+  resetModal()
+}
+function openBddEdit(b: Bdd): void {
+  bddForm.value = { name: b.name, type: b.type ?? '', notes: b.notes ?? '', server_ids: serverIdsCsv(b.id) }
+  bddEditTarget.value = b
+  resetModal()
+}
+function closeBddAdd():    void { bddAddOpen.value = false }
+function closeBddEdit():   void { bddEditTarget.value = null }
+function closeBddDelete(): void { bddDeleteTarget.value = null }
+
+function bddBody(): Record<string, string | null> {
+  return {
+    name : bddForm.value.name.trim(),
+    type : bddForm.value.type.trim()  || null,
+    notes: bddForm.value.notes.trim() || null,
+  }
+}
+
+/** Rattache les serveurs sélectionnés à la BDD et détache ceux retirés (un serveur = une seule BDD). */
+async function applyServerAssignment(bddId: string, selectedCsv: string): Promise<void> {
+  const selected = new Set(selectedCsv.split(',').map((s: string) => s.trim()).filter(Boolean))
+  const current  = new Set(serversForBdd(bddId).map((g: Group): string => g.id))
+  const toAttach = [...selected].filter((id: string): boolean => !current.has(id))
+  const toDetach = [...current].filter((id: string): boolean => !selected.has(id))
+  await Promise.all([
+    ...toAttach.map((id: string) => $fetch(`/api/groups/${id}`, { method: 'PATCH', body: { database_id: bddId } })),
+    ...toDetach.map((id: string) => $fetch(`/api/groups/${id}`, { method: 'PATCH', body: { database_id: null } })),
+  ])
+}
+
+async function confirmBddAdd(): Promise<void> {
+  modalLoading.value = true; modalError.value = null
+  try {
+    const created = await $fetch<Bdd>('/api/databases', { method: 'POST', body: bddBody() })
+    await applyServerAssignment(created.id, bddForm.value.server_ids)
+    await Promise.all([refreshDatabases(), refreshGroups()])
+    bddAddOpen.value = false
+    toast('Base de données ajoutée.')
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
+  finally { modalLoading.value = false }
+}
+async function confirmBddEdit(): Promise<void> {
+  if (!bddEditTarget.value) return
+  modalLoading.value = true; modalError.value = null
+  try {
+    await $fetch(`/api/databases/${bddEditTarget.value.id}`, { method: 'PATCH', body: bddBody() })
+    await applyServerAssignment(bddEditTarget.value.id, bddForm.value.server_ids)
+    await Promise.all([refreshDatabases(), refreshGroups()])
+    bddEditTarget.value = null
+    toast('Base de données mise à jour.')
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
+  finally { modalLoading.value = false }
+}
+async function confirmBddDelete(): Promise<void> {
+  if (!bddDeleteTarget.value) return
+  modalLoading.value = true; modalError.value = null
+  try {
+    await $fetch(`/api/databases/${bddDeleteTarget.value.id}`, { method: 'DELETE' })
+    await Promise.all([refreshDatabases(), refreshGroups()])
+    bddDeleteTarget.value = null
+    toast('Base de données supprimée.')
   } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
   finally { modalLoading.value = false }
 }
@@ -611,27 +648,33 @@ function simpleIconUrl(slug: string): string {
       </div>
     </div>
 
-    <!-- ── Cheffes de projet ────────────────────────────────────── -->
-    <div v-if="activeTab === 'project-managers'" class="admin-section">
+    <!-- ── Bases de données ─────────────────────────────────────── -->
+    <div v-if="activeTab === 'databases'" class="admin-section">
       <div class="admin-section-header">
-        <span class="admin-section-title">Cheffes de projet ({{ pms?.length ?? 0 }})</span>
-        <button class="btn primary" @click="openPmAdd">+ Ajouter</button>
+        <span class="admin-section-title">Bases de données ({{ databases?.length ?? 0 }})</span>
+        <button class="btn primary" @click="openBddAdd">+ Ajouter</button>
       </div>
       <div class="admin-table-wrap">
         <table class="admin-table">
-          <thead><tr><th>Prénom</th><th>Nom</th><th>Agence</th><th></th></tr></thead>
+          <thead><tr><th>Nom</th><th>Type</th><th>Serveurs</th><th>Notes</th><th></th></tr></thead>
           <tbody>
-            <tr v-if="!pms?.length">
-              <td colspan="4" class="admin-empty">Aucune cheffe de projet.</td>
+            <tr v-if="!databases?.length">
+              <td colspan="5" class="admin-empty">Aucune base de données.</td>
             </tr>
-            <tr v-for="p in pms" :key="p.id">
-              <td>{{ p.first_name }}</td>
-              <td>{{ p.last_name }}</td>
-              <td>{{ p.agency || '—' }}</td>
+            <tr v-for="b in databases" :key="b.id">
+              <td>{{ b.name }}</td>
+              <td>{{ b.type || '—' }}</td>
+              <td>
+                <span v-if="serversForBdd(b.id).length" class="admin-bdd-servers">
+                  {{ serversForBdd(b.id).map(g => g.name).join(', ') }}
+                </span>
+                <span v-else style="color:var(--text-muted)">—</span>
+              </td>
+              <td class="admin-bdd-notes">{{ b.notes || '—' }}</td>
               <td>
                 <div class="admin-row-actions">
-                  <button class="icon-btn" title="Modifier" @click="openPmEdit(p)">&#9998;</button>
-                  <button class="icon-btn del" title="Supprimer" @click="pmDeleteTarget = p; resetModal()">&#10005;</button>
+                  <button class="icon-btn" title="Modifier" @click="openBddEdit(b)">&#9998;</button>
+                  <button class="icon-btn del" title="Supprimer" @click="bddDeleteTarget = b; resetModal()">&#10005;</button>
                 </div>
               </td>
             </tr>
@@ -640,28 +683,28 @@ function simpleIconUrl(slug: string): string {
       </div>
     </div>
 
-    <!-- ── Développeurs ─────────────────────────────────────────── -->
-    <div v-if="activeTab === 'developers'" class="admin-section">
+    <!-- ── Utilisateurs ──────────────────────────────────────────── -->
+    <div v-if="activeTab === 'users'" class="admin-section">
       <div class="admin-section-header">
-        <span class="admin-section-title">Développeurs ({{ developers?.length ?? 0 }})</span>
-        <button class="btn primary" @click="openDevAdd">+ Ajouter</button>
+        <span class="admin-section-title">Utilisateurs ({{ userProfiles?.length ?? 0 }})</span>
+        <span class="admin-section-hint">Les comptes sont créés dans le dashboard Supabase.</span>
       </div>
       <div class="admin-table-wrap">
         <table class="admin-table">
-          <thead><tr><th>Prénom</th><th>Nom</th><th>Titre</th><th>Agence</th><th></th></tr></thead>
+          <thead><tr><th>Prénom</th><th>Nom</th><th>Rôle</th><th>Titre</th><th>Agence</th><th></th></tr></thead>
           <tbody>
-            <tr v-if="!developers?.length">
-              <td colspan="5" class="admin-empty">Aucun développeur.</td>
+            <tr v-if="!userProfiles?.length">
+              <td colspan="6" class="admin-empty">Aucun profil. Les utilisateurs apparaissent ici après leur premier login.</td>
             </tr>
-            <tr v-for="d in developers" :key="d.id">
-              <td>{{ d.first_name }}</td>
-              <td>{{ d.last_name }}</td>
-              <td>{{ d.job_title || '—' }}</td>
-              <td>{{ d.agency || '—' }}</td>
+            <tr v-for="u in userProfiles" :key="u.user_id">
+              <td>{{ u.first_name || '—' }}</td>
+              <td>{{ u.last_name  || '—' }}</td>
+              <td><span class="admin-role-badge" :data-role="u.role">{{ ROLE_LABELS[u.role] ?? u.role }}</span></td>
+              <td>{{ u.job_title || '—' }}</td>
+              <td>{{ u.agency    || '—' }}</td>
               <td>
                 <div class="admin-row-actions">
-                  <button class="icon-btn" title="Modifier" @click="openDevEdit(d)">&#9998;</button>
-                  <button class="icon-btn del" title="Supprimer" @click="devDeleteTarget = d; resetModal()">&#10005;</button>
+                  <button class="icon-btn" title="Modifier" @click="openUserEdit(u)">&#9998;</button>
                 </div>
               </td>
             </tr>
@@ -886,28 +929,36 @@ function simpleIconUrl(slug: string): string {
         </AppConfirmModal>
       </Transition>
 
-      <!-- Modale Add/Edit PM -->
+      <!-- Modale Add/Edit BDD -->
       <Transition name="modal">
-        <div v-if="pmAddOpen || pmEditTarget" class="modal-overlay" v-modal-close="() => pmAddOpen ? closePmAdd() : closePmEdit()">
+        <div v-if="bddAddOpen || bddEditTarget" class="modal-overlay" v-modal-close="() => bddAddOpen ? closeBddAdd() : closeBddEdit()">
           <div class="modal-card">
-            <h3 class="modal-title">{{ pmAddOpen ? 'Ajouter une cheffe de projet' : 'Modifier la cheffe de projet' }}</h3>
+            <h3 class="modal-title">{{ bddAddOpen ? 'Ajouter une base de données' : 'Modifier la base de données' }}</h3>
             <p v-if="modalError" class="modal-error">{{ modalError }}</p>
-            <form @submit.prevent="pmAddOpen ? confirmPmAdd() : confirmPmEdit()">
-              <div class="field"><label>Prénom *</label><input v-model="pmForm.first_name" type="text" required></div>
-              <div class="field"><label>Nom *</label><input v-model="pmForm.last_name" type="text" required></div>
+            <form @submit.prevent="bddAddOpen ? confirmBddAdd() : confirmBddEdit()">
+              <div class="field"><label>Nom *</label><input v-model="bddForm.name" type="text" placeholder="DB Prod OVH" required></div>
               <div class="field">
-                <label>Agence</label>
-                <AppSelect
-                  v-model="pmForm.agency"
-                  :options="agencies.map((a: Agency) => ({ value: a.name, label: a.name }))"
-                  placeholder="— Aucune —"
+                <label>Type / moteur</label>
+                <input v-model="bddForm.type" type="text" placeholder="MySQL, PostgreSQL, MariaDB…">
+              </div>
+              <div class="field">
+                <label>Serveurs rattachés</label>
+                <AppMultiSelect
+                  v-model="bddForm.server_ids"
+                  :options="groups.map((g: Group) => ({ id: g.id, label: g.name }))"
+                  placeholder="— Aucun serveur —"
                 />
+                <p class="admin-slug-hint">Un serveur ne peut être rattaché qu'à une seule BDD ; le sélectionner ici le détache de sa BDD précédente.</p>
+              </div>
+              <div class="field">
+                <label>Notes</label>
+                <textarea v-model="bddForm.notes" class="field-input" rows="3" placeholder="Informations complémentaires…" />
               </div>
               <div class="modal-btns">
-                <button type="button" class="btn" :disabled="modalLoading" @click="pmAddOpen ? closePmAdd() : closePmEdit()">Annuler</button>
+                <button type="button" class="btn" :disabled="modalLoading" @click="bddAddOpen ? closeBddAdd() : closeBddEdit()">Annuler</button>
                 <button type="submit" class="btn primary" :disabled="modalLoading">
                   <span v-if="modalLoading" class="spinner" />
-                  {{ modalLoading ? 'Enregistrement…' : (pmAddOpen ? 'Créer' : 'Enregistrer') }}
+                  {{ modalLoading ? 'Enregistrement…' : (bddAddOpen ? 'Créer' : 'Enregistrer') }}
                 </button>
               </div>
             </form>
@@ -915,47 +966,53 @@ function simpleIconUrl(slug: string): string {
         </div>
       </Transition>
       <Transition name="modal">
-        <AppConfirmModal v-if="pmDeleteTarget" title="Supprimer la cheffe de projet" :loading="modalLoading" confirm-label="Supprimer" @confirm="confirmPmDelete" @cancel="closePmDelete">
-          <p class="modal-msg">Supprimer <strong>{{ pmDeleteTarget.first_name }} {{ pmDeleteTarget.last_name }}</strong> définitivement ?</p>
+        <AppConfirmModal v-if="bddDeleteTarget" title="Supprimer la base de données" :loading="modalLoading" confirm-label="Supprimer" @confirm="confirmBddDelete" @cancel="closeBddDelete">
+          <p class="modal-msg">
+            Supprimer <strong>{{ bddDeleteTarget.name }}</strong> définitivement ?
+            Les serveurs rattachés seront détachés (non supprimés).
+          </p>
         </AppConfirmModal>
       </Transition>
 
-      <!-- Modale Add/Edit Développeur -->
+      <!-- Modale Edit Utilisateur -->
       <Transition name="modal">
-        <div v-if="devAddOpen || devEditTarget" class="modal-overlay" v-modal-close="() => devAddOpen ? closeDevAdd() : closeDevEdit()">
+        <div v-if="userEditTarget" class="modal-overlay" v-modal-close="closeUserEdit">
           <div class="modal-card">
-            <h3 class="modal-title">{{ devAddOpen ? 'Ajouter un développeur' : 'Modifier le développeur' }}</h3>
+            <h3 class="modal-title">Modifier le profil</h3>
             <p v-if="modalError" class="modal-error">{{ modalError }}</p>
-            <form @submit.prevent="devAddOpen ? confirmDevAdd() : confirmDevEdit()">
-              <div class="field"><label>Prénom *</label><input v-model="devForm.first_name" type="text" required></div>
-              <div class="field"><label>Nom *</label><input v-model="devForm.last_name" type="text" required></div>
+            <form @submit.prevent="confirmUserEdit">
+              <div class="field"><label>Prénom</label><input v-model="userForm.first_name" type="text"></div>
+              <div class="field"><label>Nom</label><input v-model="userForm.last_name" type="text"></div>
+              <div class="field">
+                <label>Rôle *</label>
+                <AppSelect
+                  v-model="userForm.role"
+                  :options="Object.entries(ROLE_LABELS).map(([v, l]) => ({ value: v, label: l }))"
+                  placeholder="— Choisir —"
+                />
+              </div>
               <div class="field">
                 <label>Titre de poste</label>
-                <input v-model="devForm.job_title" type="text" placeholder="Développeur full-stack senior">
+                <input v-model="userForm.job_title" type="text" placeholder="Développeur full-stack">
               </div>
               <div class="field">
                 <label>Agence</label>
                 <AppSelect
-                  v-model="devForm.agency"
+                  v-model="userForm.agency"
                   :options="agencies.map((a: Agency) => ({ value: a.name, label: a.name }))"
                   placeholder="— Aucune —"
                 />
               </div>
               <div class="modal-btns">
-                <button type="button" class="btn" :disabled="modalLoading" @click="devAddOpen ? closeDevAdd() : closeDevEdit()">Annuler</button>
+                <button type="button" class="btn" :disabled="modalLoading" @click="closeUserEdit">Annuler</button>
                 <button type="submit" class="btn primary" :disabled="modalLoading">
                   <span v-if="modalLoading" class="spinner" />
-                  {{ modalLoading ? 'Enregistrement…' : (devAddOpen ? 'Créer' : 'Enregistrer') }}
+                  {{ modalLoading ? 'Enregistrement…' : 'Enregistrer' }}
                 </button>
               </div>
             </form>
           </div>
         </div>
-      </Transition>
-      <Transition name="modal">
-        <AppConfirmModal v-if="devDeleteTarget" title="Supprimer le développeur" :loading="modalLoading" confirm-label="Supprimer" @confirm="confirmDevDelete" @cancel="closeDevDelete">
-          <p class="modal-msg">Supprimer <strong>{{ devDeleteTarget.first_name }} {{ devDeleteTarget.last_name }}</strong> définitivement ?</p>
-        </AppConfirmModal>
       </Transition>
 
       <!-- Modale Add/Edit Type maintenance -->

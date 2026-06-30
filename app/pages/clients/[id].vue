@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Client, Maintenance, Site, Developer, MaintenanceType, ProjectManager } from '~/server/utils/types'
+import type { Client, Maintenance, Site, UserProfile, MaintenanceType } from '~/server/utils/types'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -16,25 +16,24 @@ await Promise.all([
   refs.loadClients(),
   refs.loadMaintenances(),
   refs.loadSites(),
-  refs.loadDevelopers(),
+  refs.loadUserProfiles(),
   refs.loadMaintenanceTypes(),
   refs.loadAgencies(),
-  refs.loadProjectManagers(),
 ])
 
 const clients          = refs.clients
 const maintenances     = refs.maintenances
 const sites            = refs.sites
-const developers       = refs.developers
+const devUsers         = refs.devUsers
+const pmUsers          = refs.pmUsers
 const maintenanceTypes = refs.maintenanceTypes
 const agencies         = refs.agencies
-const projectManagers  = refs.projectManagers
 
 const clientPmName = computed((): string => {
   const id = client.value?.project_manager_id
   if (!id) return ''
-  const pm = projectManagers.value.find((p: ProjectManager): boolean => p.id === id)
-  return pm ? `${pm.first_name} ${pm.last_name}` : ''
+  const pm = pmUsers.value.find((p: UserProfile): boolean => p.user_id === id)
+  return pm ? `${pm.first_name} ${pm.last_name}`.trim() : ''
 })
 
 // CRUD client
@@ -67,9 +66,9 @@ const siteById = computed((): Map<string, Site> => {
   for (const s of sites.value) m.set(s.id, s)
   return m
 })
-const devById = computed((): Map<string, Developer> => {
-  const m = new Map<string, Developer>()
-  for (const d of developers.value) m.set(d.id, d)
+const devById = computed((): Map<string, UserProfile> => {
+  const m = new Map<string, UserProfile>()
+  for (const d of devUsers.value) m.set(d.user_id, d)
   return m
 })
 const typeById = computed((): Map<string, MaintenanceType> => {
@@ -453,7 +452,7 @@ const quotaClass = computed((): string => {
           :error="clientError"
           :loading="clientLoading"
           :agencies="agencies"
-          :project-managers="projectManagers"
+          :project-managers="pmUsers"
           submit-label="Enregistrer"
           submit-loading-label="Enregistrement…"
           @close="closeClientEdit"

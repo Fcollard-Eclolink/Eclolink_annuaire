@@ -1,7 +1,6 @@
 import type { SupabaseUser } from '~/server/utils/supabase'
 
 export const useAuth = () => {
-  // useState est persisté entre SSR et client via le payload Nuxt
   const user = useState<SupabaseUser | null>('auth:user', () => null)
 
   async function logout(): Promise<void> {

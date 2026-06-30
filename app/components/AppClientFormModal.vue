@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Agency, ProjectManager } from '~/server/utils/types'
+import type { Agency, UserProfile } from '~/server/utils/types'
 
 export interface ClientForm {
   name                : string
@@ -19,7 +19,7 @@ defineProps<{
   error             : string | null
   loading           : boolean
   agencies          : Agency[]
-  projectManagers   : ProjectManager[]
+  projectManagers   : UserProfile[]
   submitLabel       : string
   submitLoadingLabel: string
 }>()
@@ -49,7 +49,7 @@ const emit = defineEmits<{ close: []; submit: [] }>()
           <label>Cheffe de projet</label>
           <AppSelect
             v-model="form.project_manager_id"
-            :options="projectManagers.map((pm: ProjectManager) => ({ value: pm.id, label: `${pm.first_name} ${pm.last_name}` }))"
+            :options="projectManagers.map((pm: UserProfile) => ({ value: pm.user_id, label: `${pm.first_name} ${pm.last_name}`.trim() || pm.user_id }))"
             placeholder="— Aucune —"
           />
         </div>

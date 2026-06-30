@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Client, Agency, MaintenanceType, ProjectManager } from '~/server/utils/types'
+import type { Client, Agency, MaintenanceType, UserProfile } from '~/server/utils/types'
 import type { FilterOption } from '~/components/AppFilterSelect.vue'
 import type { FilterDef } from '~/components/AppFilterBar.vue'
 
@@ -15,7 +15,7 @@ await Promise.all([
   refs.loadSites(),
   refs.loadAgencies(),
   refs.loadMaintenanceTypes(),
-  refs.loadProjectManagers(),
+  refs.loadUserProfiles(),
 ])
 
 const clients          = refs.clients
@@ -23,18 +23,18 @@ const maintenances     = refs.maintenances
 const sites            = refs.sites
 const agencies         = refs.agencies
 const maintenanceTypes = refs.maintenanceTypes
-const projectManagers  = refs.projectManagers
+const pmUsers          = refs.pmUsers
 
-const pmById = computed((): Map<string, ProjectManager> => {
-  const m = new Map<string, ProjectManager>()
-  for (const pm of projectManagers.value) m.set(pm.id, pm)
+const pmById = computed((): Map<string, UserProfile> => {
+  const m = new Map<string, UserProfile>()
+  for (const pm of pmUsers.value) m.set(pm.user_id, pm)
   return m
 })
 
 function pmName(id: string | null): string {
   if (!id) return ''
   const pm = pmById.value.get(id)
-  return pm ? `${pm.first_name} ${pm.last_name}` : ''
+  return pm ? `${pm.first_name} ${pm.last_name}`.trim() : ''
 }
 
 /** Pour chaque client, nombre de sites sous contrat de maintenance. */
@@ -107,9 +107,9 @@ const filterDefs = computed((): FilterDef<Client>[] => {
 
   const presentPms = new Set<string>()
   for (const c of clients.value) if (c.project_manager_id) presentPms.add(c.project_manager_id)
-  const pmOpts: FilterOption[] = projectManagers.value
-    .filter((pm: ProjectManager): boolean => presentPms.has(pm.id))
-    .map((pm: ProjectManager): FilterOption => ({ id: pm.id, label: `${pm.first_name} ${pm.last_name}`, disabled: false }))
+  const pmOpts: FilterOption[] = pmUsers.value
+    .filter((pm: UserProfile): boolean => presentPms.has(pm.user_id))
+    .map((pm: UserProfile): FilterOption => ({ id: pm.user_id, label: `${pm.first_name} ${pm.last_name}`.trim(), disabled: false }))
 
   return [
     {
@@ -293,7 +293,7 @@ function handleDelete(e: Event, c: Client): void {
           :error="clientError"
           :loading="clientLoading"
           :agencies="agencies"
-          :project-managers="projectManagers"
+          :project-managers="pmUsers"
           submit-label="Créer"
           submit-loading-label="Création…"
           @close="closeClientAdd"
@@ -311,7 +311,7 @@ function handleDelete(e: Event, c: Client): void {
           :error="clientError"
           :loading="clientLoading"
           :agencies="agencies"
-          :project-managers="projectManagers"
+          :project-managers="pmUsers"
           submit-label="Enregistrer"
           submit-loading-label="Enregistrement…"
           @close="closeClientEdit"

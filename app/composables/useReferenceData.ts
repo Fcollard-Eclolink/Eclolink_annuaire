@@ -1,35 +1,32 @@
 import type { Ref } from 'vue'
 import type {
   Technology, Hoster, WebServer, DnsProvider, Agency,
-  ProjectManager, Client, Site, Group, Developer, MaintenanceType, Maintenance,
+  UserProfile, Client, Site, Group, MaintenanceType, Maintenance, Bdd, ActivityLog,
 } from '~/server/utils/types'
 
-/**
- * Cache partagé entre les pages via useState.
- *
- * Chaque entité a un état (Ref) + un loader (lazy: ne fetch que si jamais chargé)
- * + un refresh (force le refetch).
- *
- * Sur SSR, useRequestFetch() forward les cookies httpOnly nécessaires à sbFetch.
- */
 export function useReferenceData() {
-  const technologies     = useState<Technology[]>('ref:technologies',     () => [])
-  const hosters          = useState<Hoster[]>('ref:hosters',              () => [])
-  const webServers       = useState<WebServer[]>('ref:webServers',        () => [])
-  const dnsProviders     = useState<DnsProvider[]>('ref:dnsProviders',    () => [])
-  const agencies         = useState<Agency[]>('ref:agencies',             () => [])
-  const projectManagers  = useState<ProjectManager[]>('ref:pms',          () => [])
-  const clients          = useState<Client[]>('ref:clients',              () => [])
-  const sites            = useState<Site[]>('ref:sites',                  () => [])
-  const groups           = useState<Group[]>('ref:groups',                () => [])
-  const developers       = useState<Developer[]>('ref:developers',        () => [])
-  const maintenanceTypes = useState<MaintenanceType[]>('ref:mtTypes',     () => [])
-  const maintenances     = useState<Maintenance[]>('ref:maintenances',    () => [])
+  const technologies     = useState<Technology[]>('ref:technologies',  () => [])
+  const hosters          = useState<Hoster[]>('ref:hosters',           () => [])
+  const webServers       = useState<WebServer[]>('ref:webServers',     () => [])
+  const dnsProviders     = useState<DnsProvider[]>('ref:dnsProviders', () => [])
+  const agencies         = useState<Agency[]>('ref:agencies',          () => [])
+  const userProfiles     = useState<UserProfile[]>('ref:users',        () => [])
+  const clients          = useState<Client[]>('ref:clients',           () => [])
+  const sites            = useState<Site[]>('ref:sites',               () => [])
+  const groups           = useState<Group[]>('ref:groups',             () => [])
+  const maintenanceTypes = useState<MaintenanceType[]>('ref:mtTypes',  () => [])
+  const maintenances     = useState<Maintenance[]>('ref:maintenances', () => [])
+  const databases        = useState<Bdd[]>('ref:databases',            () => [])
 
-  // Drapeau "déjà chargé" pour skip les loads redondants
+  // Vues filtrées par rôle (réactives)
+  const devUsers = computed((): UserProfile[] =>
+    userProfiles.value.filter((u: UserProfile): boolean => ['dev', 'sysadmin'].includes(u.role)),
+  )
+  const pmUsers = computed((): UserProfile[] =>
+    userProfiles.value.filter((u: UserProfile): boolean => ['pm', 'sysadmin'].includes(u.role)),
+  )
+
   const loaded = useState<Record<string, boolean>>('ref:loaded', () => ({}))
-
-  // useRequestFetch forward les cookies httpOnly côté SSR ; côté client, équivaut à $fetch
   const requestFetch = useRequestFetch()
 
   async function load<T>(key: string, url: string, target: Ref<T[]>): Promise<void> {
@@ -44,37 +41,35 @@ export function useReferenceData() {
   }
 
   return {
-    // State
     technologies, hosters, webServers, dnsProviders, agencies,
-    projectManagers, clients, sites, groups, developers,
-    maintenanceTypes, maintenances,
+    userProfiles, devUsers, pmUsers,
+    clients, sites, groups,
+    maintenanceTypes, maintenances, databases,
 
-    // Lazy loaders (no-op si déjà chargé)
-    loadTechnologies     : (): Promise<void> => load('technologies',     '/api/technologies',      technologies),
-    loadHosters          : (): Promise<void> => load('hosters',          '/api/hosters',           hosters),
-    loadWebServers       : (): Promise<void> => load('webServers',       '/api/web-servers',       webServers),
-    loadDnsProviders     : (): Promise<void> => load('dnsProviders',     '/api/dns-providers',     dnsProviders),
-    loadAgencies         : (): Promise<void> => load('agencies',         '/api/agencies',          agencies),
-    loadProjectManagers  : (): Promise<void> => load('pms',              '/api/project-managers',  projectManagers),
-    loadClients          : (): Promise<void> => load('clients',          '/api/clients',           clients),
-    loadSites            : (): Promise<void> => load('sites',            '/api/sites',             sites),
-    loadGroups           : (): Promise<void> => load('groups',           '/api/groups',            groups),
-    loadDevelopers       : (): Promise<void> => load('developers',       '/api/developers',        developers),
-    loadMaintenanceTypes : (): Promise<void> => load('mtTypes',          '/api/maintenance-types', maintenanceTypes),
-    loadMaintenances     : (): Promise<void> => load('maintenances',     '/api/maintenances',      maintenances),
+    loadTechnologies    : (): Promise<void> => load('technologies',  '/api/technologies',      technologies),
+    loadHosters         : (): Promise<void> => load('hosters',       '/api/hosters',           hosters),
+    loadWebServers      : (): Promise<void> => load('webServers',    '/api/web-servers',       webServers),
+    loadDnsProviders    : (): Promise<void> => load('dnsProviders',  '/api/dns-providers',     dnsProviders),
+    loadAgencies        : (): Promise<void> => load('agencies',      '/api/agencies',          agencies),
+    loadUserProfiles    : (): Promise<void> => load('users',         '/api/users',             userProfiles),
+    loadClients         : (): Promise<void> => load('clients',       '/api/clients',           clients),
+    loadSites           : (): Promise<void> => load('sites',         '/api/sites',             sites),
+    loadGroups          : (): Promise<void> => load('groups',        '/api/groups',            groups),
+    loadMaintenanceTypes: (): Promise<void> => load('mtTypes',       '/api/maintenance-types', maintenanceTypes),
+    loadMaintenances    : (): Promise<void> => load('maintenances',  '/api/maintenances',      maintenances),
+    loadDatabases       : (): Promise<void> => load('databases',     '/api/databases',         databases),
 
-    // Refresh (force refetch après CRUD)
     refreshTechnologies    : (): Promise<void> => refresh('technologies',  '/api/technologies',      technologies),
     refreshHosters         : (): Promise<void> => refresh('hosters',       '/api/hosters',           hosters),
     refreshWebServers      : (): Promise<void> => refresh('webServers',    '/api/web-servers',       webServers),
     refreshDnsProviders    : (): Promise<void> => refresh('dnsProviders',  '/api/dns-providers',     dnsProviders),
     refreshAgencies        : (): Promise<void> => refresh('agencies',      '/api/agencies',          agencies),
-    refreshProjectManagers : (): Promise<void> => refresh('pms',           '/api/project-managers',  projectManagers),
+    refreshUserProfiles    : (): Promise<void> => refresh('users',         '/api/users',             userProfiles),
     refreshClients         : (): Promise<void> => refresh('clients',       '/api/clients',           clients),
     refreshSites           : (): Promise<void> => refresh('sites',         '/api/sites',             sites),
     refreshGroups          : (): Promise<void> => refresh('groups',        '/api/groups',            groups),
-    refreshDevelopers      : (): Promise<void> => refresh('developers',    '/api/developers',        developers),
     refreshMaintenanceTypes: (): Promise<void> => refresh('mtTypes',       '/api/maintenance-types', maintenanceTypes),
     refreshMaintenances    : (): Promise<void> => refresh('maintenances',  '/api/maintenances',      maintenances),
+    refreshDatabases       : (): Promise<void> => refresh('databases',     '/api/databases',         databases),
   }
 }
