@@ -14,8 +14,8 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    supabaseUrl: '',  // surcharge via NUXT_SUPABASE_URL
-    supabaseKey: '',  // surcharge via NUXT_SUPABASE_KEY
+    databaseUrl  : '',  // surcharge via NUXT_DATABASE_URL   — Postgres auto-hébergé
+    sessionSecret: '',  // surcharge via NUXT_SESSION_SECRET — pepper/secret sessions
   },
 
   css: ['~/assets/css/main.css'],
