@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { Site, Group } from '~/server/utils/types'
+import type { Site, Group, Bdd } from '~/server/utils/types'
 import type { FilterOption } from '~/components/AppFilterSelect.vue'
 import { techTags } from '~/composables/useTechBadge'
 
 interface ActiveFilterChip {
-  category: 'group' | 'tech' | 'agency' | 'date'
+  category: 'group' | 'tech' | 'agency' | 'date' | 'db'
   value   : string
   label   : string
   catLabel: string
@@ -28,6 +28,8 @@ try {
     refs.loadTechnologies(),
     refs.loadHosters(),
     refs.loadWebServers(),
+    refs.loadDatabases(),
+    refs.loadAgencies(),
   ])
 } catch (e: unknown) {
   loadError.value = e
@@ -40,6 +42,8 @@ const fetchedTechs        = refs.technologies
 const fetchedHosters      = refs.hosters
 const fetchedWebServers   = refs.webServers
 const fetchedDnsProviders = refs.dnsProviders
+const fetchedDatabases    = refs.databases
+const fetchedAgencies     = refs.agencies
 
 const hasError  = computed(() => !!loadError.value)
 const reloading = ref(false)
@@ -84,6 +88,7 @@ function collapseAll(): void { collapseAllTick.value++ }
 const filterGroups   = ref<string[]>([])
 const filterTechs    = ref<string[]>([])
 const filterAgencies = ref<string[]>([])
+const filterDbs      = ref<string[]>([])
 const dateFrom       = ref<string>('')  // ISO YYYY-MM-DD (go_live_date)
 const dateTo         = ref<string>('')
 
@@ -138,6 +143,14 @@ const filterAgencyOptions = computed((): FilterOption[] => {
   }))
 })
 
+// Filtre BDD : agit au niveau serveur (un serveur a une BDD), pas au niveau site
+const filterDbOptions = computed((): FilterOption[] =>
+  fetchedDatabases.value.map((d: Bdd): FilterOption => ({
+    id: d.id, label: d.name,
+    disabled: !groups.value.some((g: Group) => g.database_id === d.id),
+  })),
+)
+
 const hasDateFilter = computed((): boolean => !!dateFrom.value || !!dateTo.value)
 
 const filteredSitesByGroup = computed((): Map<string, Site[]> => {
@@ -153,6 +166,7 @@ const filteredSitesByGroup = computed((): Map<string, Site[]> => {
 const filteredGroups = computed((): Group[] =>
   groups.value.filter((g: Group): boolean => {
     if (filterGroups.value.length && !filterGroups.value.includes(g.id)) return false
+    if (filterDbs.value.length && !filterDbs.value.includes(g.database_id ?? '')) return false
     if (filterTechs.value.length || filterAgencies.value.length || hasDateFilter.value) {
       return (filteredSitesByGroup.value.get(g.id) ?? []).length > 0
     }
@@ -160,7 +174,8 @@ const filteredGroups = computed((): Group[] =>
   }),
 )
 const filteredUngrouped = computed((): Site[] => {
-  if (filterGroups.value.length) return []
+  // Les sites "sans serveur" n'ont pas de BDD → exclus dès qu'un filtre serveur/BDD est actif
+  if (filterGroups.value.length || filterDbs.value.length) return []
   return (sitesByGroup.value.get('__none__') ?? []).filter((s: Site) => matchesCombination(s, {
     groups: [], techs: filterTechs.value, agencies: filterAgencies.value, from: dateFrom.value, to: dateTo.value,
   }))
@@ -183,6 +198,10 @@ const activeFilterChips = computed((): ActiveFilterChip[] => {
     chips.push({ category: 'tech', value: t, label: t, catLabel: 'Techno' })
   for (const a of filterAgencies.value)
     chips.push({ category: 'agency', value: a, label: a, catLabel: 'Agence' })
+  for (const id of filterDbs.value) {
+    const d = fetchedDatabases.value.find((d: Bdd) => d.id === id)
+    if (d) chips.push({ category: 'db', value: id, label: d.name, catLabel: 'BDD' })
+  }
   if (hasDateFilter.value) {
     const label = dateFrom.value && dateFrom.value === dateTo.value
       ? isoToDisplay(dateFrom.value)
@@ -197,13 +216,14 @@ function removeFilterChip(chip: ActiveFilterChip): void {
     case 'group':  filterGroups.value   = filterGroups.value.filter((v: string) => v !== chip.value);   break
     case 'tech':   filterTechs.value    = filterTechs.value.filter((v: string) => v !== chip.value);    break
     case 'agency': filterAgencies.value = filterAgencies.value.filter((v: string) => v !== chip.value); break
+    case 'db':     filterDbs.value      = filterDbs.value.filter((v: string) => v !== chip.value);      break
     case 'date':   dateFrom.value = ''; dateTo.value = '';                                              break
   }
 }
 
 function clearAllFilters(): void {
   filterGroups.value = []; filterTechs.value = []
-  filterAgencies.value = []; dateFrom.value = ''; dateTo.value = ''
+  filterAgencies.value = []; filterDbs.value = []; dateFrom.value = ''; dateTo.value = ''
 }
 
 // ── CRUD serveurs ─────────────────────────────────────────────────
@@ -276,6 +296,7 @@ function openEditSite(s: Parameters<typeof openEditSiteRaw>[0]): void { void ref
           <AppFilterSelect v-model="filterGroups"   label="Serveur"     :options="filterGroupOptions" />
           <AppFilterSelect v-model="filterTechs"    label="Technologie" :options="filterTechOptions" />
           <AppFilterSelect v-model="filterAgencies" label="Agence"      :options="filterAgencyOptions" />
+          <AppFilterSelect v-model="filterDbs"      label="BDD"         :options="filterDbOptions" />
           <AppDateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" />
         </div>
         <div class="filters-right">
@@ -327,6 +348,7 @@ function openEditSite(s: Parameters<typeof openEditSiteRaw>[0]): void { void ref
             :sites="filteredSitesByGroup.get(group.id) ?? []"
             :hosters="fetchedHosters"
             :web-servers="fetchedWebServers"
+            :databases="fetchedDatabases"
             :expand-all-tick="expandAllTick"
             :collapse-all-tick="collapseAllTick"
             @edit-group="openEditGroup"
@@ -337,10 +359,11 @@ function openEditSite(s: Parameters<typeof openEditSiteRaw>[0]): void { void ref
 
           <AppServerBlock
             v-if="filteredUngrouped.length"
-            :group="{ id: '__none__', name: 'Sans serveur', hoster: null, ip_public: null, ip_local: null, web_server: null }"
+            :group="{ id: '__none__', name: 'Sans serveur', hoster: null, ip_public: null, ip_local: null, web_server: null, database_id: null }"
             :sites="filteredUngrouped"
             :hosters="fetchedHosters"
             :web-servers="fetchedWebServers"
+            :databases="fetchedDatabases"
             :name-is-muted="true"
             :expand-all-tick="expandAllTick"
             :collapse-all-tick="collapseAllTick"
@@ -402,6 +425,7 @@ function openEditSite(s: Parameters<typeof openEditSiteRaw>[0]): void { void ref
           :loading="editGroupLoading"
           :hosters="fetchedHosters"
           :web-servers="fetchedWebServers"
+          :databases="fetchedDatabases"
           submit-label="Enregistrer"
           submit-loading-label="Enregistrement…"
           @close="closeEditGroup"
@@ -420,6 +444,7 @@ function openEditSite(s: Parameters<typeof openEditSiteRaw>[0]): void { void ref
           :loading="addGroupLoading"
           :hosters="fetchedHosters"
           :web-servers="fetchedWebServers"
+          :databases="fetchedDatabases"
           submit-label="Créer"
           submit-loading-label="Création…"
           @close="closeAddGroup"
@@ -438,6 +463,7 @@ function openEditSite(s: Parameters<typeof openEditSiteRaw>[0]): void { void ref
           :loading="addSiteLoading"
           :groups="groups"
           :clients="clients"
+          :agencies="fetchedAgencies"
           :technologies="fetchedTechs"
           :hosters="fetchedHosters"
           :dns-providers="fetchedDnsProviders"
@@ -459,6 +485,7 @@ function openEditSite(s: Parameters<typeof openEditSiteRaw>[0]): void { void ref
           :loading="editSiteLoading"
           :groups="groups"
           :clients="clients"
+          :agencies="fetchedAgencies"
           :technologies="fetchedTechs"
           :hosters="fetchedHosters"
           :dns-providers="fetchedDnsProviders"

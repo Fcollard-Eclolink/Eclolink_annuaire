@@ -1,3 +1,54 @@
+/* ── Filtre plage de dates (trigger button) — partagé annuaire + maintenance ─ */
+.date-range-picker {
+  position: relative;
+  display: inline-flex;
+}
+
+.date-range-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-8);
+  height: var(--sp-36);
+  padding: 0 var(--sp-12);
+  border: var(--bw) solid var(--border-input);
+  border-radius: var(--sp-8);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--fs-12);
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--t-fast), border-color var(--t-fast);
+
+  &:hover { background: var(--hover); }
+
+  .date-range-picker.open & { border-color: #888; }
+  .date-range-picker.active & {
+    background: var(--hover);
+    font-weight: var(--fw-medium);
+  }
+}
+
+.date-range-trigger-label {
+  font-variant-numeric: tabular-nums;
+}
+
+.date-range-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--sp-16);
+  height: var(--sp-16);
+  background: none;
+  color: var(--text-muted);
+  font-size: var(--fs-12);
+  border-radius: var(--sp-4);
+  margin-left: var(--sp-4);
+  cursor: pointer;
+
+  &:hover { background: var(--border); color: var(--text); }
+}
+
 /* ── Calendrier (grille partagée) ────────────────────────────── */
 .calendar-grid {
   width: 100%;

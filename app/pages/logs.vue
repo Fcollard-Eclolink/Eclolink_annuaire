@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ActivityLog } from '~/server/utils/types'
+import '~/assets/css/logs.css'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -96,5 +97,3 @@ function formatDate(iso: string): string {
     </div>
   </div>
 </template>
-
-<style src="~/assets/css/logs.css"></style>

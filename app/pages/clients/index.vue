@@ -2,6 +2,7 @@
 import type { Client, Agency, MaintenanceType, UserProfile } from '~/server/utils/types'
 import type { FilterOption } from '~/components/AppFilterSelect.vue'
 import type { FilterDef } from '~/components/AppFilterBar.vue'
+import '~/assets/css/clients.css'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -340,5 +341,3 @@ function handleDelete(e: Event, c: Client): void {
 
   </div>
 </template>
-
-<style src="~/assets/css/clients.css"></style>

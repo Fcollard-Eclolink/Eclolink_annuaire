@@ -14,8 +14,11 @@ const props = defineProps<{
 
 const modelValue = defineModel<string[]>({ default: () => [] })
 
-const isOpen  = ref(false)
-const wrapRef = ref<HTMLElement | null>(null)
+const isOpen     = ref(false)
+const wrapRef    = ref<HTMLElement | null>(null)
+const triggerRef = ref<HTMLElement | null>(null)
+
+const { openUp } = useFlipUp(triggerRef, isOpen)
 
 function toggleOption(id: string): void {
   const opt      = props.options.find(o => o.id === id)
@@ -40,7 +43,7 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
 <template>
   <div ref="wrapRef" class="filter-drop" :class="{ open: isOpen, active: modelValue.length > 0 }">
     <!-- Trigger -->
-    <button class="filter-drop-trigger" @click="isOpen = !isOpen">
+    <button ref="triggerRef" class="filter-drop-trigger" @click="isOpen = !isOpen">
       <span class="filter-drop-label">{{ label }}</span>
       <span v-if="modelValue.length" class="filter-drop-count">{{ modelValue.length }}</span>
       <svg class="filter-drop-arrow" xmlns="http://www.w3.org/2000/svg" width="10" height="10"
@@ -51,7 +54,7 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
     </button>
 
     <!-- Dropdown -->
-    <div v-if="isOpen" class="filter-drop-menu">
+    <div v-if="isOpen" class="filter-drop-menu" :class="{ 'open-up': openUp }">
       <button
         v-for="opt in options"
         :key="opt.id"

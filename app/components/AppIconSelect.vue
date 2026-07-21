@@ -9,6 +9,9 @@ const props = defineProps<{
 const modelValue = defineModel<string>({ default: '' })
 const isOpen     = ref(false)
 const wrapRef    = ref<HTMLElement | null>(null)
+const triggerRef = ref<HTMLElement | null>(null)
+
+const { openUp } = useFlipUp(triggerRef, isOpen)
 
 const selected = computed(() =>
   props.options.find(o => o.value === modelValue.value) ?? null,
@@ -36,7 +39,7 @@ function iconUrl(slug: string | null): string {
 <template>
   <div ref="wrapRef" class="icon-select" :class="{ open: isOpen }">
     <!-- Déclencheur -->
-    <button type="button" class="icon-select-trigger" @click.stop="isOpen = !isOpen">
+    <button ref="triggerRef" type="button" class="icon-select-trigger" @click.stop="isOpen = !isOpen">
       <span v-if="selected" class="icon-select-val">
         <img v-if="selected.slug" :src="iconUrl(selected.slug)" width="14" height="14" :alt="selected.label"
              @error="($event.target as HTMLImageElement).style.display='none'">
@@ -51,7 +54,7 @@ function iconUrl(slug: string | null): string {
     </button>
 
     <!-- Dropdown -->
-    <div v-if="isOpen" class="icon-select-dropdown">
+    <div v-if="isOpen" class="icon-select-dropdown" :class="{ 'open-up': openUp }">
       <button type="button" class="icon-select-option" :class="{ selected: !modelValue }"
               @click="select('')">
         <span class="icon-select-none">{{ placeholder ?? '— Aucun —' }}</span>

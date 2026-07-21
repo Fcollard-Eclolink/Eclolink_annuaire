@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Hoster, WebServer } from '~/server/utils/types'
+import type { Hoster, WebServer, Bdd } from '~/server/utils/types'
 import type { GroupForm } from '~/composables/useGroupCrud'
 
 defineProps<{
@@ -9,6 +9,7 @@ defineProps<{
   loading    : boolean
   hosters    : Hoster[]
   webServers : WebServer[]
+  databases  : Bdd[]
   submitLabel: string
   submitLoadingLabel: string
 }>()
@@ -46,6 +47,14 @@ const emit = defineEmits<{ close: []; submit: [] }>()
           <AppIconSelect
             v-model="form.web_server"
             :options="webServers.map((ws: WebServer) => ({ value: ws.name, label: ws.name, slug: ws.simpleicons_slug }))"
+          />
+        </div>
+        <div class="field">
+          <label>Base de données</label>
+          <AppSelect
+            v-model="form.database_id"
+            :options="databases.map((d: Bdd) => ({ value: d.id, label: d.type ? `${d.name} — ${d.type}` : d.name }))"
+            placeholder="— Aucune —"
           />
         </div>
         <div class="modal-btns">

@@ -102,6 +102,11 @@
   width: max-content;
   max-width: 300px;
   z-index: 200;
+
+  &.open-up {
+    top: auto;
+    bottom: calc(100% + var(--sp-8));
+  }
 }
 
 .info-row {

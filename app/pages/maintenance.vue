@@ -2,6 +2,8 @@
 import type { Maintenance, Site, UserProfile, MaintenanceType, Client, Group } from '~/server/utils/types'
 import type { FilterOption } from '~/components/AppFilterSelect.vue'
 import type { FilterDef } from '~/components/AppFilterBar.vue'
+import '~/assets/css/maintenance.css'
+import '~/assets/css/admin.css'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -781,6 +783,3 @@ function openAddForSite(site: Site): void {
     </Teleport>
   </div>
 </template>
-
-<style src="~/assets/css/maintenance.css"></style>
-<style src="~/assets/css/admin.css"></style>

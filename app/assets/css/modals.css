@@ -307,3 +307,22 @@
 
 .modal-enter-from .modal-card,
 .modal-leave-to .modal-card { transform: scale(0.97) translateY(var(--sp-4)); }
+
+/* Formulaire site sur 2 colonnes (limite le scroll) */
+.site-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: var(--sp-16, 16px);
+
+  .field--full { grid-column: 1 / -1; }
+
+  @media (max-width: 560px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Flip vers le haut si pas de place en dessous (AppSelect / AppIconSelect / AppTechSelect) */
+.icon-select-dropdown.open-up {
+  top: auto;
+  bottom: calc(100% + var(--sp-4));
+}

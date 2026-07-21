@@ -12,6 +12,7 @@
   border-bottom: var(--bw) solid var(--border);
   margin-bottom: var(--sp-24);
   overflow-x: auto;
+  overflow-y: hidden; /* évite la mini scrollbar verticale induite par overflow-x:auto */
 }
 
 /* Cellules de l'onglet Bases de données */
@@ -177,4 +178,11 @@
   &[data-role="dev"]      { background: #dbeafe; color: #1e40af; }
   &[data-role="pm"]       { background: #d1fae5; color: #065f46; }
   &[data-role="crea"]     { background: #ede9fe; color: #5b21b6; }
+}
+
+/* Ligne d'un compte désactivé */
+.admin-table {
+  tr.is-inactive {
+    opacity: 0.5;
+  }
 }

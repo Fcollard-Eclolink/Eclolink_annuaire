@@ -2,14 +2,15 @@ import type { Ref } from 'vue'
 import type { Group, Site } from '~/server/utils/types'
 
 export interface GroupForm {
-  name      : string
-  hoster    : string
-  ip_local  : string
-  ip_public : string
-  web_server: string
+  name       : string
+  hoster     : string
+  ip_local   : string
+  ip_public  : string
+  web_server : string
+  database_id: string
 }
 
-const EMPTY: GroupForm = { name: '', hoster: '', ip_local: '', ip_public: '', web_server: '' }
+const EMPTY: GroupForm = { name: '', hoster: '', ip_local: '', ip_public: '', web_server: '', database_id: '' }
 
 export function useGroupCrud(
   groups: Ref<Group[]>,
@@ -64,11 +65,12 @@ export function useGroupCrud(
   function openEditModal(group: Group): void {
     editTarget.value = group
     editForm.value   = {
-      name      : group.name,
-      hoster    : group.hoster     ?? '',
-      ip_local  : group.ip_local   ?? '',
-      ip_public : group.ip_public  ?? '',
-      web_server: group.web_server ?? '',
+      name       : group.name,
+      hoster     : group.hoster      ?? '',
+      ip_local   : group.ip_local    ?? '',
+      ip_public  : group.ip_public   ?? '',
+      web_server : group.web_server  ?? '',
+      database_id: group.database_id ?? '',
     }
     editError.value = ''
   }
@@ -87,11 +89,12 @@ export function useGroupCrud(
       const updated = await $fetch<Group>(`/api/groups/${editTarget.value.id}`, {
         method: 'PATCH',
         body  : {
-          name      : editForm.value.name.trim(),
-          hoster    : editForm.value.hoster.trim()     || null,
-          ip_local  : editForm.value.ip_local.trim()   || null,
-          ip_public : editForm.value.ip_public.trim()  || null,
-          web_server: editForm.value.web_server.trim() || null,
+          name       : editForm.value.name.trim(),
+          hoster     : editForm.value.hoster.trim()     || null,
+          ip_local   : editForm.value.ip_local.trim()   || null,
+          ip_public  : editForm.value.ip_public.trim()  || null,
+          web_server : editForm.value.web_server.trim() || null,
+          database_id: editForm.value.database_id       || null,
         },
       })
       if (groups.value) {
@@ -133,11 +136,12 @@ export function useGroupCrud(
       const created = await $fetch<Group>('/api/groups', {
         method: 'POST',
         body  : {
-          name      : addForm.value.name.trim(),
-          hoster    : addForm.value.hoster.trim()     || null,
-          ip_local  : addForm.value.ip_local.trim()   || null,
-          ip_public : addForm.value.ip_public.trim()  || null,
-          web_server: addForm.value.web_server.trim() || null,
+          name       : addForm.value.name.trim(),
+          hoster     : addForm.value.hoster.trim()     || null,
+          ip_local   : addForm.value.ip_local.trim()   || null,
+          ip_public  : addForm.value.ip_public.trim()  || null,
+          web_server : addForm.value.web_server.trim() || null,
+          database_id: addForm.value.database_id       || null,
         },
       })
       if (groups.value) groups.value = [...groups.value, created]

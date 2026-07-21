@@ -9,7 +9,10 @@ const modelValue = defineModel<string>({ default: '' })
 const isOpen     = ref(false)
 const query      = ref('')
 const wrapRef    = ref<HTMLElement | null>(null)
+const triggerRef = ref<HTMLElement | null>(null)
 const searchRef  = ref<HTMLInputElement | null>(null)
+
+const { openUp } = useFlipUp(triggerRef, isOpen)
 
 const selected = computed(() =>
   props.options.find(o => o.value === modelValue.value) ?? null,
@@ -46,7 +49,7 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
 
 <template>
   <div ref="wrapRef" class="icon-select" :class="{ open: isOpen }">
-    <button type="button" class="icon-select-trigger" @click.stop="isOpen ? (isOpen = false) : open()">
+    <button ref="triggerRef" type="button" class="icon-select-trigger" @click.stop="isOpen ? (isOpen = false) : open()">
       <span v-if="selected" class="icon-select-val">{{ selected.label }}</span>
       <span v-else class="icon-select-placeholder">{{ placeholder ?? '— Aucun —' }}</span>
       <svg class="icon-select-arrow" xmlns="http://www.w3.org/2000/svg" width="12" height="12"
@@ -56,7 +59,7 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
       </svg>
     </button>
 
-    <div v-if="isOpen" class="icon-select-dropdown">
+    <div v-if="isOpen" class="icon-select-dropdown" :class="{ 'open-up': openUp }">
       <!-- Search bar -->
       <div v-if="searchable" class="select-search-wrap">
         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"

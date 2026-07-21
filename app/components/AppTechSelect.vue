@@ -8,6 +8,9 @@ const props = defineProps<{
 const modelValue = defineModel<string>({ default: '' })
 const isOpen     = ref(false)
 const wrapRef    = ref<HTMLElement | null>(null)
+const triggerRef = ref<HTMLElement | null>(null)
+
+const { openUp } = useFlipUp(triggerRef, isOpen)
 
 const techList = computed(() => props.techs ?? [])
 
@@ -74,7 +77,7 @@ function iconUrl(slug: string): string {
   <div ref="wrapRef" class="icon-select tech-select" :class="{ open: isOpen }">
 
     <!-- Déclencheur -->
-    <button type="button" class="tech-select-trigger" @click.stop="isOpen = !isOpen">
+    <button ref="triggerRef" type="button" class="tech-select-trigger" @click.stop="isOpen = !isOpen">
       <div v-if="selectedOpts.length" class="tech-select-pills">
         <span v-for="opt in selectedOpts" :key="opt.id" class="tech-select-pill">
           <img v-if="opt.simpleicons_slug" :src="iconUrl(opt.simpleicons_slug)" width="11" height="11" :alt="opt.label"
@@ -93,7 +96,7 @@ function iconUrl(slug: string): string {
     </button>
 
     <!-- Dropdown -->
-    <div v-if="isOpen" class="icon-select-dropdown tech-select-dropdown">
+    <div v-if="isOpen" class="icon-select-dropdown tech-select-dropdown" :class="{ 'open-up': openUp }">
       <button
         v-for="opt in techList"
         :key="opt.id"

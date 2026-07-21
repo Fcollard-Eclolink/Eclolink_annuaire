@@ -16,6 +16,9 @@ const emit = defineEmits<{
 // ── Popover infos ─────────────────────────────────────────────────
 const isInfoOpen = ref(false)
 const wrapRef    = ref<HTMLElement | null>(null)
+const infoBtnRef = ref<HTMLElement | null>(null)
+
+const { openUp: infoOpenUp } = useFlipUp(infoBtnRef, isInfoOpen, 220)
 
 function toggleInfo(e: MouseEvent): void {
   e.stopPropagation()
@@ -125,12 +128,13 @@ const highlightedName = computed((): string => {
       <!-- Popover ℹ -->
       <div v-if="hasSiteInfo(site)" ref="wrapRef" class="info-wrap">
         <button
+          ref="infoBtnRef"
           class="icon-btn"
           :class="{ active: isInfoOpen }"
           title="Informations"
           @click="toggleInfo"
         >&#x2139;</button>
-        <div v-if="isInfoOpen" class="info-popover">
+        <div v-if="isInfoOpen" class="info-popover" :class="{ 'open-up': infoOpenUp }">
           <div v-if="site.dns_zone" class="info-row">
             <span class="info-label">Zone DNS</span>
             <span class="info-val">{{ site.dns_zone }}</span>

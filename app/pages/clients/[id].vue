@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import type { Client, Maintenance, Site, UserProfile, MaintenanceType } from '~/server/utils/types'
+import '~/assets/css/clients.css'
+import '~/assets/css/admin.css'
+import '~/assets/css/maintenance.css'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -482,7 +485,3 @@ const quotaClass = computed((): string => {
 
   </div>
 </template>
-
-<style src="~/assets/css/clients.css"></style>
-<style src="~/assets/css/admin.css"></style>
-<style src="~/assets/css/maintenance.css"></style>

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import type { Group, Site, Hoster, WebServer } from '~/server/utils/types'
+import type { Group, Site, Hoster, WebServer, Bdd } from '~/server/utils/types'
 
 const props = defineProps<{
   group          : Group
   sites          : Site[]
   hosters       ?: Hoster[]
   webServers    ?: WebServer[]
+  databases     ?: Bdd[]
   defaultOpen   ?: boolean
   nameIsMuted   ?: boolean
   expandAllTick ?: number
@@ -48,6 +49,9 @@ watch(() => props.collapseAllTick, () => { isOpen.value = false })
 // ── Popover infos serveur ─────────────────────────────────────────
 const isInfoOpen  = ref(false)
 const infoWrapRef = ref<HTMLElement | null>(null)
+const infoBtnRef  = ref<HTMLElement | null>(null)
+
+const { openUp: infoOpenUp } = useFlipUp(infoBtnRef, isInfoOpen, 220)
 
 function toggleInfo(e: MouseEvent): void {
   e.stopPropagation()
@@ -108,8 +112,14 @@ async function copyIp(text: string, fieldId: string): Promise<void> {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────
+const groupDb = computed((): Bdd | null => {
+  const id = props.group.database_id
+  if (!id) return null
+  return (props.databases ?? []).find((d: Bdd): boolean => d.id === id) ?? null
+})
+
 function hasGroupInfo(g: Group): boolean {
-  return !!(g.hoster || g.ip_public || g.ip_local || g.web_server)
+  return !!(g.hoster || g.ip_public || g.ip_local || g.web_server || g.database_id)
 }
 
 function webServerKey(name: string): string {
@@ -142,13 +152,14 @@ function logoSlug(name: string, list: { name: string; simpleicons_slug: string |
         <!-- Popover ℹ -->
         <div v-if="hasGroupInfo(group)" ref="infoWrapRef" class="info-wrap">
           <button
+            ref="infoBtnRef"
             class="icon-btn"
             :class="{ active: isInfoOpen }"
             title="Informations"
             @click="toggleInfo"
           >&#x2139;</button>
 
-          <div v-if="isInfoOpen" class="info-popover">
+          <div v-if="isInfoOpen" class="info-popover" :class="{ 'open-up': infoOpenUp }">
             <div v-if="group.hoster" class="info-row">
               <span class="info-label">Hébergeur</span>
               <span class="info-val-wrap">
@@ -217,6 +228,12 @@ function logoSlug(name: string, list: { name: string; simpleicons_slug: string |
                   @error="($event.target as HTMLImageElement).style.display='none'"
                 >
                 {{ group.web_server }}
+              </span>
+            </div>
+            <div v-if="groupDb" class="info-row">
+              <span class="info-label">Base de données</span>
+              <span class="info-val-wrap">
+                <span class="info-val">{{ groupDb.name }}<template v-if="groupDb.type"> ({{ groupDb.type }})</template></span>
               </span>
             </div>
           </div>
