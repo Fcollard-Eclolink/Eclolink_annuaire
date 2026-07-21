@@ -8,8 +8,10 @@ Contexte permanent pour toutes les sessions Claude sur ce projet.
 
 Annuaire interne Eclolink des serveurs et sites web.
 
-- **v1** (branche `main`) — application statique HTML/JS/CSS, Supabase REST direct
-- **v2** (branche `v2-dev`) — Nuxt 3 + Vue 3 + Docker, Supabase via server routes sécurisées
+- **v1** (branche `main`) — application statique HTML/JS/CSS, Supabase REST direct.
+- **v2** (branche `v2-dev`) — Nuxt + Vue + Docker, **PostgreSQL auto-hébergé** via
+  Drizzle ORM, **authentification maison** (sessions serveur). **Plus aucune dépendance
+  Supabase** (migration réalisée — voir `docs/MIGRATION-SELF-HOSTED.md`).
 
 ---
 
@@ -17,16 +19,20 @@ Annuaire interne Eclolink des serveurs et sites web.
 
 | Couche | Technologie | Version |
 |---|---|---|
-| Framework | Nuxt | `^3.21.0` (LTS jusqu'au 31/07/2026) |
+| Framework | Nuxt | `^4.4.6` |
 | UI | Vue | `^3.5.33` |
 | Routeur | Vue Router | `^4.5.0` |
 | Backend | Nitro (intégré Nuxt) | auto |
 | HTTP serveur | H3 (intégré Nitro) | auto |
-| Base de données | Supabase (REST + Auth) | — |
+| Base de données | PostgreSQL (auto-hébergé) | 16 |
+| ORM | Drizzle ORM + `postgres` (driver) | `^0.45` / `^3.4` |
+| Migrations | drizzle-kit | `^0.31` |
 | Conteneur | Docker + Docker Compose | — |
 
 **Aucune dépendance UI externe** (pas de Nuxt UI, pas de Tailwind, pas de Pinia).
-CSS vanilla avec variables CSS (`assets/css/`).
+CSS vanilla avec variables CSS (`assets/css/`). Seules dépendances runtime ajoutées :
+`drizzle-orm`, `postgres`. Le hash des mots de passe utilise `node:crypto` (scrypt) —
+aucune dépendance native.
 
 ---
 
@@ -34,192 +40,166 @@ CSS vanilla avec variables CSS (`assets/css/`).
 
 ```
 app/
+  drizzle.config.ts     ← config drizzle-kit (dialect postgres, schema, migrations)
   server/
+    db/
+      schema.ts         ← schéma Drizzle (toutes les tables) — propriétés en snake_case
+      index.ts          ← client Drizzle singleton : useDb()
+      migrations/       ← migrations SQL versionnées (drizzle-kit generate)
     utils/
-      supabase.ts     ← helpers auth + sbFetch() + interfaces Supabase
-      types.ts        ← interfaces métier partagées (Site, Group, Technology, Agency…)
+      auth.ts           ← getSessionUser / requireUser / requireRole / toAuthUser + WRITE_ROLES
+      session.ts        ← createSession / resolveSessionUser / revoke* (sessions en base)
+      password.ts       ← hashPassword / verifyPassword (scrypt)
+      activity-log.ts   ← logActivity() (insert Drizzle, identité via session)
+      rate-limit.ts     ← checkRateLimit / getClientIp
+      validation.ts     ← requireString, clampString, validateOptional* …
+      sanitize.ts       ← sanitizeSvg (XSS)
+      types.ts          ← interfaces métier (Site, Group, Client, AuthUser, UserProfile…)
     api/
-      auth/           ← login, logout, me
-      sites/          ← GET, POST, PATCH, DELETE
-      groups/         ← GET, POST, PATCH, DELETE
-      project-managers/ ← GET, POST, PATCH, DELETE
-      clients/        ← GET, POST, PATCH, DELETE
-      technologies/   ← GET, POST, PATCH, DELETE
-      agencies/       ← GET, POST, PATCH, DELETE
-      hosters/        ← GET, POST, PATCH, DELETE
-      web-servers/    ← GET, POST, PATCH, DELETE
-      dns-providers/  ← GET, POST, PATCH, DELETE
-      developers/     ← GET, POST, PATCH, DELETE
-      maintenance-types/ ← GET, POST, PATCH, DELETE
-      maintenances/   ← GET, POST, PATCH, DELETE
+      auth/             ← login, logout, me, password (change self), bootstrap (1er admin)
+      users/            ← index.get, index.post, [id].patch, [id]/reset-password.post
+      sites/ groups/ clients/ technologies/ agencies/ hosters/ web-servers/
+      dns-providers/ databases/ maintenance-types/ maintenances/  ← GET/POST/PATCH/DELETE
+      logs/             ← index.get (journal d'activité)
   composables/
-    useAuth.ts        ← useState('auth:user') + logout()
-    useTechBadge.ts   ← techTags(), techIconUrl(), techIconSvg() — lit useState('ref:techs')
-    useSearch.ts
-    useSiteCrud.ts
-    useGroupCrud.ts
-    useServerExpand.ts
+    useAuth.ts          ← useState('auth:user') : AuthUser + logout()
+    useReferenceData.ts ← cache partagé (useState) des données de référence ; devUsers/pmUsers
+    useTechBadge.ts     ← techTags(), techIconUrl() — lit useState('ref:techs')
+    useSearch.ts / useSiteCrud.ts / useGroupCrud.ts / useServerExpand.ts
   plugins/
-    auth.ts           ← initialise user au démarrage (useRequestFetch)
+    auth.ts             ← initialise user au démarrage (useRequestFetch → /api/auth/me)
   middleware/
-    auth.ts           ← redirige /login si user null
-  components/
-    AppServerBlock.vue
-    AppSiteRow.vue
-    AppFilterSelect.vue  ← dropdown multi-select avec checkboxes (filtres)
-    AppSelect.vue        ← dropdown custom simple (sans icônes)
-    AppIconSelect.vue    ← dropdown custom avec icônes simpleicons
-    AppTechSelect.vue    ← multi-select technologies (pills)
-    AppMultiSelect.vue   ← multi-select générique CSV d'IDs (pills sans icônes)
-    AppDateInput.vue     ← saisie date masquée JJ/MM/AAAA
-    AppConfirmModal.vue
+    auth.ts             ← redirige /login si non connecté ; /change-password si must_change_password
+  components/           ← AppServerBlock, AppSiteRow, AppSelect, AppIconSelect, AppTechSelect,
+                          AppFilterSelect, AppFilterBar, AppMultiSelect, AppDateInput,
+                          AppConfirmModal, AppClientFormModal, AppGroupFormModal…
   pages/
-    login.vue         ← page publique
-    index.vue         ← page protégée (middleware: 'auth')
-    admin.vue         ← page protégée, CRUD données de référence
-    maintenance.vue   ← page protégée, liste des interventions de maintenance
-  assets/css/
-    main.css          ← importe tous les fichiers CSS
-    variables.css
-    base.css
-    layout.css        ← toolbar, filtres, filter-drop-*
-    modals.css        ← modales, icon-select, tech-select
-    servers.css       ← server-block, site-row
-    sites.css
-    admin.css         ← styles page /admin
-    maintenance.css   ← styles page /maintenance
+    login.vue           ← page publique
+    change-password.vue ← changement de mot de passe (forcé si must_change_password)
+    index.vue / admin.vue / maintenance.vue / logs.vue
+    clients/index.vue / clients/[id].vue
+  assets/css/           ← main.css importe la base ; les CSS de page sont importés en
+                          `import '~/assets/css/*.css'` dans le <script setup> concerné
   app.vue
-  nuxt.config.ts
+  nuxt.config.ts        ← runtimeConfig: { databaseUrl, sessionSecret }
+Dockerfile              ← image DEV (npm run dev, volume monté)
+Dockerfile.prod         ← build PROD multi-stage (runner = node .output/server/index.mjs)
+docker-compose.yml      ← DEV  : postgres + app (hot-reload)
+docker-compose.prod.yml ← PROD : postgres + migrate (profil) + app
+scripts/backup.sh       ← pg_dump + rétention 30j
+app/scripts/migrate-from-supabase.mjs ← import ponctuel des données (npm run db:import)
 ```
 
 ---
 
-## Base de données Supabase
+## Base de données (PostgreSQL + Drizzle)
 
-### Tables
+### Accès
+- **Toutes** les requêtes passent par les server routes Nuxt (`server/api/`). Le client ne
+  contacte jamais la base directement.
+- Point d'entrée unique : **`useDb()`** (`server/db/index.ts`), client Drizzle singleton
+  (driver `postgres`, lit `process.env.NUXT_DATABASE_URL`).
+- **Pas de RLS** : la base n'est jointe que par le serveur Nitro (connexion de confiance).
+  L'autorisation est **applicative** (`requireRole`, voir Sécurité).
+- Le schéma Drizzle utilise des **noms de propriétés en snake_case** (= noms de colonnes) :
+  les objets renvoyés sont donc sérialisés en snake_case, identiques aux contrats JSON du
+  client. Les `created_at` sont en `mode: 'string'` ; les timestamps de `sessions` restent
+  des `Date` (calculs d'expiration).
+
+### Migrations
+- `npm run db:generate` (depuis `app/`) → génère le SQL dans `server/db/migrations/`.
+- `npm run db:migrate` → applique les migrations (lit `NUXT_DATABASE_URL`).
+- Ne jamais éditer une migration déjà appliquée : modifier `schema.ts` puis régénérer.
+
+### Tables (`server/db/schema.ts`)
 
 | Table | Colonnes principales |
 |---|---|
-| `eclolink_groups` | `id`, `name`, `hoster`, `ip_local`, `ip_public`, `web_server` |
-| `eclolink_sites` | `id`, `name`, `url`, `bo_url`, `gitlab_url`, `agency`, `group_id`, `php_version`, `dns_zone`, `go_live_date`, `technologies`, `project_manager_id`, `client_id`, `registrar`, `notes` |
-| `eclolink_project_managers` | `id`, `first_name`, `last_name`, `agency` |
-| `eclolink_clients` | `id`, `name`, `agency`, `contact_name`, `contact_email`, `notes`, `monthly_quota_minutes` |
+| `eclolink_users` | `id`(uuid), `email`(unique), `password_hash`, `first_name`, `last_name`, `role`, `agency`, `job_title`, `is_active`, `must_change_password`, `created_at`, `last_login_at` |
+| `eclolink_sessions` | `id`, `token_hash`(unique), `user_id`→users, `expires_at`, `last_seen_at`, `user_agent`, `ip` |
+| `eclolink_groups` | `id`(text), `name`, `hoster`, `ip_local`, `ip_public`, `web_server`, `database_id`→databases |
+| `eclolink_sites` | `id`(text), `name`, `url`, `bo_url`, `gitlab_url`, `agency`, `group_id`, `php_version`, `dns_zone`, `go_live_date`, `technologies`, `client_id`→clients, `registrar`, `notes`, `has_maintenance` |
+| `eclolink_clients` | `id`(text), `name`, `agency`, `contact_name`, `contact_email`, `contact_phone`, `notes`, `monthly_quota_minutes`, `monthly_amount`, `project_manager_id`→users |
 | `eclolink_technologies` | `id`, `label`, `simpleicons_slug`, `svg`, `sort_order` |
-| `eclolink_agencies` | `id`, `name` |
-| `eclolink_hosters` | `id`, `name`, `simpleicons_slug` |
-| `eclolink_web_servers` | `id`, `name`, `simpleicons_slug` |
-| `eclolink_dns_providers` | `id`, `name`, `simpleicons_slug` |
-| `eclolink_developers` | `id`, `first_name`, `last_name`, `agency`, `job_title` |
+| `eclolink_agencies` / `eclolink_hosters` / `eclolink_web_servers` / `eclolink_dns_providers` | `id`, `name`, (`simpleicons_slug`) |
+| `eclolink_databases` | `id`, `name`, `type`, `notes` |
 | `eclolink_maintenance_types` | `id`, `label` |
-| `eclolink_maintenances` | `id`, `site_id`, `client_id`, `developer_id`, `duration_minutes`, `intervention_date`, `has_incident`, `types` (CSV d'IDs), `notes`, `created_at` |
+| `eclolink_maintenances` | `id`, `site_id`→sites, `client_id`→clients, `developer_id`→users, `intervention_date`, `has_incident`, `types`(CSV), `notes`, `duration_minutes`, `is_monthly_maintenance`, `created_at` |
+| `eclolink_activity_logs` | `id`, `user_id`→users, `user_email`, `action`, `resource_type`, `resource_id`, `resource_label`, `created_at` |
 
-Toutes les tables ont RLS activé avec une policy `allow_all_authenticated` (accès complet aux utilisateurs authentifiés).
+> Les développeurs et cheffes de projet **ne sont plus des tables séparées** : ce sont des
+> `eclolink_users` filtrés par `role` (`useReferenceData` → `devUsers` / `pmUsers`).
+> IDs `text` conservés pour groups/sites/clients (historique) ; `uuid` ailleurs.
 
-### Accès
+---
 
-Toutes les requêtes Supabase passent **exclusivement** par les server routes Nuxt (`server/api/`).
-Le client ne contacte jamais Supabase directement.
-L'utilitaire `sbFetch()` dans `server/utils/supabase.ts` gère l'auth + le refresh automatique.
+## Authentification & autorisation (maison)
+
+### Sessions
+- Login (`/api/auth/login`) : vérifie l'email + le mot de passe (scrypt), crée une session.
+- **Token opaque** (`randomBytes(32)`) posé dans un cookie `httpOnly` `eclo_session` ; seul
+  son **SHA-256** est stocké en base (fuite DB ⇒ session inutilisable).
+- Cookie : `httpOnly`, `secure` en prod, `sameSite: 'lax'`, TTL 30 j **glissant**.
+- **Révocable** : logout, désactivation de compte (`is_active=false`), changement de mdp
+  (révoque toutes les sessions puis en recrée une).
+- `resolveSessionUser()` vérifie session non expirée **et** `user.is_active`.
+
+### Mots de passe
+- Hash **scrypt** (`node:crypto`), salt unique, comparaison en temps constant (`timingSafeEqual`).
+- Format stocké : `scrypt$<saltHex>$<keyHex>`. `password_hash` n'est **jamais** exposé au client.
+- Minimum 10 caractères. `must_change_password` force le passage par `/change-password`.
+
+### Comptes
+- **Pas d'inscription publique.** Le 1er sysadmin est créé via `POST /api/auth/bootstrap`
+  (ne fonctionne QUE si la table `users` est vide → auto-désactivant).
+- Ensuite les comptes sont gérés par un **sysadmin** via `/admin` (onglet Utilisateurs) :
+  `POST /api/users`, `PATCH /api/users/[id]` (profil/rôle/`is_active`),
+  `POST /api/users/[id]/reset-password`.
+
+### Autorisation par rôle — OBLIGATOIRE sur chaque route
+Il n'y a plus de garde implicite (l'ancien `sbFetch` a disparu). **Chaque** route doit
+appeler explicitement une garde, sinon elle est publique :
+- Lectures (`GET`) : `await requireUser(event)` (tout authentifié, y compris `viewer`).
+- Mutations (`POST`/`PATCH`/`DELETE`) : `await requireRole(event, WRITE_ROLES)` avec
+  `WRITE_ROLES = ['sysadmin','dev','pm','crea']` (⇒ `viewer` en lecture seule).
+- Gestion des comptes (`/api/users/*`, sauf `GET`) : `requireRole(event, ['sysadmin'])`.
+- Garde anti-verrouillage : un sysadmin ne peut ni se rétrograder ni se désactiver lui-même.
+
+Rôles : `sysadmin | dev | pm | crea | viewer`.
 
 ---
 
 ## Données de référence dynamiques
 
-Les listes technologies, hébergeurs, serveurs web, DNS providers et agences sont stockées en base et **ne sont plus des constantes statiques**. `selectOptions.ts` ne contient plus que les interfaces `SelectOption` et `TechOption`.
+Technologies, hébergeurs, serveurs web, DNS, agences, bases, clients, sites, groupes,
+maintenances et utilisateurs sont chargés via le composable **`useReferenceData()`**
+(cache `useState` partagé, méthodes `load*` / `refresh*`). `devUsers` / `pmUsers` en
+dérivent (filtre par `role` + exclusion des comptes `is_active=false`).
 
-### Pattern de chargement dans `index.vue`
-
-```ts
-// Chargé dans le Promise.all initial
-const { data: fetchedTechs }        = await useFetch<Technology[]>('/api/technologies')
-const { data: fetchedHosters }      = await useFetch<Hoster[]>('/api/hosters')
-const { data: fetchedWebServers }   = await useFetch<WebServer[]>('/api/web-servers')
-const { data: fetchedDnsProviders } = await useFetch<DnsProvider[]>('/api/dns-providers')
-
-// State partagé pour useTechBadge
-const refTechs = useState<Technology[]>('ref:techs', () => [])
-watchEffect(() => { if (fetchedTechs.value) refTechs.value = fetchedTechs.value })
-```
-
-### `useTechBadge`
-
-- Lit `useState('ref:techs')` — peuplé par `index.vue` et `admin.vue` au chargement.
-- `techTags(site)` : parse le champ `technologies` (CSV ou JSON), normalise les anciens IDs legacy (`wpbakery` → "WP Bakery", `next` → "Next.js"), déduplique.
-- Table de correspondance `LEGACY_IDS` pour les anciens IDs qui ne matchent pas par normalisation seule.
-
-### `AppServerBlock`
-
-Reçoit `hosters?: Hoster[]` et `webServers?: WebServer[]` en props (passées depuis `index.vue`).
-
-### `AppTechSelect`
-
-Reçoit `techs?: Technology[]` en prop (passée depuis `index.vue`).
+`useTechBadge` lit `useState('ref:techs')` — `techTags(site)` parse le champ `technologies`
+(CSV ou JSON), normalise les IDs legacy (`LEGACY_IDS`), déduplique.
 
 ---
 
 ## Page Admin (`/admin`)
 
-Page protégée avec 7 onglets : Technologies · Agences · Hébergeurs · Serveurs web · DNS · Cheffes de projet · Clients.
-
-Chaque onglet : tableau + bouton Ajouter + Edit/Supprimer par ligne + modales add/edit/delete.
-
-L'onglet Technologies affiche le nombre de sites utilisant chaque technologie (calculé client-side via `techTags`).
+Onglets : Technologies · Agences · Hébergeurs · Serveurs web · DNS · Bases de données ·
+**Utilisateurs** · Types maintenance. Chaque onglet : tableau + Ajouter + Edit/Supprimer +
+modales. L'onglet Utilisateurs gère la création de comptes, l'édition profil/rôle, la
+réinitialisation de mot de passe et l'activation/désactivation.
 
 ---
 
 ## Composants UI
 
-### `AppSelect`
-Dropdown custom simple (sans icônes). Utilisé pour Serveur, Cheffe de projet, Client, Agence.
-```vue
-<AppSelect v-model="form.group_id" :options="groups.map(g => ({ value: g.id, label: g.name }))" placeholder="— Aucun —" />
-```
+- **`AppSelect`** — dropdown simple (Serveur, Cheffe de projet, Client, Agence, Rôle).
+- **`AppIconSelect`** — dropdown avec logo simpleicons (Hébergeur, Serveur web, DNS, Registrar).
+- **`AppTechSelect`** — multi-select technologies (pills), reçoit `:techs`.
+- **`AppFilterSelect`** — multi-select à checkboxes pour les filtres (`FilterOption` exporté).
+- **`AppDateInput`** — saisie masquée JJ/MM/AAAA, stocke en ISO `YYYY-MM-DD`.
 
-### `AppIconSelect`
-Dropdown custom avec logo simpleicons. Utilisé pour Hébergeur, Serveur web, Zone DNS, Registrar.
-```vue
-<AppIconSelect v-model="form.hoster" :options="hosters.map(h => ({ value: h.name, label: h.name, slug: h.simpleicons_slug }))" />
-```
-
-### `AppTechSelect`
-Multi-select technologies avec pills. Reçoit `:techs` depuis les données dynamiques.
-
-### `AppFilterSelect`
-Dropdown multi-select avec checkboxes pour les filtres. Interface `FilterOption` exportée depuis le composant.
-
-### `AppDateInput`
-Saisie masquée JJ/MM/AAAA. Stocke en ISO (`YYYY-MM-DD`) dans le modèle. Le bouton calendrier utilise un `<input type="date">` caché.
-
-### Style des dropdowns
-Tous les dropdowns (`icon-select`, `tech-select`, `filter-drop`) partagent le même style visuel : `font-size: 13px`, `height: 34px`, `padding: 0 12px`, options `7px 12px`.
-
----
-
-## Règles de sécurité — NON NÉGOCIABLES
-
-### Authentification
-- Les tokens Supabase (`access_token`, `refresh_token`) sont stockés **uniquement** dans des cookies `httpOnly`.
-- Un cookie `httpOnly` est **invisible au JavaScript côté client** — protection XSS.
-- `secure: true` en production, `sameSite: 'lax'` toujours.
-- Le refresh du token est géré **côté serveur** dans `sbFetch()` de façon transparente.
-- Le logout révoque le token côté Supabase **avant** d'effacer les cookies.
-
-### Données exposées au client
-- `/api/auth/me` ne retourne que `{ id, email }` — jamais les tokens.
-- Les server routes ne retournent jamais de champs sensibles (tokens, clés, mots de passe).
-
-### Variables d'environnement
-- `SUPABASE_URL` et `SUPABASE_KEY` sont des variables **serveur uniquement** (dans `runtimeConfig`, pas `runtimeConfig.public`).
-- Le client ne connaît jamais l'URL ni la clé Supabase.
-- `.env` est dans `.gitignore` — ne jamais commiter de secrets.
-
-### Validation des entrées
-- Toute entrée utilisateur dans les server routes est validée avant utilisation (`readBody` avec type générique).
-- Les champs requis sont vérifiés explicitement (pas de confiance aveugle).
-
-### Review automatique
-- Un hook agent Claude (`PreToolUse` sur `git push`) analyse chaque push pour détecter des failles de sécurité.
-- Secrets exposés, injections, auth non sécurisée → push bloqué automatiquement.
+Tous les dropdowns partagent le même style : `font-size: 13px`, `height: 34px`,
+`padding: 0 12px`, options `7px 12px`.
 
 ---
 
@@ -227,121 +207,93 @@ Tous les dropdowns (`icon-select`, `tech-select`, `filter-drop`) partagent le m�
 
 ### Zéro `any`
 - **Interdit** : `: any`, `as any`, `<any>`, paramètres sans type, `any` implicite.
-- Chaque `res.json()` est casté explicitement : `(await res.json()) as MonType`.
-- Les interfaces Supabase sont dans `server/utils/supabase.ts` (`SupabaseTokenData`, `SupabaseUser`).
-- Les interfaces métier sont dans `server/utils/types.ts` (`Site`, `Group`, `Technology`, `Agency`, `Hoster`, `WebServer`, `DnsProvider`, `ProjectManager`, `Client`).
+- Interfaces métier dans `server/utils/types.ts` (`Site`, `Group`, `Client`, `AuthUser`,
+  `UserProfile`, `Technology`, `Agency`, `Hoster`, `WebServer`, `DnsProvider`, `Bdd`,
+  `Maintenance`, `MaintenanceType`, `ActivityLog`).
+- Types Drizzle inférés : `typeof table.$inferSelect` / `$inferInsert` ; `User`/`Session`
+  exportés depuis `schema.ts`.
 
 ### Typage complet
-- Toutes les fonctions ont leurs paramètres et retours typés.
-- `defineEventHandler` indique son type de retour : `Promise<Site[]>`, `Promise<SupabaseUser>`, etc.
-- `useState` est toujours générique : `useState<SupabaseUser | null>(...)`.
-
-### Patterns à suivre
-```ts
-// ✅ Correct — cast explicite depuis json()
-const data = (await res.json()) as SupabaseTokenData
-
-// ✅ Correct — type de retour déclaré
-export default defineEventHandler(async (event): Promise<Site[]> => { ... })
-
-// ✅ Correct — destructuration de runtimeConfig
-const { supabaseUrl, supabaseKey } = useRuntimeConfig()
-
-// ❌ Interdit
-const data = await res.json()          // any implicite
-const x: any = something               // any explicite
-function foo(x) { ... }                // paramètre non typé
-```
+- `defineEventHandler` déclare son type de retour : `Promise<Site[]>`, `Promise<AuthUser>`, etc.
+- `useState` toujours générique : `useState<AuthUser | null>(...)`.
+- Les interfaces (`Site`, `Agency`…) sont auto-importées dans les routes serveur.
+  **Exception** : `Client` entre en collision avec le type global DOM `Client` → l'importer
+  explicitement (`import type { Client } from '~/server/utils/types'`).
 
 ### Vérification
-Avant chaque push : `npm run typecheck` (alias `nuxt typecheck`).
+- `@types/node` est installé (scrypt/Buffer). Avant chaque push : `npm run typecheck`
+  (**depuis `app/`**).
 
 ---
 
 ## Règles de stabilité
 
-### Gestion des erreurs
-- Toutes les erreurs serveur passent par `createError({ statusCode, message })` — jamais de throw raw.
-- Les opérations non critiques (ex: révocation token au logout) utilisent `.catch(() => undefined)`.
-- Les erreurs de fetch réseau sont toujours catchées et transformées en réponse structurée.
-
-### Cookies et session
-- L'accès token expire en `expires_in` secondes (1h par défaut Supabase).
-- Le refresh token est valide 30 jours (`maxAge: 60 * 60 * 24 * 30`).
-- `sbFetch()` retry automatiquement avec un nouveau token si le serveur répond 401.
-
-### SSR / Hydratation
-- `useRequestFetch()` est utilisé dans le plugin auth pour forwarder les cookies httpOnly lors du rendu SSR.
-- `$fetch` nu ne forward pas les cookies en SSR — toujours utiliser `useRequestFetch()` dans les plugins/server-side composables.
-- `useState` persiste l'état entre SSR et client via le payload Nuxt (pas de double fetch).
-
-### Middleware
-- Le middleware `auth` ne bloque jamais `/login` (guard explicite `if (to.path === '/login') return`).
-- `definePageMeta({ middleware: 'auth' })` est déclaré explicitement sur chaque page protégée (`index.vue`, `admin.vue`).
+- Toutes les erreurs serveur via `createError({ statusCode, message })` — jamais de throw raw.
+- Opérations non critiques : `.catch(() => undefined)` (ex. purge des logs).
+- **PATCH sans champ fourni** → renvoie la ligne existante (no-op), pas d'erreur.
+- **SSR** : `useRequestFetch()` dans le plugin auth pour forwarder les cookies httpOnly ;
+  `useState` persiste l'état via le payload Nuxt.
+- **Middleware** `auth` : ne bloque jamais `/login` ; redirige vers `/change-password` si
+  `must_change_password`. `definePageMeta({ middleware: 'auth' })` sur chaque page protégée.
 
 ---
 
 ## Règles de scalabilité
 
+### Ajouter une nouvelle entité de référence `eclolink_X`
+1. Déclarer la table dans `server/db/schema.ts` (snake_case), puis `npm run db:generate`.
+2. Ajouter l'interface dans `server/utils/types.ts`.
+3. Créer les routes `server/api/X/` : `index.get` (`requireUser` + `orderBy`),
+   `index.post` / `[id].patch` / `[id].delete` (`requireRole(WRITE_ROLES)`), via `useDb()`.
+4. Ajouter l'onglet dans `admin.vue` et une entrée `load*/refresh*` dans `useReferenceData`.
+
 ### Server routes
-- Chaque ressource a sa propre route dans `server/api/<ressource>/`.
-- Pattern complet : `index.get.ts`, `index.post.ts`, `[id].patch.ts`, `[id].delete.ts`.
-- Les utilitaires partagés (auth, types) sont dans `server/utils/`.
-- `sbFetch()` est le seul point d'entrée vers Supabase — toute nouvelle route l'utilise.
-- Toutes les routes GET trient par `name.asc` (ou `label.asc` pour technologies, `first_name.asc` pour project-managers).
+- Pattern : `index.get.ts`, `index.post.ts`, `[id].patch.ts`, `[id].delete.ts`.
+- `useDb()` + tables de `schema.ts` importés explicitement ; gardes (`requireUser`/
+  `requireRole`) et helpers de validation auto-importés depuis `server/utils/`.
+- GET triés (`asc(name)` ; `label` pour technologies/maintenance-types ; users par nom).
 
-### Nouvelles entités de référence
-Pour ajouter une nouvelle table de référence (ex: `eclolink_X`) :
-1. Créer la table Supabase avec RLS + policy `allow_all_authenticated`
-2. Ajouter l'interface dans `server/utils/types.ts`
-3. Créer les 4 routes dans `server/api/X/` (GET trié, POST, PATCH, DELETE)
-4. Ajouter l'onglet dans `admin.vue`
-5. Charger via `useFetch` dans les pages qui en ont besoin
+---
 
-### Composables
-- `useAuth()` est le seul composable d'authentification.
-- `useTechBadge` lit `useState('ref:techs')` — ne pas importer TECHS statiques.
-- Les nouveaux composables suivent le pattern `useState` + actions async.
+## Sécurité — NON NÉGOCIABLE
+
+- Mots de passe : scrypt + salt unique + comparaison temps constant ; jamais exposés.
+- Sessions : token opaque, stocké **hashé**, cookie `httpOnly/secure/sameSite=lax`, révocables.
+- Rate-limit login (5 tentatives / 15 min / IP) ; message générique (anti-énumération).
+- Autorisation par rôle sur **toutes** les mutations ; routes users réservées `sysadmin`.
+- Aucune SQL concaténée à la main (Drizzle paramétré) → anti-injection.
+- Secrets hors dépôt : `NUXT_DATABASE_URL`, `NUXT_SESSION_SECRET` en `runtimeConfig` (serveur
+  uniquement, jamais `runtimeConfig.public`) ; `.env` est gitignore. HTTPS forcé en prod.
+- Entrées validées avant usage (`readBody` typé + helpers `validation.ts`).
+- SVG utilisateur (technologies) passé par `sanitizeSvg`.
 
 ---
 
 ## Workflow git
 
 ### Branches
-- `main` — v1 statique (production)
-- `v2-dev` — v2 Nuxt (développement actif)
+- `main` — v1 statique (production) · `v2-dev` — v2 (développement actif).
 
-### Avant chaque commit
-- Vérifier l'absence de `any` dans les fichiers modifiés.
-- Vérifier que les variables d'environnement ne sont pas hardcodées.
-
-### Avant chaque push
-- Le hook agent Claude vérifie automatiquement sécurité + qualité.
-- Push bloqué si : secrets exposés, injections, tokens côté client, auth non sécurisée.
+### Avant chaque commit / push
+- Pas de `any`, pas de secret hardcodé, `npm run typecheck` vert (depuis `app/`).
+- Un hook agent Claude (`PreToolUse` sur `git push`) analyse sécurité + qualité.
 
 ### Convention de commit
 ```
 type(scope): description courte
 
 Corps optionnel détaillant le pourquoi.
-
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 ```
-Types : `feat`, `fix`, `chore`, `refactor`, `docs`
+Types : `feat`, `fix`, `chore`, `refactor`, `docs`.
+**Ne jamais signer les commits** (pas de `Co-Authored-By`, aucune mention de l'assistant).
 
 ---
 
 ## Docker
 
-```yaml
-# docker-compose.yml
-# ./app monté en volume pour hot-reload
-# node_modules isolé via volume anonyme
-# Variables d'env injectées depuis .env racine via ${SUPABASE_URL}
-# Port 24678 exposé pour Vite HMR (hot-reload navigateur)
-```
-
-**Commandes** :
-- Démarrer : `docker-compose up --build`
-- Hot-reload : automatique (volume mount `./app:/app`, HMR port 24678)
-- Accès : `http://localhost:3000`
+- **Dev** : `docker compose up --build` — Postgres + app en `npm run dev` (volume `./app`
+  monté). Migrer : `docker compose exec app npm run db:migrate`.
+- **Prod** : `docker compose -f docker-compose.prod.yml up -d --build` (image `Dockerfile.prod`
+  multi-stage). Migrer : `... --profile migrate run --rm migrate`. Config via `.env`
+  (voir `.env.example`). Runbook complet : `docs/MIGRATION-SELF-HOSTED.md` §12.
+- Accès : `http://localhost:3000`.

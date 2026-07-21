@@ -5,3 +5,7 @@ app/.output/
 .env
 *.local
 .claude/settings.local.json
+.claude/worktrees/
+
+# Lockfile parasite à la racine (le vrai est dans app/)
+/package-lock.json

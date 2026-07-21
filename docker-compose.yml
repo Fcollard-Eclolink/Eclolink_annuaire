@@ -1,4 +1,30 @@
+# Stack de développement (hot-reload).
+# Postgres local + app en `npm run dev` (volume monté).
+#
+# Démarrer :   docker compose up --build
+# Migrer   :   docker compose exec app npm run db:migrate
+# 1er admin:   curl -X POST http://localhost:3000/api/auth/bootstrap \
+#                   -H 'Content-Type: application/json' \
+#                   -d '{"email":"admin@eclolink.com","password":"motdepassefort"}'
+
 services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER    : eclolink
+      POSTGRES_PASSWORD: eclolink
+      POSTGRES_DB      : eclolink
+    ports:
+      - "5432:5432"   # exposé pour psql / drizzle-kit depuis l'hôte
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+    healthcheck:
+      test    : ["CMD-SHELL", "pg_isready -U eclolink -d eclolink"]
+      interval: 10s
+      timeout : 5s
+      retries : 5
+
   app:
     build: .
     ports:
@@ -11,5 +37,11 @@ services:
       - NODE_ENV=development
       - NUXT_HOST=0.0.0.0
       - NUXT_PORT=3000
-      - NUXT_SUPABASE_URL=${SUPABASE_URL}
-      - NUXT_SUPABASE_KEY=${SUPABASE_KEY}
+      - NUXT_DATABASE_URL=postgres://eclolink:eclolink@db:5432/eclolink
+      - NUXT_SESSION_SECRET=dev-secret-non-sensible
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata_dev:

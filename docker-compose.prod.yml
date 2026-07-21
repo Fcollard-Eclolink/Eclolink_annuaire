@@ -1,0 +1,59 @@
+# Stack de production — serveurs Eclolink.
+# Prérequis : un fichier .env (voir .env.example) à la racine.
+#
+# Démarrer :   docker compose -f docker-compose.prod.yml up -d --build
+# Migrer   :   docker compose -f docker-compose.prod.yml --profile migrate run --rm migrate
+# 1er admin:   curl -X POST http://localhost:3000/api/auth/bootstrap \
+#                   -H 'Content-Type: application/json' \
+#                   -d '{"email":"admin@eclolink.com","password":"motdepassefort"}'
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER    : ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB      : ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test    : ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout : 5s
+      retries : 5
+
+  # Applique les migrations Drizzle puis se termine. À lancer via --profile migrate.
+  migrate:
+    build:
+      context   : .
+      dockerfile: Dockerfile.prod
+      target    : source
+    command: npm run db:migrate
+    environment:
+      NUXT_DATABASE_URL: ${NUXT_DATABASE_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles: ["migrate"]
+
+  app:
+    build:
+      context   : .
+      dockerfile: Dockerfile.prod
+      target    : runner
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV           : production
+      NUXT_HOST          : 0.0.0.0
+      NUXT_PORT          : "3000"
+      NUXT_DATABASE_URL  : ${NUXT_DATABASE_URL}
+      NUXT_SESSION_SECRET: ${NUXT_SESSION_SECRET}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
