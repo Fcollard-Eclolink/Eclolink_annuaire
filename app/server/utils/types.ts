@@ -1,5 +1,18 @@
 // ── Entités métier partagées (server-side) ────────────────────────
 
+// Contrat public de l'utilisateur authentifié (réponse /api/auth/me).
+// snake_case volontaire : conserve la forme historique consommée par le client.
+export interface AuthUser {
+  id                  : string
+  email               : string
+  first_name          : string
+  last_name           : string
+  role                : 'sysadmin' | 'dev' | 'pm' | 'crea' | 'viewer'
+  agency              : string | null
+  job_title           : string | null
+  must_change_password: boolean
+}
+
 export interface Site {
   id                 : string
   name               : string
@@ -50,11 +63,13 @@ export interface Bdd {
 
 export interface UserProfile {
   user_id   : string
+  email     : string
   first_name: string
   last_name : string
   role      : 'sysadmin' | 'dev' | 'pm' | 'crea' | 'viewer'
   agency    : string | null
   job_title : string | null
+  is_active : boolean
   created_at: string
 }
 

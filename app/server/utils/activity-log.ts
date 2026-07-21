@@ -1,13 +1,7 @@
 import type { H3Event } from 'h3'
-
-function extractUserFromToken(token: string): { id: string; email: string } | null {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1])) as Record<string, unknown>
-    return { id: payload.sub as string, email: payload.email as string }
-  } catch {
-    return null
-  }
-}
+import { useDb } from '~/server/db'
+import { activityLogs } from '~/server/db/schema'
+import { getSessionUser } from '~/server/utils/auth'
 
 export async function logActivity(
   event         : H3Event,
@@ -17,23 +11,16 @@ export async function logActivity(
   resource_label: string | null,
 ): Promise<void> {
   try {
-    const token = getAccessToken(event)
-    if (!token) return
-    const user = extractUserFromToken(token)
+    const user = await getSessionUser(event)
     if (!user) return
 
-    await sbFetch(event, '/rest/v1/eclolink_activity_logs', {
-      method : 'POST',
-      body   : JSON.stringify({
-        id            : crypto.randomUUID(),
-        user_id       : user.id,
-        user_email    : user.email,
-        action,
-        resource_type,
-        resource_id,
-        resource_label,
-      }),
-      headers: { Prefer: 'return=minimal' },
+    await useDb().insert(activityLogs).values({
+      user_id       : user.id,
+      user_email    : user.email,
+      action,
+      resource_type : resource_type,
+      resource_id   : resource_id,
+      resource_label: resource_label,
     })
   } catch { /* non-bloquant */ }
 }

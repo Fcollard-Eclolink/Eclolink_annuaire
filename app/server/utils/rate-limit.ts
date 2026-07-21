@@ -24,7 +24,7 @@ const buckets = new Map<string, Bucket>()
 function purge(bucket: Bucket, windowMs: number): void {
   const cutoff = Date.now() - windowMs
   // Trie chronologique → on peut couper en début
-  while (bucket.attempts.length > 0 && bucket.attempts[0] < cutoff) {
+  while (bucket.attempts.length > 0 && bucket.attempts[0]! < cutoff) {
     bucket.attempts.shift()
   }
 }
@@ -51,7 +51,7 @@ export function checkRateLimit(opts: RateLimitOptions): void {
   purge(bucket, opts.windowMs)
 
   if (bucket.attempts.length >= opts.limit) {
-    const retryAfter = Math.ceil((bucket.attempts[0] + opts.windowMs - Date.now()) / 1000)
+    const retryAfter = Math.ceil((bucket.attempts[0]! + opts.windowMs - Date.now()) / 1000)
     throw createError({
       statusCode   : 429,
       statusMessage: 'Too Many Requests',

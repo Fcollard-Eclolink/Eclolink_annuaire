@@ -1,7 +1,7 @@
-import type { SupabaseUser } from '~/server/utils/supabase'
+import type { AuthUser } from '~/server/utils/types'
 
 export const useAuth = () => {
-  const user = useState<SupabaseUser | null>('auth:user', () => null)
+  const user = useState<AuthUser | null>('auth:user', () => null)
 
   async function logout(): Promise<void> {
     await $fetch('/api/auth/logout', { method: 'POST' }).catch(() => undefined)

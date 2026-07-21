@@ -1,15 +1,6 @@
-export default defineEventHandler(async (event) => {
-  const token = getAccessToken(event)
+import { revokeCurrentSession } from '~/server/utils/session'
 
-  if (token) {
-    const { supabaseUrl, supabaseKey } = useRuntimeConfig()
-    // Révocation best-effort — si le token est déjà expiré c'est ok
-    await fetch(`${supabaseUrl}/auth/v1/logout`, {
-      method  : 'POST',
-      headers : { apikey: supabaseKey, Authorization: `Bearer ${token}` },
-    }).catch(() => undefined)
-  }
-
-  clearTokenCookies(event)
+export default defineEventHandler(async (event): Promise<{ ok: true }> => {
+  await revokeCurrentSession(event)
   return { ok: true }
 })

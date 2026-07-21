@@ -1,4 +1,4 @@
-import type { SupabaseUser } from '~/server/utils/supabase'
+import type { AuthUser } from '~/server/utils/types'
 
 // Plugin universel : s'exécute côté serveur ET client.
 // useRequestFetch() forward les cookies httpOnly de la requête entrante (SSR)
@@ -8,7 +8,7 @@ export default defineNuxtPlugin(async (): Promise<void> => {
 
   if (!user.value) {
     const fetchWithCookies = useRequestFetch()
-    user.value = await fetchWithCookies<SupabaseUser>('/api/auth/me')
+    user.value = await fetchWithCookies<AuthUser>('/api/auth/me')
       .catch(() => null)
   }
 })
