@@ -1,4 +1,8 @@
+import { asc } from 'drizzle-orm'
+import { useDb } from '~/server/db'
+import { technologies } from '~/server/db/schema'
+
 export default defineEventHandler(async (event): Promise<Technology[]> => {
-  const res = await sbFetch(event, '/rest/v1/eclolink_technologies?order=label.asc')
-  return (await res.json()) as Technology[]
+  await requireUser(event)
+  return useDb().select().from(technologies).orderBy(asc(technologies.label))
 })

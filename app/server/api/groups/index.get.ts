@@ -1,4 +1,8 @@
+import { asc } from 'drizzle-orm'
+import { useDb } from '~/server/db'
+import { groups } from '~/server/db/schema'
+
 export default defineEventHandler(async (event): Promise<Group[]> => {
-  const res = await sbFetch(event, '/rest/v1/eclolink_groups?select=*&order=name.asc')
-  return (await res.json()) as Group[]
+  await requireUser(event)
+  return useDb().select().from(groups).orderBy(asc(groups.name))
 })

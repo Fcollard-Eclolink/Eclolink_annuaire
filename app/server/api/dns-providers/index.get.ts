@@ -1,4 +1,8 @@
+import { asc } from 'drizzle-orm'
+import { useDb } from '~/server/db'
+import { dnsProviders } from '~/server/db/schema'
+
 export default defineEventHandler(async (event): Promise<DnsProvider[]> => {
-  const res = await sbFetch(event, '/rest/v1/eclolink_dns_providers?order=name.asc')
-  return (await res.json()) as DnsProvider[]
+  await requireUser(event)
+  return useDb().select().from(dnsProviders).orderBy(asc(dnsProviders.name))
 })

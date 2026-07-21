@@ -1,24 +1,29 @@
+import { useDb } from '~/server/db'
+import { groups } from '~/server/db/schema'
+
 interface GroupCreate {
-  name      : string
-  hoster    ?: string | null
-  ip_local  ?: string | null
-  ip_public ?: string | null
-  web_server?: string | null
+  name       : string
+  hoster     ?: string | null
+  ip_local   ?: string | null
+  ip_public  ?: string | null
+  web_server ?: string | null
+  database_id?: string | null
 }
 
 export default defineEventHandler(async (event): Promise<Group> => {
+  await requireRole(event, WRITE_ROLES)
   const body = await readBody<GroupCreate>(event)
-  if (!body.name?.trim()) {
-    throw createError({ statusCode: 400, message: 'Le nom est requis' })
-  }
 
-  const res = await sbFetch(event, '/rest/v1/eclolink_groups', {
-    method : 'POST',
-    body   : JSON.stringify({ id: crypto.randomUUID(), ...body, name: body.name.trim() }),
-    headers: { Prefer: 'return=representation' },
-  })
+  const [row] = await useDb().insert(groups).values({
+    id         : crypto.randomUUID(),
+    name       : requireString(body.name, 'Nom', 200),
+    hoster     : clampString(body.hoster, 200),
+    ip_local   : clampString(body.ip_local, 100),
+    ip_public  : clampString(body.ip_public, 100),
+    web_server : clampString(body.web_server, 200),
+    database_id: body.database_id ?? null,
+  }).returning()
 
-  const rows = (await res.json()) as Group[]
-  if (!rows[0]) throw createError({ statusCode: 500, message: 'Erreur lors de la création' })
-  return rows[0]
+  if (!row) throw createError({ statusCode: 500, message: 'Erreur lors de la création' })
+  return row
 })

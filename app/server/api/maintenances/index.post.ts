@@ -1,3 +1,6 @@
+import { useDb } from '~/server/db'
+import { maintenances } from '~/server/db/schema'
+
 interface MaintenanceCreate {
   site_id               : string
   client_id             ?: string | null
@@ -11,9 +14,10 @@ interface MaintenanceCreate {
 }
 
 export default defineEventHandler(async (event): Promise<Maintenance> => {
+  await requireRole(event, WRITE_ROLES)
   const body = await readBody<MaintenanceCreate>(event)
 
-  const safePayload = {
+  const [row] = await useDb().insert(maintenances).values({
     id                    : crypto.randomUUID(),
     site_id               : requireString(body.site_id, 'Site', 50),
     client_id             : body.client_id ?? null,
@@ -24,16 +28,9 @@ export default defineEventHandler(async (event): Promise<Maintenance> => {
     notes                 : clampString(body.notes, 5000),
     duration_minutes      : validateOptionalNonNegativeNumber(body.duration_minutes, 'Durée'),
     is_monthly_maintenance: !!body.is_monthly_maintenance,
-  }
+  }).returning()
 
-  const res = await sbFetch(event, '/rest/v1/eclolink_maintenances', {
-    method : 'POST',
-    body   : JSON.stringify(safePayload),
-    headers: { Prefer: 'return=representation' },
-  })
-
-  const rows = (await res.json()) as Maintenance[]
-  if (!rows[0]) throw createError({ statusCode: 500, message: 'Erreur lors de la création' })
-  void logActivity(event, 'create', 'maintenance', rows[0].id, rows[0].site_id)
-  return rows[0]
+  if (!row) throw createError({ statusCode: 500, message: 'Erreur lors de la création' })
+  void logActivity(event, 'create', 'maintenance', row.id, row.site_id)
+  return row
 })

@@ -1,18 +1,20 @@
+import { useDb } from '~/server/db'
+import { agencies } from '~/server/db/schema'
+
 interface AgencyCreate {
   name: string
 }
 
 export default defineEventHandler(async (event): Promise<Agency> => {
+  await requireRole(event, WRITE_ROLES)
   const body = await readBody<AgencyCreate>(event)
   if (!body.name?.trim()) throw createError({ statusCode: 400, message: 'Le nom est requis' })
 
-  const res = await sbFetch(event, '/rest/v1/eclolink_agencies', {
-    method : 'POST',
-    body   : JSON.stringify({ id: crypto.randomUUID(), ...body, name: body.name.trim() }),
-    headers: { Prefer: 'return=representation' },
-  })
+  const [row] = await useDb().insert(agencies).values({
+    id  : crypto.randomUUID(),
+    name: body.name.trim(),
+  }).returning()
 
-  const rows = (await res.json()) as Agency[]
-  if (!rows[0]) throw createError({ statusCode: 500, message: 'Erreur lors de la création' })
-  return rows[0]
+  if (!row) throw createError({ statusCode: 500, message: 'Erreur lors de la création' })
+  return row
 })

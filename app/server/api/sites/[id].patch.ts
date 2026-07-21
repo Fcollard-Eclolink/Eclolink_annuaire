@@ -1,3 +1,7 @@
+import { eq } from 'drizzle-orm'
+import { useDb } from '~/server/db'
+import { sites } from '~/server/db/schema'
+
 interface SitePatch {
   name              ?: string
   url               ?: string | null
@@ -16,34 +20,37 @@ interface SitePatch {
 }
 
 export default defineEventHandler(async (event): Promise<Site> => {
+  await requireRole(event, WRITE_ROLES)
   const id = getRouterParam(event, 'id')
   if (!id) throw createError({ statusCode: 400, message: 'ID requis' })
 
   const body = await readBody<SitePatch>(event)
+  const db   = useDb()
 
-  // Construction d'un payload validé clé par clé : seuls les champs fournis sont touchés
-  const safePayload: Record<string, unknown> = {}
-  if (body.name               !== undefined) safePayload.name         = requireString(body.name, 'Nom', 200)
-  if (body.url                !== undefined) safePayload.url          = validateOptionalHttpUrl(body.url,        'URL')
-  if (body.bo_url             !== undefined) safePayload.bo_url       = validateOptionalHttpUrl(body.bo_url,     'URL back-office')
-  if (body.gitlab_url         !== undefined) safePayload.gitlab_url   = validateOptionalHttpUrl(body.gitlab_url, 'URL GitLab')
-  if (body.agency             !== undefined) safePayload.agency       = clampString(body.agency,                 200)
-  if (body.group_id           !== undefined) safePayload.group_id     = body.group_id ?? null
-  if (body.php_version        !== undefined) safePayload.php_version  = clampString(body.php_version,            20)
-  if (body.dns_zone           !== undefined) safePayload.dns_zone     = clampString(body.dns_zone,               100)
-  if (body.go_live_date       !== undefined) safePayload.go_live_date = validateOptionalIsoDate(body.go_live_date, 'Date de mise en ligne')
-  if (body.technologies       !== undefined) safePayload.technologies = clampString(body.technologies,           2000)
-  if (body.client_id          !== undefined) safePayload.client_id    = body.client_id ?? null
-  if (body.registrar          !== undefined) safePayload.registrar    = clampString(body.registrar,              100)
-  if (body.notes              !== undefined) safePayload.notes        = clampString(body.notes,                  5000)
-  if (body.has_maintenance    !== undefined) safePayload.has_maintenance = !!body.has_maintenance
+  // Seuls les champs fournis sont touchés ; chacun est validé.
+  const patch: Partial<typeof sites.$inferInsert> = {}
+  if (body.name            !== undefined) patch.name            = requireString(body.name, 'Nom', 200)
+  if (body.url             !== undefined) patch.url             = validateOptionalHttpUrl(body.url,        'URL')
+  if (body.bo_url          !== undefined) patch.bo_url          = validateOptionalHttpUrl(body.bo_url,     'URL back-office')
+  if (body.gitlab_url      !== undefined) patch.gitlab_url      = validateOptionalHttpUrl(body.gitlab_url, 'URL GitLab')
+  if (body.agency          !== undefined) patch.agency          = clampString(body.agency, 200)
+  if (body.group_id        !== undefined) patch.group_id        = body.group_id ?? null
+  if (body.php_version     !== undefined) patch.php_version      = clampString(body.php_version, 20)
+  if (body.dns_zone        !== undefined) patch.dns_zone         = clampString(body.dns_zone, 100)
+  if (body.go_live_date    !== undefined) patch.go_live_date     = validateOptionalIsoDate(body.go_live_date, 'Date de mise en ligne')
+  if (body.technologies    !== undefined) patch.technologies     = clampString(body.technologies, 2000)
+  if (body.client_id       !== undefined) patch.client_id        = body.client_id ?? null
+  if (body.registrar       !== undefined) patch.registrar        = clampString(body.registrar, 100)
+  if (body.notes           !== undefined) patch.notes            = clampString(body.notes, 5000)
+  if (body.has_maintenance !== undefined) patch.has_maintenance  = !!body.has_maintenance
 
-  const res  = await sbFetch(event, `/rest/v1/eclolink_sites?id=eq.${encodeURIComponent(id)}`, {
-    method: 'PATCH',
-    body  : JSON.stringify(safePayload),
-  })
+  if (Object.keys(patch).length === 0) {
+    const [existing] = await db.select().from(sites).where(eq(sites.id, id)).limit(1)
+    if (!existing) throw createError({ statusCode: 404, message: 'Site introuvable' })
+    return existing
+  }
 
-  const rows = (await res.json()) as Site[]
-  if (!rows[0]) throw createError({ statusCode: 404, message: 'Site introuvable' })
-  return rows[0]
+  const [row] = await db.update(sites).set(patch).where(eq(sites.id, id)).returning()
+  if (!row) throw createError({ statusCode: 404, message: 'Site introuvable' })
+  return row
 })

@@ -1,4 +1,8 @@
+import { asc } from 'drizzle-orm'
+import { useDb } from '~/server/db'
+import { hosters } from '~/server/db/schema'
+
 export default defineEventHandler(async (event): Promise<Hoster[]> => {
-  const res = await sbFetch(event, '/rest/v1/eclolink_hosters?order=name.asc')
-  return (await res.json()) as Hoster[]
+  await requireUser(event)
+  return useDb().select().from(hosters).orderBy(asc(hosters.name))
 })

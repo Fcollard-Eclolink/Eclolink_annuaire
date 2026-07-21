@@ -1,4 +1,9 @@
+import { desc } from 'drizzle-orm'
+import { useDb } from '~/server/db'
+import { maintenances } from '~/server/db/schema'
+
 export default defineEventHandler(async (event): Promise<Maintenance[]> => {
-  const res = await sbFetch(event, '/rest/v1/eclolink_maintenances?select=*&order=intervention_date.desc,created_at.desc')
-  return (await res.json()) as Maintenance[]
+  await requireUser(event)
+  return useDb().select().from(maintenances)
+    .orderBy(desc(maintenances.intervention_date), desc(maintenances.created_at))
 })
