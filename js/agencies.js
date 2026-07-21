@@ -5,4 +5,5 @@ const AGENCIES = [
   'Mister Harry',
   'I-Com',
   'Album',
+  'Panama'
 ];
