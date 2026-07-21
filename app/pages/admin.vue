@@ -1,26 +1,32 @@
 <script setup lang="ts">
-import type { Technology, Agency, Hoster, WebServer, DnsProvider, UserProfile, Site, MaintenanceType, Bdd, Group } from '~/server/utils/types'
+import type { Technology, Agency, Hoster, WebServer, DnsProvider, UserProfile, Site, MaintenanceType, Bdd, Group, AuthUser } from '~/server/utils/types'
 import { techTags } from '~/composables/useTechBadge'
+import '~/assets/css/admin.css'
 
 definePageMeta({ middleware: 'auth' })
 
 const { user } = useAuth()
 
 // ── Tabs ──────────────────────────────────────────────────────
-type TabId = 'technologies' | 'agencies' | 'hosters' | 'web-servers' | 'dns-providers' | 'databases' | 'users' | 'maintenance-types'
+type TabId = 'technologies' | 'agencies' | 'hosters' | 'web-servers' | 'dns-providers' | 'databases' | 'users' | 'maintenance-types' | 'profile'
 
 const activeTab = ref<TabId>('technologies')
 
-const tabs: { id: TabId; label: string }[] = [
-  { id: 'technologies',    label: 'Technologies'     },
-  { id: 'agencies',        label: 'Agences'          },
-  { id: 'hosters',         label: 'Hébergeurs'       },
-  { id: 'web-servers',     label: 'Serveurs web'     },
-  { id: 'dns-providers',   label: 'DNS'              },
-  { id: 'databases',       label: 'Bases de données' },
-  { id: 'users',           label: 'Utilisateurs'     },
-  { id: 'maintenance-types', label: 'Types maintenance' },
-]
+// Onglet Utilisateurs réservé aux sysadmins ; onglet Mon profil pour tous.
+const tabs = computed((): { id: TabId; label: string }[] => {
+  const list: { id: TabId; label: string }[] = [
+    { id: 'technologies',      label: 'Technologies'     },
+    { id: 'agencies',          label: 'Agences'          },
+    { id: 'hosters',           label: 'Hébergeurs'       },
+    { id: 'web-servers',       label: 'Serveurs web'     },
+    { id: 'dns-providers',     label: 'DNS'              },
+    { id: 'databases',         label: 'Bases de données' },
+    { id: 'maintenance-types', label: 'Types maintenance' },
+  ]
+  if (user.value?.role === 'sysadmin') list.push({ id: 'users', label: 'Utilisateurs' })
+  list.push({ id: 'profile', label: 'Mon profil' })
+  return list
+})
 
 // ── Data fetching via cache partagé ───────────────────────────
 const refs = useReferenceData()
@@ -58,9 +64,46 @@ const refreshMaintenanceTypes  = refs.refreshMaintenanceTypes
 const refreshDatabases         = refs.refreshDatabases
 const refreshGroups            = refs.refreshGroups
 
+// ── Mon profil (auto-édition, tous rôles) ─────────────────────
+interface ProfileForm { first_name: string; last_name: string; job_title: string; agency: string }
+const profileForm    = ref<ProfileForm>({ first_name: '', last_name: '', job_title: '', agency: '' })
+const profileLoading = ref(false)
+const profileError   = ref<string | null>(null)
+
+function initProfile(): void {
+  profileForm.value = {
+    first_name: user.value?.first_name ?? '',
+    last_name : user.value?.last_name  ?? '',
+    job_title : user.value?.job_title  ?? '',
+    agency    : user.value?.agency     ?? '',
+  }
+}
+initProfile()
+
+async function saveProfile(): Promise<void> {
+  if (!user.value) return
+  profileLoading.value = true; profileError.value = null
+  try {
+    await $fetch(`/api/users/${user.value.id}`, {
+      method: 'PATCH',
+      body  : {
+        first_name: profileForm.value.first_name.trim(),
+        last_name : profileForm.value.last_name.trim(),
+        job_title : profileForm.value.job_title.trim() || null,
+        agency    : profileForm.value.agency.trim()    || null,
+      },
+    })
+    user.value = await $fetch<AuthUser>('/api/auth/me')
+    await refreshUsers().catch(() => undefined)
+    toast('Profil mis à jour.')
+  } catch (e: unknown) { profileError.value = e instanceof Error ? e.message : 'Erreur'; toast(profileError.value, 'error') }
+  finally { profileLoading.value = false }
+}
+
 // Lazy fetch sites uniquement quand l'onglet Technologies est activé (seul consommateur)
 watch((): TabId => activeTab.value, (tab: TabId): void => {
   if (tab === 'technologies') void refs.loadSites()
+  if (tab === 'profile') initProfile()
 }, { immediate: true })
 
 // Nombre de sites par technologie
@@ -324,6 +367,86 @@ async function confirmUserEdit(): Promise<void> {
     await refreshUsers()
     userEditTarget.value = null
     toast('Profil mis à jour.')
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
+  finally { modalLoading.value = false }
+}
+
+// ── Création de compte (sysadmin) ─────────────────────────────
+interface UserCreateForm { email: string; password: string; first_name: string; last_name: string; role: string; agency: string; job_title: string }
+
+const userAddOpen    = ref(false)
+const userCreateForm = ref<UserCreateForm>({ email: '', password: '', first_name: '', last_name: '', role: 'viewer', agency: '', job_title: '' })
+
+function openUserAdd(): void {
+  userCreateForm.value = { email: '', password: '', first_name: '', last_name: '', role: 'viewer', agency: '', job_title: '' }
+  userAddOpen.value = true
+  resetModal()
+}
+function closeUserAdd(): void { userAddOpen.value = false }
+
+async function confirmUserAdd(): Promise<void> {
+  modalLoading.value = true; modalError.value = null
+  try {
+    await $fetch('/api/users', {
+      method: 'POST',
+      body  : {
+        email     : userCreateForm.value.email.trim(),
+        password  : userCreateForm.value.password,
+        first_name: userCreateForm.value.first_name.trim(),
+        last_name : userCreateForm.value.last_name.trim(),
+        role      : userCreateForm.value.role,
+        agency    : userCreateForm.value.agency.trim()    || null,
+        job_title : userCreateForm.value.job_title.trim() || null,
+      },
+    })
+    await refreshUsers()
+    userAddOpen.value = false
+    toast('Compte créé.')
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
+  finally { modalLoading.value = false }
+}
+
+// ── Réinitialisation de mot de passe (sysadmin) ───────────────
+const resetPwTarget = ref<UserProfile | null>(null)
+const resetPwValue  = ref('')
+
+function openResetPw(u: UserProfile): void { resetPwValue.value = ''; resetPwTarget.value = u; resetModal() }
+function closeResetPw(): void { resetPwTarget.value = null }
+
+async function confirmResetPw(): Promise<void> {
+  if (!resetPwTarget.value) return
+  modalLoading.value = true; modalError.value = null
+  try {
+    await $fetch(`/api/users/${resetPwTarget.value.user_id}/reset-password`, {
+      method: 'POST',
+      body  : { new_password: resetPwValue.value },
+    })
+    resetPwTarget.value = null
+    toast('Mot de passe réinitialisé.')
+  } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
+  finally { modalLoading.value = false }
+}
+
+// ── Activation / désactivation ────────────────────────────────
+async function toggleUserActive(u: UserProfile): Promise<void> {
+  try {
+    await $fetch(`/api/users/${u.user_id}`, { method: 'PATCH', body: { is_active: !u.is_active } })
+    await refreshUsers()
+    toast(u.is_active ? 'Compte désactivé.' : 'Compte réactivé.')
+  } catch (e: unknown) { toast(e instanceof Error ? e.message : 'Erreur', 'error') }
+}
+
+// ── Suppression de compte (sysadmin) ──────────────────────────
+const userDeleteTarget = ref<UserProfile | null>(null)
+
+async function confirmUserDelete(): Promise<void> {
+  if (!userDeleteTarget.value) return
+  modalLoading.value = true; modalError.value = null
+  try {
+    await $fetch(`/api/users/${userDeleteTarget.value.user_id}`, { method: 'DELETE' })
+    await refreshUsers()
+    userDeleteTarget.value = null
+    toast('Compte supprimé.')
   } catch (e: unknown) { modalError.value = e instanceof Error ? e.message : 'Erreur'; toast(modalError.value, 'error') }
   finally { modalLoading.value = false }
 }
@@ -687,24 +810,34 @@ function simpleIconUrl(slug: string): string {
     <div v-if="activeTab === 'users'" class="admin-section">
       <div class="admin-section-header">
         <span class="admin-section-title">Utilisateurs ({{ userProfiles?.length ?? 0 }})</span>
-        <span class="admin-section-hint">Les comptes sont créés dans le dashboard Supabase.</span>
+        <button class="btn primary" @click="openUserAdd">+ Ajouter</button>
       </div>
       <div class="admin-table-wrap">
         <table class="admin-table">
-          <thead><tr><th>Prénom</th><th>Nom</th><th>Rôle</th><th>Titre</th><th>Agence</th><th></th></tr></thead>
+          <thead><tr><th>Prénom</th><th>Nom</th><th>Email</th><th>Rôle</th><th>Titre</th><th>Agence</th><th>Statut</th><th></th></tr></thead>
           <tbody>
             <tr v-if="!userProfiles?.length">
-              <td colspan="6" class="admin-empty">Aucun profil. Les utilisateurs apparaissent ici après leur premier login.</td>
+              <td colspan="8" class="admin-empty">Aucun compte.</td>
             </tr>
-            <tr v-for="u in userProfiles" :key="u.user_id">
+            <tr v-for="u in userProfiles" :key="u.user_id" :class="{ 'is-inactive': !u.is_active }">
               <td>{{ u.first_name || '—' }}</td>
               <td>{{ u.last_name  || '—' }}</td>
+              <td>{{ u.email }}</td>
               <td><span class="admin-role-badge" :data-role="u.role">{{ ROLE_LABELS[u.role] ?? u.role }}</span></td>
               <td>{{ u.job_title || '—' }}</td>
               <td>{{ u.agency    || '—' }}</td>
+              <td>{{ u.is_active ? 'Actif' : 'Désactivé' }}</td>
               <td>
                 <div class="admin-row-actions">
                   <button class="icon-btn" title="Modifier" @click="openUserEdit(u)">&#9998;</button>
+                  <button class="icon-btn" title="Réinitialiser le mot de passe" @click="openResetPw(u)">&#128273;</button>
+                  <button
+                    class="icon-btn"
+                    :title="u.is_active ? 'Désactiver' : 'Réactiver'"
+                    :disabled="u.user_id === user?.id"
+                    @click="toggleUserActive(u)"
+                  >{{ u.is_active ? '⏸' : '▶' }}</button>
+                  <button class="icon-btn del" title="Supprimer" :disabled="u.user_id === user?.id" @click="userDeleteTarget = u; resetModal()">&#10005;</button>
                 </div>
               </td>
             </tr>
@@ -737,6 +870,34 @@ function simpleIconUrl(slug: string): string {
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- ── Mon profil ───────────────────────────────────────────── -->
+    <div v-if="activeTab === 'profile'" class="admin-section">
+      <div class="admin-section-header">
+        <span class="admin-section-title">Mon profil</span>
+      </div>
+      <div style="max-width:480px">
+        <p v-if="profileError" class="modal-error">{{ profileError }}</p>
+        <form @submit.prevent="saveProfile">
+          <div class="field"><label>Email</label><input :value="user?.email" type="email" disabled></div>
+          <div class="field"><label>Prénom</label><input v-model="profileForm.first_name" type="text"></div>
+          <div class="field"><label>Nom</label><input v-model="profileForm.last_name" type="text"></div>
+          <div class="field"><label>Titre de poste</label><input v-model="profileForm.job_title" type="text" placeholder="Développeur full-stack"></div>
+          <div class="field">
+            <label>Agence</label>
+            <AppSelect v-model="profileForm.agency" :options="agencies.map((a: Agency) => ({ value: a.name, label: a.name }))" placeholder="— Aucune —" />
+          </div>
+          <div class="field"><label>Rôle</label><input :value="ROLE_LABELS[user?.role ?? ''] ?? user?.role" type="text" disabled></div>
+          <div class="modal-btns">
+            <NuxtLink to="/change-password" class="btn">Changer mon mot de passe</NuxtLink>
+            <button type="submit" class="btn primary" :disabled="profileLoading">
+              <span v-if="profileLoading" class="spinner" />
+              {{ profileLoading ? 'Enregistrement…' : 'Enregistrer' }}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
 
@@ -1015,6 +1176,75 @@ function simpleIconUrl(slug: string): string {
         </div>
       </Transition>
 
+      <!-- Modale Création de compte -->
+      <Transition name="modal">
+        <div v-if="userAddOpen" class="modal-overlay" v-modal-close="closeUserAdd">
+          <div class="modal-card">
+            <h3 class="modal-title">Créer un compte</h3>
+            <p v-if="modalError" class="modal-error">{{ modalError }}</p>
+            <form @submit.prevent="confirmUserAdd">
+              <div class="field"><label>Email *</label><input v-model="userCreateForm.email" type="email" autocomplete="off" required></div>
+              <div class="field"><label>Mot de passe temporaire *</label><input v-model="userCreateForm.password" type="text" placeholder="10 caractères minimum" autocomplete="off" required></div>
+              <div class="field"><label>Prénom</label><input v-model="userCreateForm.first_name" type="text"></div>
+              <div class="field"><label>Nom</label><input v-model="userCreateForm.last_name" type="text"></div>
+              <div class="field">
+                <label>Rôle *</label>
+                <AppSelect v-model="userCreateForm.role" :options="Object.entries(ROLE_LABELS).map(([v, l]) => ({ value: v, label: l }))" placeholder="— Choisir —" />
+              </div>
+              <div class="field"><label>Titre de poste</label><input v-model="userCreateForm.job_title" type="text" placeholder="Développeur full-stack"></div>
+              <div class="field">
+                <label>Agence</label>
+                <AppSelect v-model="userCreateForm.agency" :options="agencies.map((a: Agency) => ({ value: a.name, label: a.name }))" placeholder="— Aucune —" />
+              </div>
+              <p style="font-size:12px;color:var(--text-muted)">L'utilisateur devra changer ce mot de passe à sa première connexion.</p>
+              <div class="modal-btns">
+                <button type="button" class="btn" :disabled="modalLoading" @click="closeUserAdd">Annuler</button>
+                <button type="submit" class="btn primary" :disabled="modalLoading">
+                  <span v-if="modalLoading" class="spinner" />
+                  {{ modalLoading ? 'Création…' : 'Créer' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </Transition>
+
+      <!-- Modale Réinitialisation mot de passe -->
+      <Transition name="modal">
+        <div v-if="resetPwTarget" class="modal-overlay" v-modal-close="closeResetPw">
+          <div class="modal-card">
+            <h3 class="modal-title">Réinitialiser le mot de passe</h3>
+            <p v-if="modalError" class="modal-error">{{ modalError }}</p>
+            <form @submit.prevent="confirmResetPw">
+              <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">{{ resetPwTarget?.email }}</p>
+              <div class="field"><label>Nouveau mot de passe *</label><input v-model="resetPwValue" type="text" placeholder="10 caractères minimum" autocomplete="off" required></div>
+              <p style="font-size:12px;color:var(--text-muted)">Il devra le changer à sa prochaine connexion ; ses sessions actives seront déconnectées.</p>
+              <div class="modal-btns">
+                <button type="button" class="btn" :disabled="modalLoading" @click="closeResetPw">Annuler</button>
+                <button type="submit" class="btn primary" :disabled="modalLoading">
+                  <span v-if="modalLoading" class="spinner" />
+                  {{ modalLoading ? 'Réinitialisation…' : 'Réinitialiser' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </Transition>
+
+      <!-- Modale Suppression compte -->
+      <Transition name="modal">
+        <AppConfirmModal
+          v-if="userDeleteTarget"
+          title="Supprimer le compte"
+          :loading="modalLoading"
+          confirm-label="Supprimer"
+          @confirm="confirmUserDelete"
+          @cancel="userDeleteTarget = null"
+        >
+          <p class="modal-msg">Supprimer définitivement <strong>{{ userDeleteTarget.email }}</strong> ? Action irréversible ; ses interventions et clients seront dissociés.</p>
+        </AppConfirmModal>
+      </Transition>
+
       <!-- Modale Add/Edit Type maintenance -->
       <Transition name="modal">
         <div v-if="mtAddOpen || mtEditTarget" class="modal-overlay" v-modal-close="() => mtAddOpen ? closeMtAdd() : closeMtEdit()">
@@ -1043,5 +1273,3 @@ function simpleIconUrl(slug: string): string {
     </Teleport>
   </div>
 </template>
-
-<style src="~/assets/css/admin.css"></style>

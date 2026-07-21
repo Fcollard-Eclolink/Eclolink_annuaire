@@ -19,11 +19,12 @@ export function useReferenceData() {
   const databases        = useState<Bdd[]>('ref:databases',            () => [])
 
   // Vues filtrées par rôle (réactives)
+  // Dropdowns : on exclut les comptes désactivés.
   const devUsers = computed((): UserProfile[] =>
-    userProfiles.value.filter((u: UserProfile): boolean => ['dev', 'sysadmin'].includes(u.role)),
+    userProfiles.value.filter((u: UserProfile): boolean => u.is_active !== false && ['dev', 'sysadmin'].includes(u.role)),
   )
   const pmUsers = computed((): UserProfile[] =>
-    userProfiles.value.filter((u: UserProfile): boolean => ['pm', 'sysadmin'].includes(u.role)),
+    userProfiles.value.filter((u: UserProfile): boolean => u.is_active !== false && ['pm', 'sysadmin'].includes(u.role)),
   )
 
   const loaded = useState<Record<string, boolean>>('ref:loaded', () => ({}))
