@@ -14,7 +14,9 @@
  * sources non-trusted, passer à `isomorphic-dompurify` avec profil SVG.
  */
 
-const EVENT_HANDLER_RE = /\son\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi
+// Capte les gestionnaires d'évènements quel que soit le séparateur les précédant
+// (espace, `/`, guillemet fermant…) : `<svg onload=…>`, `<svg/onload=…>`, `id="x"onload=…`.
+const EVENT_HANDLER_RE = /(?<![\w])on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi
 const SCRIPT_TAG_RE    = /<script[^>]*>[\s\S]*?<\/script\s*>/gi
 const STYLE_TAG_RE     = /<style[^>]*>[\s\S]*?<\/style\s*>/gi
 const DANGEROUS_TAG_RE = /<(iframe|object|embed|foreignObject|script|meta|link|base)\b[^>]*(?:\/>|>[\s\S]*?<\/\1\s*>)/gi

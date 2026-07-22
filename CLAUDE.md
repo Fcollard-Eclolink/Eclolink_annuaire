@@ -81,7 +81,7 @@ app/
   assets/css/           ← main.css importe la base ; les CSS de page sont importés en
                           `import '~/assets/css/*.css'` dans le <script setup> concerné
   app.vue
-  nuxt.config.ts        ← runtimeConfig: { databaseUrl, sessionSecret }
+  nuxt.config.ts        ← runtimeConfig: { databaseUrl } (serveur uniquement)
 Dockerfile              ← image DEV (npm run dev, volume monté)
 Dockerfile.prod         ← build PROD multi-stage (runner = node .output/server/index.mjs)
 docker-compose.yml      ← DEV  : postgres + app (hot-reload)
@@ -262,8 +262,8 @@ Tous les dropdowns partagent le même style : `font-size: 13px`, `height: 34px`,
 - Rate-limit login (5 tentatives / 15 min / IP) ; message générique (anti-énumération).
 - Autorisation par rôle sur **toutes** les mutations ; routes users réservées `sysadmin`.
 - Aucune SQL concaténée à la main (Drizzle paramétré) → anti-injection.
-- Secrets hors dépôt : `NUXT_DATABASE_URL`, `NUXT_SESSION_SECRET` en `runtimeConfig` (serveur
-  uniquement, jamais `runtimeConfig.public`) ; `.env` est gitignore. HTTPS forcé en prod.
+- Secrets hors dépôt : `NUXT_DATABASE_URL` en `runtimeConfig` (serveur uniquement, jamais
+  `runtimeConfig.public`) ; `.env` est gitignore. HTTPS forcé en prod.
 - Entrées validées avant usage (`readBody` typé + helpers `validation.ts`).
 - SVG utilisateur (technologies) passé par `sanitizeSvg`.
 

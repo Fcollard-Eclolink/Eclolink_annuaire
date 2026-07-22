@@ -18,7 +18,7 @@ export const USER_COLS = {
 }
 
 export default defineEventHandler(async (event): Promise<UserProfile[]> => {
-  await requireUser(event)
+  const actor     = await requireUser(event)
   const db        = useDb()
   const roleParam = getQuery(event).role
 
@@ -26,5 +26,11 @@ export default defineEventHandler(async (event): Promise<UserProfile[]> => {
     ? eq(users.role, roleParam as (typeof USER_ROLES)[number])
     : undefined
 
-  return db.select(USER_COLS).from(users).where(cond).orderBy(asc(users.last_name), asc(users.first_name))
+  const rows = await db.select(USER_COLS).from(users).where(cond)
+    .orderBy(asc(users.last_name), asc(users.first_name))
+
+  // Les emails ne sont utiles qu'à la gestion des comptes (sysadmin). Pour les
+  // autres rôles (dropdowns dev/CP), on ne divulgue pas l'email.
+  if (actor.role !== 'sysadmin') return rows.map((r): UserProfile => ({ ...r, email: '' }))
+  return rows
 })

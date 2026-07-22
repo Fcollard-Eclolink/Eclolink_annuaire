@@ -14,8 +14,7 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    databaseUrl  : '',  // surcharge via NUXT_DATABASE_URL   — Postgres auto-hébergé
-    sessionSecret: '',  // surcharge via NUXT_SESSION_SECRET — pepper/secret sessions
+    databaseUrl: '',  // surcharge via NUXT_DATABASE_URL — Postgres auto-hébergé (serveur uniquement)
   },
 
   css: ['~/assets/css/main.css'],

@@ -38,7 +38,6 @@ services:
       - NUXT_HOST=0.0.0.0
       - NUXT_PORT=3000
       - NUXT_DATABASE_URL=postgres://eclolink:eclolink@db:5432/eclolink
-      - NUXT_SESSION_SECRET=dev-secret-non-sensible
     depends_on:
       db:
         condition: service_healthy

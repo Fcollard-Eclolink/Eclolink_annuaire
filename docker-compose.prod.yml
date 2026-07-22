@@ -49,8 +49,7 @@ services:
       NODE_ENV           : production
       NUXT_HOST          : 0.0.0.0
       NUXT_PORT          : "3000"
-      NUXT_DATABASE_URL  : ${NUXT_DATABASE_URL}
-      NUXT_SESSION_SECRET: ${NUXT_SESSION_SECRET}
+      NUXT_DATABASE_URL: ${NUXT_DATABASE_URL}
     depends_on:
       db:
         condition: service_healthy
