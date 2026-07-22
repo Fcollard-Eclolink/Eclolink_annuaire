@@ -9,11 +9,10 @@ interface HosterCreate {
 export default defineEventHandler(async (event): Promise<Hoster> => {
   await requireRole(event, WRITE_ROLES)
   const body = await readBody<HosterCreate>(event)
-  if (!body.name?.trim()) throw createError({ statusCode: 400, message: 'Le nom est requis' })
 
   const [row] = await useDb().insert(hosters).values({
     id              : crypto.randomUUID(),
-    name            : body.name.trim(),
+    name            : requireString(body.name, 'Nom', 200),
     simpleicons_slug: clampString(body.simpleicons_slug, 100),
   }).returning()
 

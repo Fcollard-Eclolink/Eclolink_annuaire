@@ -21,8 +21,7 @@ interface SitePatch {
 
 export default defineEventHandler(async (event): Promise<Site> => {
   await requireRole(event, WRITE_ROLES)
-  const id = getRouterParam(event, 'id')
-  if (!id) throw createError({ statusCode: 400, message: 'ID requis' })
+  const id = requireId(event)
 
   const body = await readBody<SitePatch>(event)
   const db   = useDb()

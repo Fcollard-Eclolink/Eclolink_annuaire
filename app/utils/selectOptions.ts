@@ -4,10 +4,3 @@ export interface SelectOption {
   label: string
   slug : string | null
 }
-
-export interface TechOption {
-  id   : string
-  label: string
-  slug ?: string | null
-  svg  ?: string | null
-}

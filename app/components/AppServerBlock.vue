@@ -46,40 +46,8 @@ function toggle(): void { isOpen.value = !isOpen.value }
 watch(() => props.expandAllTick,   () => { isOpen.value = true  })
 watch(() => props.collapseAllTick, () => { isOpen.value = false })
 
-// ── Popover infos serveur ─────────────────────────────────────────
-const isInfoOpen  = ref(false)
-const infoWrapRef = ref<HTMLElement | null>(null)
-const infoBtnRef  = ref<HTMLElement | null>(null)
-
-const { openUp: infoOpenUp } = useFlipUp(infoBtnRef, isInfoOpen, 220)
-
-function toggleInfo(e: MouseEvent): void {
-  e.stopPropagation()
-  if (!isInfoOpen.value) {
-    // Ferme tous les autres popovers (serveurs + sites) avant d'ouvrir
-    document.dispatchEvent(new CustomEvent('info-popover:close'))
-  }
-  isInfoOpen.value = !isInfoOpen.value
-}
-
-function onDocClick(e: MouseEvent): void {
-  if (infoWrapRef.value && !infoWrapRef.value.contains(e.target as Node)) {
-    isInfoOpen.value = false
-  }
-}
-
-function onCloseAll(): void {
-  isInfoOpen.value = false
-}
-
-onMounted(() => {
-  document.addEventListener('click', onDocClick)
-  document.addEventListener('info-popover:close', onCloseAll as EventListener)
-})
-onUnmounted(() => {
-  document.removeEventListener('click', onDocClick)
-  document.removeEventListener('info-popover:close', onCloseAll as EventListener)
-})
+// ── Popover infos serveur (état + click-outside + flip mutualisés) ─
+const { isOpen: isInfoOpen, wrapRef: infoWrapRef, btnRef: infoBtnRef, openUp: infoOpenUp, toggle: toggleInfo } = useInfoPopover()
 
 // ── Ouvrir tous les sites ─────────────────────────────────────────
 const isOpenAllOpen  = ref(false)

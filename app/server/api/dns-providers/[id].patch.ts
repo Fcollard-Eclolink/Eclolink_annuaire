@@ -9,8 +9,7 @@ interface DnsProviderPatch {
 
 export default defineEventHandler(async (event): Promise<DnsProvider> => {
   await requireRole(event, WRITE_ROLES)
-  const id = getRouterParam(event, 'id')
-  if (!id) throw createError({ statusCode: 400, message: 'ID requis' })
+  const id = requireId(event)
 
   const body = await readBody<DnsProviderPatch>(event)
   const db   = useDb()

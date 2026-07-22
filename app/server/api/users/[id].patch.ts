@@ -19,8 +19,7 @@ interface UserProfilePatch {
 //  - `role` / `is_active` et l'édition d'un AUTRE compte sont réservés aux sysadmins.
 export default defineEventHandler(async (event): Promise<UserProfile> => {
   const actor = await requireUser(event)
-  const id = getRouterParam(event, 'id')
-  if (!id) throw createError({ statusCode: 400, message: 'ID requis' })
+  const id = requireId(event)
 
   const isSelf  = id === actor.id
   const isAdmin = actor.role === 'sysadmin'

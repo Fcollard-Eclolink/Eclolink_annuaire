@@ -5,6 +5,8 @@
  * Toutes les validations sont strictes (refus par défaut) plutôt que permissives.
  */
 
+import type { H3Event } from 'h3'
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 
@@ -90,4 +92,11 @@ export function requireString(value: unknown, field: string, maxLen: number = 50
     throw createError({ statusCode: 400, message: `${field} est requis` })
   }
   return value.trim().slice(0, maxLen)
+}
+
+/** Récupère et valide le paramètre d'URL `id` — throw 400 s'il est absent. */
+export function requireId(event: H3Event): string {
+  const id = getRouterParam(event, 'id')
+  if (!id) throw createError({ statusCode: 400, message: 'ID requis' })
+  return id
 }

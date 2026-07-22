@@ -7,8 +7,7 @@ import { users, maintenances, clients } from '~/server/db/schema'
 // puis supprime. Les sessions (cascade) et les logs (set null) sont gérés par la DB.
 export default defineEventHandler(async (event): Promise<{ ok: boolean }> => {
   const actor = await requireRole(event, ['sysadmin'])
-  const id = getRouterParam(event, 'id')
-  if (!id) throw createError({ statusCode: 400, message: 'ID requis' })
+  const id = requireId(event)
 
   if (id === actor.id) {
     throw createError({ statusCode: 400, message: 'Vous ne pouvez pas supprimer votre propre compte' })

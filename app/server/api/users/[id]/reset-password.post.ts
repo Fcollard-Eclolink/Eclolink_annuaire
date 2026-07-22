@@ -12,8 +12,7 @@ interface ResetBody {
 // Force le changement au prochain login et révoque les sessions existantes.
 export default defineEventHandler(async (event): Promise<{ ok: true }> => {
   await requireRole(event, ['sysadmin'])
-  const id = getRouterParam(event, 'id')
-  if (!id) throw createError({ statusCode: 400, message: 'ID requis' })
+  const id = requireId(event)
 
   const { new_password } = await readBody<ResetBody>(event)
   if (!new_password || new_password.length < 10) {

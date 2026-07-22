@@ -13,40 +13,8 @@ const emit = defineEmits<{
   delete: [site: Site]
 }>()
 
-// ── Popover infos ─────────────────────────────────────────────────
-const isInfoOpen = ref(false)
-const wrapRef    = ref<HTMLElement | null>(null)
-const infoBtnRef = ref<HTMLElement | null>(null)
-
-const { openUp: infoOpenUp } = useFlipUp(infoBtnRef, isInfoOpen, 220)
-
-function toggleInfo(e: MouseEvent): void {
-  e.stopPropagation()
-  if (!isInfoOpen.value) {
-    // Ferme tous les autres popovers site avant d'ouvrir celui-ci
-    document.dispatchEvent(new CustomEvent('info-popover:close'))
-  }
-  isInfoOpen.value = !isInfoOpen.value
-}
-
-function onDocClick(e: MouseEvent): void {
-  if (wrapRef.value && !wrapRef.value.contains(e.target as Node)) {
-    isInfoOpen.value = false
-  }
-}
-
-function onCloseAll(): void {
-  isInfoOpen.value = false
-}
-
-onMounted(() => {
-  document.addEventListener('click', onDocClick)
-  document.addEventListener('info-popover:close', onCloseAll as EventListener)
-})
-onUnmounted(() => {
-  document.removeEventListener('click', onDocClick)
-  document.removeEventListener('info-popover:close', onCloseAll as EventListener)
-})
+// ── Popover infos (état + click-outside + flip mutualisés) ─────────
+const { isOpen: isInfoOpen, wrapRef, btnRef: infoBtnRef, openUp: infoOpenUp, toggle: toggleInfo } = useInfoPopover()
 
 // ── Helpers ───────────────────────────────────────────────────────
 function hasSiteInfo(site: Site): boolean {

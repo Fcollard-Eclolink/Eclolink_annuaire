@@ -9,11 +9,10 @@ interface DnsProviderCreate {
 export default defineEventHandler(async (event): Promise<DnsProvider> => {
   await requireRole(event, WRITE_ROLES)
   const body = await readBody<DnsProviderCreate>(event)
-  if (!body.name?.trim()) throw createError({ statusCode: 400, message: 'Le nom est requis' })
 
   const [row] = await useDb().insert(dnsProviders).values({
     id              : crypto.randomUUID(),
-    name            : body.name.trim(),
+    name            : requireString(body.name, 'Nom', 200),
     simpleicons_slug: clampString(body.simpleicons_slug, 100),
   }).returning()
 

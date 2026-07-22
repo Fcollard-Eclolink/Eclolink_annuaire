@@ -4,8 +4,7 @@ import { technologies } from '~/server/db/schema'
 
 export default defineEventHandler(async (event): Promise<{ ok: boolean }> => {
   await requireRole(event, WRITE_ROLES)
-  const id = getRouterParam(event, 'id')
-  if (!id) throw createError({ statusCode: 400, message: 'ID requis' })
+  const id = requireId(event)
 
   await useDb().delete(technologies).where(eq(technologies.id, id))
   return { ok: true }

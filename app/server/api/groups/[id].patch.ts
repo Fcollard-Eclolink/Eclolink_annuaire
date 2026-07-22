@@ -13,8 +13,7 @@ interface GroupPatch {
 
 export default defineEventHandler(async (event): Promise<Group> => {
   await requireRole(event, WRITE_ROLES)
-  const id = getRouterParam(event, 'id')
-  if (!id) throw createError({ statusCode: 400, message: 'ID requis' })
+  const id = requireId(event)
 
   const body = await readBody<GroupPatch>(event)
   const db   = useDb()
