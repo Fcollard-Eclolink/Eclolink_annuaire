@@ -65,11 +65,13 @@ function formatDate(iso: string): string {
 </script>
 
 <template>
-  <div class="logs-page">
-    <div class="logs-header">
-      <h1 class="logs-title">Journal d'activité</h1>
-      <p class="logs-hint">Conservé 2 mois · 50 entrées par page</p>
-    </div>
+  <div class="app-wrap">
+    <AppHeader title="Journal d'activité" />
+
+    <div class="logs-page">
+      <div class="logs-header">
+        <p class="logs-hint">Conservé 2 mois · 50 entrées par page</p>
+      </div>
 
     <div class="logs-table-wrap">
       <table class="logs-table">
@@ -108,6 +110,7 @@ function formatDate(iso: string): string {
       <button class="btn" :disabled="page <= 1 || loading" @click="prevPage">← Précédent</button>
       <span class="logs-page-num">Page {{ page }}</span>
       <button class="btn" :disabled="logs.length < 50 || loading" @click="nextPage">Suivant →</button>
+    </div>
     </div>
   </div>
 </template>
