@@ -9,6 +9,9 @@ const { user } = useAuth()
 const canView  = ['sysadmin', 'dev'].includes(user.value?.role ?? '')
 if (!canView) await navigateTo('/')
 
+// useRequestFetch : forwarde les cookies httpOnly lors du rendu SSR (sinon 401).
+const requestFetch = useRequestFetch()
+
 const ACTION_LABELS: Record<string, string> = {
   create: 'Création',
   update: 'Mise à jour',
@@ -36,7 +39,7 @@ const logs    = ref<ActivityLog[]>([])
 async function fetchLogs(): Promise<void> {
   loading.value = true
   try {
-    logs.value = await $fetch<ActivityLog[]>(`/api/logs?page=${page.value}`)
+    logs.value = await requestFetch<ActivityLog[]>(`/api/logs?page=${page.value}`)
   } finally {
     loading.value = false
   }
