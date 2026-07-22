@@ -48,6 +48,5 @@ export default defineEventHandler(async (event): Promise<UserProfile> => {
   }).returning(USER_COLS)
 
   if (!row) throw createError({ statusCode: 500, message: 'Erreur lors de la création' })
-  void logActivity(event, 'create', 'user', row.user_id, email)
   return row
 })

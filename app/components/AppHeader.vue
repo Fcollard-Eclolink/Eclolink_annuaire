@@ -1,9 +1,11 @@
 <script setup lang="ts">
 defineProps<{ title: string }>()
 
-const { logout }                       = useAuth()
+const { user, logout }                 = useAuth()
 const { isDark, init: initDark, toggle: toggleDark } = useDarkMode()
 onMounted(initDark)
+
+const canSeeLogs = computed((): boolean => ['sysadmin', 'dev'].includes(user.value?.role ?? ''))
 </script>
 
 <template>
@@ -53,5 +55,6 @@ onMounted(initDark)
     <NuxtLink to="/" class="page-nav-link">Annuaire</NuxtLink>
     <NuxtLink to="/maintenance" class="page-nav-link">Maintenance</NuxtLink>
     <NuxtLink to="/clients" class="page-nav-link">Clients</NuxtLink>
+    <NuxtLink v-if="canSeeLogs" to="/logs" class="page-nav-link">Logs</NuxtLink>
   </nav>
 </template>

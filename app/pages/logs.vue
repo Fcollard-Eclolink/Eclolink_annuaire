@@ -4,18 +4,29 @@ import '~/assets/css/logs.css'
 
 definePageMeta({ middleware: 'auth' })
 
+// Consultation réservée aux sysadmins et développeurs.
+const { user } = useAuth()
+const canView  = ['sysadmin', 'dev'].includes(user.value?.role ?? '')
+if (!canView) await navigateTo('/')
+
 const ACTION_LABELS: Record<string, string> = {
   create: 'Création',
   update: 'Mise à jour',
   delete: 'Suppression',
 }
 const RESOURCE_LABELS: Record<string, string> = {
-  maintenance: 'Maintenance',
-  client     : 'Client',
-  site       : 'Site',
-  group      : 'Serveur',
-  technology : 'Technologie',
-  user       : 'Utilisateur',
+  maintenance       : 'Maintenance',
+  client            : 'Client',
+  site              : 'Site',
+  group             : 'Serveur',
+  technology        : 'Technologie',
+  user              : 'Utilisateur',
+  agency            : 'Agence',
+  hoster            : 'Hébergeur',
+  'web-server'      : 'Serveur web',
+  'dns-provider'    : 'DNS',
+  database          : 'Base de données',
+  'maintenance-type': 'Type de maintenance',
 }
 
 const page    = ref(1)
@@ -31,7 +42,7 @@ async function fetchLogs(): Promise<void> {
   }
 }
 
-await fetchLogs()
+if (canView) await fetchLogs()
 
 async function prevPage(): Promise<void> {
   if (page.value <= 1) return

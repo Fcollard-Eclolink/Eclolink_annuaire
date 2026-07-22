@@ -31,6 +31,5 @@ export default defineEventHandler(async (event): Promise<Maintenance> => {
   }).returning()
 
   if (!row) throw createError({ statusCode: 500, message: 'Erreur lors de la création' })
-  void logActivity(event, 'create', 'maintenance', row.id, row.site_id)
   return row
 })

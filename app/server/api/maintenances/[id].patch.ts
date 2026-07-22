@@ -40,6 +40,5 @@ export default defineEventHandler(async (event): Promise<Maintenance> => {
 
   const [row] = await db.update(maintenances).set(patch).where(eq(maintenances.id, id)).returning()
   if (!row) throw createError({ statusCode: 404, message: 'Intervention introuvable' })
-  void logActivity(event, 'update', 'maintenance', row.id, row.site_id)
   return row
 })

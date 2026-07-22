@@ -41,6 +41,5 @@ export default defineEventHandler(async (event): Promise<Client> => {
 
   const [row] = await db.update(clients).set(patch).where(eq(clients.id, id)).returning()
   if (!row) throw createError({ statusCode: 404, message: 'Client introuvable' })
-  void logActivity(event, 'update', 'client', id, null)
   return row
 })

@@ -33,6 +33,5 @@ export default defineEventHandler(async (event): Promise<Client> => {
 
   const [row] = await useDb().insert(clients).values(values).returning()
   if (!row) throw createError({ statusCode: 500, message: 'Erreur lors de la création' })
-  void logActivity(event, 'create', 'client', row.id, values.name)
   return row
 })

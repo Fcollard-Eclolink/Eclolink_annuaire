@@ -4,7 +4,7 @@ import { useDb } from '~/server/db'
 import { activityLogs } from '~/server/db/schema'
 
 export default defineEventHandler(async (event): Promise<ActivityLog[]> => {
-  await requireUser(event)
+  await requireRole(event, ['sysadmin', 'dev'])
   const db = useDb()
 
   // Auto-cleanup : supprime les entrées de plus de 2 mois (fire-and-forget)

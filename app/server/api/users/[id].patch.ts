@@ -66,7 +66,5 @@ export default defineEventHandler(async (event): Promise<UserProfile> => {
 
   // Désactivation = révocation immédiate de toutes les sessions du compte.
   if (patch.is_active === false) await revokeAllUserSessions(id)
-
-  void logActivity(event, 'update', 'user', id, null)
   return row
 })

@@ -19,7 +19,5 @@ export default defineEventHandler(async (event): Promise<{ ok: boolean }> => {
 
   const deleted = await db.delete(users).where(eq(users.id, id)).returning({ id: users.id })
   if (!deleted.length) throw createError({ statusCode: 404, message: 'Profil introuvable' })
-
-  void logActivity(event, 'delete', 'user', id, null)
   return { ok: true }
 })
