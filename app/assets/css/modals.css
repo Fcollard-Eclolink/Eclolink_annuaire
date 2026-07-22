@@ -18,6 +18,9 @@
   width: 100%;
   max-width: 440px;
   box-shadow: var(--shadow-md);
+  /* Toute modale est plafonnée à la hauteur de l'écran et scrolle si ça dépasse */
+  max-height: calc(100dvh - var(--sp-48));
+  overflow-y: auto;
 }
 
 .modal-title {
