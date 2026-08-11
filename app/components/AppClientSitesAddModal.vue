@@ -15,7 +15,6 @@ const emit = defineEmits<{
   submit: [ids: string[]]
 }>()
 
-const isOpen   = ref(true)
 const query    = ref('')
 const selected = ref<Set<string>>(new Set())
 const searchRef = ref<HTMLInputElement | null>(null)
@@ -54,9 +53,6 @@ function currentClientNameOf(site: Site): string | null {
 onMounted(() => {
   nextTick(() => searchRef.value?.focus())
 })
-
-// Suppress unused warning while keeping prop validation
-void isOpen
 </script>
 
 <template>

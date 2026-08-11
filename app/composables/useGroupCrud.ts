@@ -18,25 +18,26 @@ export function useGroupCrud(
 ) {
   const { add: toast } = useToast()
 
+  const loading = ref(false)
+  const error   = ref('')
+
   // ── Suppression ───────────────────────────────────────────────
-  const deleteTarget  = ref<Group | null>(null)
-  const deleteLoading = ref(false)
-  const deleteError   = ref('')
+  const deleteTarget = ref<Group | null>(null)
 
   function openDeleteConfirm(group: Group): void {
     deleteTarget.value = group
-    deleteError.value  = ''
+    error.value = ''
   }
 
   function closeDeleteConfirm(): void {
-    if (deleteLoading.value) return
+    if (loading.value) return
     deleteTarget.value = null
   }
 
   async function confirmDelete(): Promise<void> {
     if (!deleteTarget.value) return
-    deleteLoading.value = true
-    deleteError.value   = ''
+    loading.value = true
+    error.value   = ''
     try {
       await $fetch(`/api/groups/${deleteTarget.value.id}`, { method: 'DELETE' })
       const id = deleteTarget.value.id
@@ -49,18 +50,16 @@ export function useGroupCrud(
       deleteTarget.value = null
       toast('Serveur supprimé.')
     } catch {
-      deleteError.value = 'Erreur lors de la suppression.'
+      error.value = 'Erreur lors de la suppression.'
       toast('Erreur lors de la suppression.', 'error')
     } finally {
-      deleteLoading.value = false
+      loading.value = false
     }
   }
 
   // ── Édition ───────────────────────────────────────────────────
-  const editTarget  = ref<Group | null>(null)
-  const editForm    = ref<GroupForm>({ ...EMPTY })
-  const editLoading = ref(false)
-  const editError   = ref('')
+  const editTarget = ref<Group | null>(null)
+  const editForm   = ref<GroupForm>({ ...EMPTY })
 
   function openEditModal(group: Group): void {
     editTarget.value = group
@@ -72,19 +71,19 @@ export function useGroupCrud(
       web_server : group.web_server  ?? '',
       database_id: group.database_id ?? '',
     }
-    editError.value = ''
+    error.value = ''
   }
 
   function closeEditModal(): void {
-    if (editLoading.value) return
+    if (loading.value) return
     editTarget.value = null
   }
 
   async function saveEdit(): Promise<void> {
     if (!editTarget.value) return
-    if (!editForm.value.name.trim()) { editError.value = 'Le nom est requis.'; return }
-    editLoading.value = true
-    editError.value   = ''
+    if (!editForm.value.name.trim()) { error.value = 'Le nom est requis.'; return }
+    loading.value = true
+    error.value   = ''
     try {
       const updated = await $fetch<Group>(`/api/groups/${editTarget.value.id}`, {
         method: 'PATCH',
@@ -101,34 +100,32 @@ export function useGroupCrud(
       editTarget.value = null
       toast('Serveur mis à jour.')
     } catch {
-      editError.value = 'Erreur lors de la sauvegarde.'
+      error.value = 'Erreur lors de la sauvegarde.'
       toast('Erreur lors de la sauvegarde.', 'error')
     } finally {
-      editLoading.value = false
+      loading.value = false
     }
   }
 
   // ── Création ──────────────────────────────────────────────────
-  const isAddOpen  = ref(false)
-  const addForm    = ref<GroupForm>({ ...EMPTY })
-  const addLoading = ref(false)
-  const addError   = ref('')
+  const isAddOpen = ref(false)
+  const addForm   = ref<GroupForm>({ ...EMPTY })
 
   function openAddModal(): void {
     addForm.value = { ...EMPTY }
-    addError.value = ''
+    error.value = ''
     isAddOpen.value = true
   }
 
   function closeAddModal(): void {
-    if (addLoading.value) return
+    if (loading.value) return
     isAddOpen.value = false
   }
 
   async function confirmAdd(): Promise<void> {
-    if (!addForm.value.name.trim()) { addError.value = 'Le nom est requis.'; return }
-    addLoading.value = true
-    addError.value   = ''
+    if (!addForm.value.name.trim()) { error.value = 'Le nom est requis.'; return }
+    loading.value = true
+    error.value   = ''
     try {
       const created = await $fetch<Group>('/api/groups', {
         method: 'POST',
@@ -143,19 +140,17 @@ export function useGroupCrud(
       isAddOpen.value = false
       toast('Serveur créé.')
     } catch {
-      addError.value = 'Erreur lors de la création.'
+      error.value = 'Erreur lors de la création.'
       toast('Erreur lors de la création.', 'error')
     } finally {
-      addLoading.value = false
+      loading.value = false
     }
   }
 
   return {
-    deleteTarget, deleteLoading, deleteError,
-    openDeleteConfirm, closeDeleteConfirm, confirmDelete,
-    editTarget, editForm, editLoading, editError,
-    openEditModal, closeEditModal, saveEdit,
-    isAddOpen, addForm, addLoading, addError,
-    openAddModal, closeAddModal, confirmAdd,
+    loading, error,
+    deleteTarget, openDeleteConfirm, closeDeleteConfirm, confirmDelete,
+    editTarget, editForm, openEditModal, closeEditModal, saveEdit,
+    isAddOpen, addForm, openAddModal, closeAddModal, confirmAdd,
   }
 }

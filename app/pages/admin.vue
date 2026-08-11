@@ -286,7 +286,6 @@ interface LogoForm { name: string; simpleicons_slug: string }
 
 function makeLogoCrud<T extends { id: string; name: string; simpleicons_slug: string | null }>(
   apiPath: string,
-  _data: Ref<T[]>,
   refresh: () => Promise<void>,
 ) {
   const addOpen      = ref(false)
@@ -335,9 +334,9 @@ function makeLogoCrud<T extends { id: string; name: string; simpleicons_slug: st
   return { addOpen, editTarget, deleteTarget, form, openAdd, openEdit, closeAdd, closeEdit, closeDelete, confirmAdd, confirmEdit, confirmDelete }
 }
 
-const hosterCrud    = makeLogoCrud<Hoster>('/api/hosters', hosters, refreshHosters)
-const webServerCrud = makeLogoCrud<WebServer>('/api/web-servers', webServers, refreshWebServers)
-const dnsCrud       = makeLogoCrud<DnsProvider>('/api/dns-providers', dnsProviders, refreshDns)
+const hosterCrud    = makeLogoCrud<Hoster>('/api/hosters', refreshHosters)
+const webServerCrud = makeLogoCrud<WebServer>('/api/web-servers', refreshWebServers)
+const dnsCrud       = makeLogoCrud<DnsProvider>('/api/dns-providers', refreshDns)
 
 // ── Users CRUD (édition profil uniquement — les comptes sont créés dans Supabase) ──
 const ROLE_LABELS: Record<string, string> = {
@@ -523,17 +522,13 @@ const bddForm         = ref<BddForm>({ name: '', type: '', notes: '', server_ids
 function serversForBdd(bddId: string): Group[] {
   return groups.value.filter((g: Group): boolean => g.database_id === bddId)
 }
-function serverIdsCsv(bddId: string): string {
-  return serversForBdd(bddId).map((g: Group): string => g.id).join(',')
-}
-
 function openBddAdd(): void {
   bddForm.value = { name: '', type: '', notes: '', server_ids: '' }
   bddAddOpen.value = true
   resetModal()
 }
 function openBddEdit(b: Bdd): void {
-  bddForm.value = { name: b.name, type: b.type ?? '', notes: b.notes ?? '', server_ids: serverIdsCsv(b.id) }
+  bddForm.value = { name: b.name, type: b.type ?? '', notes: b.notes ?? '', server_ids: serversForBdd(b.id).map((g: Group): string => g.id).join(',') }
   bddEditTarget.value = b
   resetModal()
 }

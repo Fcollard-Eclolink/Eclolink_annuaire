@@ -72,11 +72,6 @@ const {
 const searched = ref<Client[]>([])
 const filtered = ref<Client[]>([])
 
-function parseTypes(csv: string | null): string[] {
-  if (!csv?.trim()) return []
-  return csv.split(',').map((v: string) => v.trim()).filter(Boolean)
-}
-
 /** IDs des types d'intervention déjà rencontrés sur les interventions d'un client. */
 const maintTypesByClient = computed((): Map<string, Set<string>> => {
   const map = new Map<string, Set<string>>()
@@ -148,25 +143,10 @@ const currentMonthUsed = computed((): Map<string, number> => {
   return map
 })
 
-function formatDuration(minutes: number | null | undefined): string {
-  if (minutes == null || minutes <= 0) return '0 min'
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  if (h === 0) return `${m} min`
-  if (m === 0) return `${h} h`
-  return `${h} h ${m} min`
-}
-
 function quotaPct(client: Client): number {
   if (!client.monthly_quota_minutes) return 0
   const used = currentMonthUsed.value.get(client.id) ?? 0
   return Math.round((used / client.monthly_quota_minutes) * 100)
-}
-
-function quotaClass(pct: number): string {
-  if (pct >= 100) return 'quota-bar-over'
-  if (pct >= 80)  return 'quota-bar-warn'
-  return ''
 }
 
 function countMaintenancesThisMonth(clientId: string): number {
@@ -263,7 +243,7 @@ function handleDelete(e: Event, c: Client): void {
           <div class="client-card-quota-header">
             <span class="client-card-quota-label">Quota ce mois</span>
             <span class="client-card-quota-time">
-              {{ formatDuration(currentMonthUsed.get(c.id)) }} / {{ formatDuration(c.monthly_quota_minutes) }}
+              {{ formatDuration(currentMonthUsed.get(c.id), '0 min') }} / {{ formatDuration(c.monthly_quota_minutes) }}
             </span>
           </div>
           <div class="quota-bar-wrap">

@@ -19,11 +19,6 @@ const { toasts, remove } = useToast()
                stroke-linecap="round" stroke-linejoin="round" class="toast-icon">
             <path d="M20 6 9 17l-5-5"/>
           </svg>
-          <svg v-else-if="t.type === 'error'" xmlns="http://www.w3.org/2000/svg" width="15" height="15"
-               viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-               stroke-linecap="round" stroke-linejoin="round" class="toast-icon">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
           <svg v-else xmlns="http://www.w3.org/2000/svg" width="15" height="15"
                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                stroke-linecap="round" stroke-linejoin="round" class="toast-icon">
@@ -84,12 +79,6 @@ const { toasts, remove } = useToast()
   color: #991b1b;
   border-color: #fecaca;
 }
-.toast-info {
-  background: #eff6ff;
-  color: #1e40af;
-  border-color: #bfdbfe;
-}
-
 [data-theme="dark"] .toast-success {
   background: #052e16;
   color: #86efac;
@@ -100,12 +89,6 @@ const { toasts, remove } = useToast()
   color: #fca5a5;
   border-color: #7f1d1d;
 }
-[data-theme="dark"] .toast-info {
-  background: #1e1b4b;
-  color: #a5b4fc;
-  border-color: #3730a3;
-}
-
 .toast-icon  { flex-shrink: 0; }
 .toast-msg   { flex: 1; line-height: 1.4; }
 

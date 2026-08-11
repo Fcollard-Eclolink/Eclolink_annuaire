@@ -81,10 +81,6 @@ const typeById = computed((): Map<string, MaintenanceType> => {
 })
 
 // ── Helpers ──────────────────────────────────────────────────
-function parseTypes(csv: string | null): string[] {
-  if (!csv?.trim()) return []
-  return csv.split(',').map((v: string) => v.trim()).filter(Boolean)
-}
 function typeLabels(m: Maintenance): string[] {
   return parseTypes(m.types).map((id: string): string => typeById.value.get(id)?.label ?? id)
 }
@@ -101,15 +97,6 @@ function formatDate(iso: string): string {
   const p = iso.split('-')
   return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : iso
 }
-function formatDuration(minutes: number | null | undefined): string {
-  if (minutes == null || minutes <= 0) return '—'
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  if (h === 0) return `${m} min`
-  if (m === 0) return `${h} h`
-  return `${h} h ${m} min`
-}
-
 // ── Interventions du client ──────────────────────────────────
 const clientMaintenances = computed((): Maintenance[] =>
   maintenances.value
@@ -220,12 +207,7 @@ const quotaPct = computed((): number => {
   return Math.round((usedThisMonth.value / c.monthly_quota_minutes) * 100)
 })
 
-const quotaClass = computed((): string => {
-  const pct = quotaPct.value
-  if (pct >= 100) return 'quota-bar-over'
-  if (pct >= 80)  return 'quota-bar-warn'
-  return ''
-})
+const quotaClassName = computed((): string => quotaClass(quotaPct.value))
 
 </script>
 
@@ -324,7 +306,7 @@ const quotaClass = computed((): string => {
               <span class="client-quota-pct">{{ quotaPct }} %</span>
             </div>
             <div class="quota-bar-wrap">
-              <div class="quota-bar-fill" :class="quotaClass" :style="{ width: Math.min(quotaPct, 100) + '%' }" />
+              <div class="quota-bar-fill" :class="quotaClassName" :style="{ width: Math.min(quotaPct, 100) + '%' }" />
             </div>
           </template>
           <div v-else class="client-quota-no-quota">

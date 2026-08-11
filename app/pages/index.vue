@@ -228,11 +228,12 @@ function clearAllFilters(): void {
 
 // ── CRUD serveurs ─────────────────────────────────────────────────
 const {
-  deleteTarget: deleteGroup, deleteLoading: deleteGroupLoading, deleteError: deleteGroupError,
+  loading: groupLoading, error: groupError,
+  deleteTarget: deleteGroup,
   openDeleteConfirm: openDeleteGroup, closeDeleteConfirm: closeDeleteGroup, confirmDelete: confirmDeleteGroup,
-  editTarget: editGroup, editForm: editGroupForm, editLoading: editGroupLoading, editError: editGroupError,
+  editTarget: editGroup, editForm: editGroupForm,
   openEditModal: openEditGroupRaw, closeEditModal: closeEditGroup, saveEdit: saveGroupEdit,
-  isAddOpen: isAddGroupOpen, addForm: addGroupForm, addLoading: addGroupLoading, addError: addGroupError,
+  isAddOpen: isAddGroupOpen, addForm: addGroupForm,
   openAddModal: openAddGroupRaw, closeAddModal: closeAddGroup, confirmAdd: confirmAddGroup,
 } = useGroupCrud(groups, sites)
 
@@ -384,8 +385,8 @@ function openEditSite(s: Parameters<typeof openEditSiteRaw>[0]): void { void ref
         <AppConfirmModal
           v-if="deleteGroup"
           title="Supprimer le serveur"
-          :loading="deleteGroupLoading"
-          :error="deleteGroupError"
+          :loading="groupLoading"
+          :error="groupError"
           @confirm="confirmDeleteGroup"
           @cancel="closeDeleteGroup"
         >
@@ -421,8 +422,8 @@ function openEditSite(s: Parameters<typeof openEditSiteRaw>[0]): void { void ref
           v-if="editGroup"
           title="Modifier le serveur"
           :form="editGroupForm"
-          :error="editGroupError"
-          :loading="editGroupLoading"
+          :error="groupError"
+          :loading="groupLoading"
           :hosters="fetchedHosters"
           :web-servers="fetchedWebServers"
           :databases="fetchedDatabases"
@@ -440,8 +441,8 @@ function openEditSite(s: Parameters<typeof openEditSiteRaw>[0]): void { void ref
           v-if="isAddGroupOpen"
           title="Ajouter un serveur"
           :form="addGroupForm"
-          :error="addGroupError"
-          :loading="addGroupLoading"
+          :error="groupError"
+          :loading="groupLoading"
           :hosters="fetchedHosters"
           :web-servers="fetchedWebServers"
           :databases="fetchedDatabases"

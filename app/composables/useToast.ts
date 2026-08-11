@@ -1,4 +1,4 @@
-export type ToastType = 'success' | 'error' | 'info'
+export type ToastType = 'success' | 'error'
 
 export interface Toast {
   id     : string
