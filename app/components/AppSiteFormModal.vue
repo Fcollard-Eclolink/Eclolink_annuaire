@@ -18,6 +18,10 @@ defineProps<{
 }>()
 
 const emit = defineEmits<{ close: []; submit: [] }>()
+
+function generateWpKey(): string {
+  return crypto.randomUUID().replace(/-/g, '')
+}
 </script>
 
 <template>
@@ -98,6 +102,13 @@ const emit = defineEmits<{ close: []; submit: [] }>()
               <input v-model="form.has_maintenance" type="checkbox">
               <span>Sous contrat de maintenance</span>
             </label>
+          </div>
+          <div class="field field--full">
+            <label>Clé API statut WordPress <span class="field-hint">(mu-plugin — voir docs/eclolink-status-plugin.php)</span></label>
+            <div class="wp-key-row">
+              <input v-model="form.wp_api_key" type="text" placeholder="Clé partagée à coller dans wp-config.php">
+              <button type="button" class="btn" @click="form.wp_api_key = generateWpKey()">Générer</button>
+            </div>
           </div>
           <div class="field field--full">
             <label>Notes</label>

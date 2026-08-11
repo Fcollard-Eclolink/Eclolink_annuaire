@@ -571,16 +571,17 @@ function openAddForSite(site: Site): void {
               <th>Serveur</th>
               <th>Client</th>
               <th>Agence</th>
+              <th>WordPress</th>
               <th class="maintenance-sites-link-col">Site</th>
               <th class="maintenance-sites-link-col">BO</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="!maintenanceSites.length">
-              <td colspan="7" class="admin-empty">Aucun site sous contrat de maintenance.</td>
+              <td colspan="8" class="admin-empty">Aucun site sous contrat de maintenance.</td>
             </tr>
             <tr v-else-if="!todoSites.length">
-              <td colspan="7" class="admin-empty">🎉 Tous les sites sous maintenance ont été traités ce mois-ci.</td>
+              <td colspan="8" class="admin-empty">🎉 Tous les sites sous maintenance ont été traités ce mois-ci.</td>
             </tr>
             <tr v-for="s in todoSites" :key="s.id" class="maintenance-todo-row">
               <td class="maintenance-todo-check-cell">
@@ -603,6 +604,7 @@ function openAddForSite(site: Site): void {
                 <span v-else>—</span>
               </td>
               <td>{{ s.agency || '—' }}</td>
+              <td><AppWpStatus :site="s" /></td>
               <td class="maintenance-sites-link-cell">
                 <a
                   v-if="safeHref(s.url)"
@@ -655,13 +657,14 @@ function openAddForSite(site: Site): void {
               <th>Serveur</th>
               <th>Client</th>
               <th>Développeur</th>
+              <th>WordPress</th>
               <th>Type(s)</th>
               <th>Incident</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="!doneSites.length">
-              <td colspan="7" class="admin-empty">Aucune maintenance enregistrée ce mois.</td>
+              <td colspan="8" class="admin-empty">Aucune maintenance enregistrée ce mois.</td>
             </tr>
             <tr v-for="row in doneSites" :key="row.site.id">
               <td class="maintenance-date">{{ formatDate(row.maintenance.intervention_date) }}</td>
@@ -672,6 +675,7 @@ function openAddForSite(site: Site): void {
                 <span v-else>—</span>
               </td>
               <td>{{ devName(row.maintenance.developer_id) }}</td>
+              <td><AppWpStatus :site="row.site" /></td>
               <td>
                 <div class="maintenance-type-pills">
                   <span

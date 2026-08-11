@@ -296,6 +296,19 @@
   }
 }
 
+.field-hint {
+  font-weight: var(--fw-normal);
+  color: var(--text-muted);
+  font-size: var(--fs-12);
+}
+
+.wp-key-row {
+  display: flex;
+  gap: var(--sp-8);
+
+  input { flex: 1; }
+}
+
 /* Flip vers le haut si pas de place en dessous (AppSelect / AppIconSelect / AppTechSelect) */
 .icon-select-dropdown.open-up {
   top: auto;

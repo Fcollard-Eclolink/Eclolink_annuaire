@@ -14,4 +14,12 @@ export default defineNuxtConfig({
   },
 
   css: ['~/assets/css/main.css'],
+
+  nitro: {
+    experimental: { tasks: true },
+    // Vérification quotidienne des mises à jour WordPress (6h du matin).
+    scheduledTasks: {
+      '0 6 * * *': ['check-wp-updates'],
+    },
+  },
 })

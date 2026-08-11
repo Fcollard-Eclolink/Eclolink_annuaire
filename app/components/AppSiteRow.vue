@@ -88,6 +88,8 @@ const highlightedName = computed((): string => {
           <span v-else-if="techIconSvg(tech)" class="tech-svg-icon" v-html="techIconSvg(tech)" />
           {{ tech }}
         </span>
+        <!-- Statut WordPress (renseigné par la tâche planifiée check-wp-updates) -->
+        <AppWpStatus :site="site" />
       </div>
     </div>
 

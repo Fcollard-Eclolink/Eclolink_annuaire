@@ -12,6 +12,9 @@
   --del-hover-bg     : #fcebeb;
   --del-hover-color  : #a32d2d;
   --del-hover-border : #f09595;
+  --ok-bg            : #eaf7ee;
+  --ok-color         : #2d7a3f;
+  --ok-border        : #a3ddb2;
 
   /* ── Espacement — grille 4px, multiples de 0.25rem ───────────── */
   --sp-4:  0.25rem;   /*  4px */
@@ -66,4 +69,7 @@
   --del-hover-bg     : #2d1a1a;
   --del-hover-color  : #e07070;
   --del-hover-border : #5a2a2a;
+  --ok-bg            : #1a2d1f;
+  --ok-color         : #5cc274;
+  --ok-border        : #2e5a3a;
 }

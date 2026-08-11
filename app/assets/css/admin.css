@@ -5,6 +5,10 @@
   padding: var(--sp-24);
 }
 
+.admin-wp-check {
+  margin-bottom: var(--sp-16);
+}
+
 /* ── Tabs ─────────────────────────────────────────────────────── */
 .admin-tabs {
   display: flex;

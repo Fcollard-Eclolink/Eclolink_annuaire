@@ -17,6 +17,7 @@ interface SiteCreate {
   registrar         ?: string | null
   notes             ?: string | null
   has_maintenance   ?: boolean
+  wp_api_key        ?: string | null
 }
 
 export default defineEventHandler(async (event): Promise<Site> => {
@@ -39,6 +40,7 @@ export default defineEventHandler(async (event): Promise<Site> => {
     registrar      : clampString(body.registrar, 100),
     notes          : clampString(body.notes, 5000),
     has_maintenance: body.has_maintenance ?? false,
+    wp_api_key     : clampString(body.wp_api_key, 100),
   }).returning()
 
   return assertRow(row, 'Erreur lors de la création')

@@ -8,6 +8,27 @@
       "when": 1782987089847,
       "tag": "0000_sparkling_lyja",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1786444217003,
+      "tag": "0001_superb_killmonger",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786444971836,
+      "tag": "0002_good_human_robot",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1786444990880,
+      "tag": "0003_fresh_bullseye",
+      "breakpoints": true
     }
   ]
 }

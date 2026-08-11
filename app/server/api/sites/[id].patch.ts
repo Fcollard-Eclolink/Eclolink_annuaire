@@ -16,6 +16,7 @@ interface SitePatch {
   registrar         ?: string | null
   notes             ?: string | null
   has_maintenance   ?: boolean
+  wp_api_key        ?: string | null
 }
 
 export default defineEventHandler(async (event): Promise<Site> => {
@@ -40,6 +41,7 @@ export default defineEventHandler(async (event): Promise<Site> => {
   if (body.registrar       !== undefined) patch.registrar        = clampString(body.registrar, 100)
   if (body.notes           !== undefined) patch.notes            = clampString(body.notes, 5000)
   if (body.has_maintenance !== undefined) patch.has_maintenance  = !!body.has_maintenance
+  if (body.wp_api_key      !== undefined) patch.wp_api_key       = clampString(body.wp_api_key, 100)
 
   return patchOrFetch<Site>(sites, sites.id, id, patch, 'Site introuvable')
 })

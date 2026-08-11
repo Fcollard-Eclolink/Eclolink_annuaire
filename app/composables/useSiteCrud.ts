@@ -16,19 +16,20 @@ export interface SiteEditForm {
   registrar         : string
   notes             : string
   has_maintenance   : boolean
+  wp_api_key        : string
 }
 
 const EMPTY_FORM: SiteEditForm = {
   name: '', url: '', bo_url: '', gitlab_url: '', agency: '',
   group_id: '', php_version: '', dns_zone: '', go_live_date: '',
   technologies: '', client_id: '', registrar: '', notes: '',
-  has_maintenance: false,
+  has_maintenance: false, wp_api_key: '',
 }
 
 function formBody(f: SiteEditForm): Record<string, string | boolean | null> {
   return {
     name: f.name.trim(),
-    ...trimOrNull(f, ['url', 'bo_url', 'gitlab_url', 'agency', 'php_version', 'dns_zone', 'technologies', 'registrar', 'notes']),
+    ...trimOrNull(f, ['url', 'bo_url', 'gitlab_url', 'agency', 'php_version', 'dns_zone', 'technologies', 'registrar', 'notes', 'wp_api_key']),
     group_id       : f.group_id     || null,
     go_live_date   : f.go_live_date || null,
     client_id      : f.client_id    || null,
@@ -95,6 +96,7 @@ export function useSiteCrud(sites: Ref<Site[]>) {
       registrar         : site.registrar         ?? '',
       notes             : site.notes             ?? '',
       has_maintenance   : site.has_maintenance,
+      wp_api_key        : site.wp_api_key        ?? '',
     }
     editError.value = ''
   }

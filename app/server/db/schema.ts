@@ -98,21 +98,31 @@ export const clients = pgTable('eclolink_clients', {
 // ── Sites (group_id sans FK : orphelins possibles dans la source) ─────────
 
 export const sites = pgTable('eclolink_sites', {
-  id              : text('id').primaryKey(),
-  name            : text('name').notNull(),
-  url             : text('url'),
-  bo_url          : text('bo_url'),
-  gitlab_url      : text('gitlab_url'),
-  php_version     : text('php_version'),
-  group_id        : text('group_id'),
-  agency          : text('agency'),
-  dns_zone        : text('dns_zone'),
-  registrar       : text('registrar'),
-  go_live_date    : date('go_live_date'),
-  technologies    : text('technologies').default('[]'),
-  notes           : text('notes'),
-  client_id       : text('client_id').references(() => clients.id),
-  has_maintenance : boolean('has_maintenance').notNull().default(false),
+  id                       : text('id').primaryKey(),
+  name                     : text('name').notNull(),
+  url                      : text('url'),
+  bo_url                   : text('bo_url'),
+  gitlab_url               : text('gitlab_url'),
+  php_version              : text('php_version'),
+  group_id                 : text('group_id'),
+  agency                   : text('agency'),
+  dns_zone                 : text('dns_zone'),
+  registrar                : text('registrar'),
+  go_live_date             : date('go_live_date'),
+  technologies             : text('technologies').default('[]'),
+  notes                    : text('notes'),
+  client_id                : text('client_id').references(() => clients.id),
+  has_maintenance          : boolean('has_maintenance').notNull().default(false),
+  // Statut WordPress (rempli par la tâche planifiée check-wp-updates) :
+  // wp_api_key active la lecture du nombre de plugins à mettre à jour via le
+  // mu-plugin ~/docs/eclolink-status-plugin.php (clé définie dans wp-config.php,
+  // jamais en base côté site). Sans clé, seule la version core est détectée
+  // (balise <meta name="generator">), sans info sur les plugins.
+  wp_api_key               : text('wp_api_key'),
+  wp_core_version          : text('wp_core_version'),
+  wp_latest_version        : text('wp_latest_version'),
+  wp_plugin_updates        : integer('wp_plugin_updates'),
+  wp_checked_at            : timestamp('wp_checked_at', { withTimezone: true, mode: 'string' }),
 })
 
 // ── Données de référence (icônes simpleicons) ─────────────────────────────

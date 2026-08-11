@@ -128,6 +128,22 @@ function resetModal(): void {
 
 const { add: toast } = useToast()
 
+// ── Vérification WordPress (relance manuelle, dev/sysadmin) ────
+const canCheckWp    = computed((): boolean => ['sysadmin', 'dev'].includes(user.value?.role ?? ''))
+const wpCheckLoading = ref(false)
+
+async function triggerWpCheck(): Promise<void> {
+  wpCheckLoading.value = true
+  try {
+    const res = await $fetch<{ total: number; checked: number }>('/api/wp-status/refresh', { method: 'POST' })
+    toast(`Vérification WordPress terminée : ${res.checked}/${res.total} sites.`)
+  } catch {
+    toast('Erreur lors de la vérification WordPress.', 'error')
+  } finally {
+    wpCheckLoading.value = false
+  }
+}
+
 // ── Technologies CRUD ─────────────────────────────────────────
 interface TechForm {
   label           : string
@@ -590,6 +606,15 @@ function simpleIconUrl(slug: string): string {
   <div class="admin-wrap">
 
     <AppHeader title="Administration" />
+
+    <!-- Vérification WordPress (relance manuelle) -->
+    <div v-if="canCheckWp" class="admin-section-header admin-wp-check">
+      <span class="admin-section-title">Statut WordPress des sites</span>
+      <button class="btn" :disabled="wpCheckLoading" @click="triggerWpCheck">
+        <span v-if="wpCheckLoading" class="spinner" />
+        {{ wpCheckLoading ? 'Vérification en cours…' : 'Relancer la vérification' }}
+      </button>
+    </div>
 
     <!-- Tabs -->
     <div class="admin-tabs">

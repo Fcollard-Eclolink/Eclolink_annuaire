@@ -101,6 +101,41 @@
   .tech-svg-icon svg { width: var(--fs-12); height: var(--fs-12); }
 }
 
+.wp-status-group {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-4);
+
+  /* Sur la homepage (ligne de meta du site), gap plus large que le reste de
+     la ligne pour bien détacher visuellement le statut WP des autres tags. */
+  .site-meta & { margin-left: var(--sp-16); }
+}
+
+.wp-status-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--fs-12);
+  color: var(--text-muted);
+  background: var(--hover);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--radius-full);
+  padding: var(--sp-4) var(--sp-8);
+  flex-shrink: 0;
+  white-space: nowrap;
+
+  &.wp-status-badge--warn {
+    color: var(--del-hover-color);
+    background: var(--del-hover-bg);
+    border-color: var(--del-hover-border);
+  }
+
+  &.wp-status-badge--ok {
+    color: var(--ok-color);
+    background: var(--ok-bg);
+    border-color: var(--ok-border);
+  }
+}
+
 /* Boutons d'action site */
 .site-actions {
   display: flex;

@@ -1,0 +1,1 @@
+ALTER TABLE "eclolink_sites" DROP COLUMN "wp_core_update_available";
