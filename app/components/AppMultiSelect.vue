@@ -5,8 +5,7 @@ const props = defineProps<{
 }>()
 
 const modelValue = defineModel<string>({ default: '' })
-const isOpen     = ref(false)
-const wrapRef    = ref<HTMLElement | null>(null)
+const { isOpen, wrapRef } = useDropdown()
 
 const selectedIds = computed((): string[] => {
   if (!modelValue.value.trim()) return []
@@ -29,14 +28,6 @@ const selectedOpts = computed(() =>
     .map(id => props.options.find(o => o.id === id))
     .filter((o): o is { id: string; label: string } => o !== undefined),
 )
-
-function onDocClick(e: MouseEvent): void {
-  if (wrapRef.value && !wrapRef.value.contains(e.target as Node))
-    isOpen.value = false
-}
-
-onMounted(()  => document.addEventListener('click', onDocClick))
-onUnmounted(() => document.removeEventListener('click', onDocClick))
 </script>
 
 <template>

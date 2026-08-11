@@ -1,6 +1,5 @@
-import { eq } from 'drizzle-orm'
-import { useDb } from '~/server/db'
 import { groups } from '~/server/db/schema'
+import { patchOrFetch } from '~/server/utils/db-crud'
 
 interface GroupPatch {
   name       ?: string
@@ -14,9 +13,7 @@ interface GroupPatch {
 export default defineEventHandler(async (event): Promise<Group> => {
   await requireRole(event, WRITE_ROLES)
   const id = requireId(event)
-
   const body = await readBody<GroupPatch>(event)
-  const db   = useDb()
 
   const patch: Partial<typeof groups.$inferInsert> = {}
   if (body.name        !== undefined) patch.name        = requireString(body.name, 'Nom', 200)
@@ -26,13 +23,5 @@ export default defineEventHandler(async (event): Promise<Group> => {
   if (body.web_server  !== undefined) patch.web_server  = clampString(body.web_server, 200)
   if (body.database_id !== undefined) patch.database_id = body.database_id ?? null
 
-  if (Object.keys(patch).length === 0) {
-    const [existing] = await db.select().from(groups).where(eq(groups.id, id)).limit(1)
-    if (!existing) throw createError({ statusCode: 404, message: 'Serveur introuvable' })
-    return existing
-  }
-
-  const [row] = await db.update(groups).set(patch).where(eq(groups.id, id)).returning()
-  if (!row) throw createError({ statusCode: 404, message: 'Serveur introuvable' })
-  return row
+  return patchOrFetch<Group>(groups, groups.id, id, patch, 'Serveur introuvable')
 })

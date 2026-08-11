@@ -1,4 +1,4 @@
-import { logActivity } from '~/server/utils/activity-log'
+import { formatUserLabel, logActivity } from '~/server/utils/activity-log'
 
 // Journalisation automatique de TOUTE mutation réussie sur /api/<ressource>[/<id>].
 // Couvre toutes les entités (présentes et futures) sans dupliquer d'appel dans
@@ -9,7 +9,6 @@ const RESOURCE_SINGULAR: Record<string, string> = {
   sites             : 'site',
   groups            : 'group',
   clients           : 'client',
-  maintenances      : 'maintenance',
   'maintenance-types': 'maintenance-type',
   technologies      : 'technology',
   agencies          : 'agency',
@@ -41,6 +40,9 @@ export default defineNitroPlugin((nitroApp) => {
 
       const resource = seg[1]!
       if (resource === 'auth' || resource === 'logs') return
+      // Suppression d'utilisateur : loggée explicitement par la route elle-même
+      // (elle a besoin du nom/rôle AVANT suppression, absents de la réponse).
+      if (resource === 'users' && event.method === 'DELETE') return
 
       const status = event.node.res.statusCode
       if (status < 200 || status >= 300) return
@@ -49,15 +51,22 @@ export default defineNitroPlugin((nitroApp) => {
       const obj  = (body && typeof body === 'object') ? body as Record<string, unknown> : undefined
 
       const idFromBody    = typeof obj?.id === 'string' ? obj.id : (typeof obj?.user_id === 'string' ? obj.user_id : undefined)
-      const labelFromBody = typeof obj?.name === 'string' ? obj.name
-        : typeof obj?.label === 'string' ? obj.label
-          : typeof obj?.email === 'string' ? obj.email
-            : undefined
+      const labelFromBody = resource === 'users'
+        ? formatUserLabel(obj ?? {}) ?? undefined
+        : typeof obj?.name === 'string' ? obj.name
+          : typeof obj?.label === 'string' ? obj.label
+            : typeof obj?.email === 'string' ? obj.email
+              : undefined
+
+      // Une maintenance validée (checklist mensuelle) est distinguée d'une intervention classique.
+      const resourceType = resource === 'maintenances'
+        ? (obj?.is_monthly_maintenance ? 'maintenance' : 'intervention')
+        : (RESOURCE_SINGULAR[resource] ?? resource)
 
       await logActivity(
         event,
         action,
-        RESOURCE_SINGULAR[resource] ?? resource,
+        resourceType,
         idFromBody ?? seg[2] ?? null,
         labelFromBody ?? null,
       )

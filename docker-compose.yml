@@ -1,12 +1,3 @@
-# Stack de développement (hot-reload).
-# Postgres local + app en `npm run dev` (volume monté).
-#
-# Démarrer :   docker compose up --build
-# Migrer   :   docker compose exec app npm run db:migrate
-# 1er admin:   curl -X POST http://localhost:3000/api/auth/bootstrap \
-#                   -H 'Content-Type: application/json' \
-#                   -d '{"email":"admin@eclolink.com","password":"motdepassefort"}'
-
 services:
   db:
     image: postgres:16-alpine
@@ -16,7 +7,7 @@ services:
       POSTGRES_PASSWORD: eclolink
       POSTGRES_DB      : eclolink
     ports:
-      - "5432:5432"   # exposé pour psql / drizzle-kit depuis l'hôte
+      - "5432:5432"
     volumes:
       - pgdata_dev:/var/lib/postgresql/data
     healthcheck:

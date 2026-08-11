@@ -3,7 +3,6 @@ defineProps<{
   title        : string
   loading      : boolean
   error       ?: string
-  dangerLabel ?: string
   confirmLabel?: string   // si fourni → bouton primary au lieu de danger
 }>()
 
@@ -29,7 +28,7 @@ const emit = defineEmits<{
           @click="emit('confirm')"
         >
           <span v-if="loading" class="spinner" :class="confirmLabel ? '' : 'spinner-dark'" />
-          {{ loading ? (confirmLabel ? 'En cours…' : 'Suppression…') : (confirmLabel ?? dangerLabel ?? 'Supprimer') }}
+          {{ loading ? (confirmLabel ? 'En cours…' : 'Suppression…') : (confirmLabel ?? 'Supprimer') }}
         </button>
       </div>
     </div>

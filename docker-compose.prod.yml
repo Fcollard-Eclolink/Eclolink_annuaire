@@ -1,12 +1,3 @@
-# Stack de production — serveurs Eclolink.
-# Prérequis : un fichier .env (voir .env.example) à la racine.
-#
-# Démarrer :   docker compose -f docker-compose.prod.yml up -d --build
-# Migrer   :   docker compose -f docker-compose.prod.yml --profile migrate run --rm migrate
-# 1er admin:   curl -X POST http://localhost:3000/api/auth/bootstrap \
-#                   -H 'Content-Type: application/json' \
-#                   -d '{"email":"admin@eclolink.com","password":"motdepassefort"}'
-
 services:
   db:
     image: postgres:16-alpine
@@ -23,7 +14,6 @@ services:
       timeout : 5s
       retries : 5
 
-  # Applique les migrations Drizzle puis se termine. À lancer via --profile migrate.
   migrate:
     build:
       context   : .

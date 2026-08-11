@@ -1,7 +1,6 @@
 import type { Client } from '~/server/utils/types'
-import { eq } from 'drizzle-orm'
-import { useDb } from '~/server/db'
 import { clients } from '~/server/db/schema'
+import { patchOrFetch } from '~/server/utils/db-crud'
 
 interface ClientPatch {
   name                 ?: string
@@ -20,7 +19,6 @@ export default defineEventHandler(async (event): Promise<Client> => {
   const id = requireId(event)
 
   const body = await readBody<ClientPatch>(event)
-  const db   = useDb()
 
   const patch: Partial<typeof clients.$inferInsert> = {}
   if (body.name                  !== undefined) patch.name                  = requireString(body.name, 'Nom', 200)
@@ -33,13 +31,5 @@ export default defineEventHandler(async (event): Promise<Client> => {
   if (body.monthly_amount        !== undefined) patch.monthly_amount        = validateOptionalNonNegativeNumber(body.monthly_amount, 'Montant forfait')
   if (body.project_manager_id    !== undefined) patch.project_manager_id    = body.project_manager_id ?? null
 
-  if (Object.keys(patch).length === 0) {
-    const [existing] = await db.select().from(clients).where(eq(clients.id, id)).limit(1)
-    if (!existing) throw createError({ statusCode: 404, message: 'Client introuvable' })
-    return existing
-  }
-
-  const [row] = await db.update(clients).set(patch).where(eq(clients.id, id)).returning()
-  if (!row) throw createError({ statusCode: 404, message: 'Client introuvable' })
-  return row
+  return patchOrFetch<Client>(clients, clients.id, id, patch, 'Client introuvable')
 })

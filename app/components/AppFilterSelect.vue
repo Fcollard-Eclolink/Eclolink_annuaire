@@ -14,11 +14,7 @@ const props = defineProps<{
 
 const modelValue = defineModel<string[]>({ default: () => [] })
 
-const isOpen     = ref(false)
-const wrapRef    = ref<HTMLElement | null>(null)
-const triggerRef = ref<HTMLElement | null>(null)
-
-const { openUp } = useFlipUp(triggerRef, isOpen)
+const { isOpen, wrapRef, triggerRef, openUp } = useDropdown()
 
 function toggleOption(id: string): void {
   const opt      = props.options.find(o => o.id === id)
@@ -29,15 +25,6 @@ function toggleOption(id: string): void {
     ? modelValue.value.filter(v => v !== id)
     : [...modelValue.value, id]
 }
-
-function onDocClick(e: MouseEvent): void {
-  if (wrapRef.value && !wrapRef.value.contains(e.target as Node)) {
-    isOpen.value = false
-  }
-}
-
-onMounted(()  => document.addEventListener('click', onDocClick))
-onUnmounted(() => document.removeEventListener('click', onDocClick))
 </script>
 
 <template>

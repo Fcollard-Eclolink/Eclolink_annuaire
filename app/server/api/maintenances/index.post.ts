@@ -1,5 +1,7 @@
 import { useDb } from '~/server/db'
 import { maintenances } from '~/server/db/schema'
+import { maintenanceLabel } from '~/server/utils/activity-log'
+import { assertRow } from '~/server/utils/db-crud'
 
 interface MaintenanceCreate {
   site_id               : string
@@ -13,7 +15,7 @@ interface MaintenanceCreate {
   is_monthly_maintenance?: boolean
 }
 
-export default defineEventHandler(async (event): Promise<Maintenance> => {
+export default defineEventHandler(async (event): Promise<Maintenance & { label: string }> => {
   await requireRole(event, WRITE_ROLES)
   const body = await readBody<MaintenanceCreate>(event)
 
@@ -30,6 +32,6 @@ export default defineEventHandler(async (event): Promise<Maintenance> => {
     is_monthly_maintenance: !!body.is_monthly_maintenance,
   }).returning()
 
-  if (!row) throw createError({ statusCode: 500, message: 'Erreur lors de la création' })
-  return row
+  const created = assertRow(row, 'Erreur lors de la création')
+  return { ...created, label: await maintenanceLabel(created) }
 })

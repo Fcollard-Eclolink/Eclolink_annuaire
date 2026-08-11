@@ -8,8 +8,6 @@ import { sessions, users, type User } from '~/server/db/schema'
 // le SHA-256 est stocké en base (fuite DB = pas de session réutilisable).
 // Révocables (logout, ban, rotation mdp). Renouvellement glissant.
 
-declare const process: { env: { NODE_ENV?: string } }
-
 const COOKIE_SESSION   = 'eclo_session'
 const SESSION_TTL_MS   = 1000 * 60 * 60 * 24 * 30 // 30 jours
 const SLIDING_RENEW_MS = 1000 * 60 * 60 * 24 * 7  // prolonge si expire dans < 7 j

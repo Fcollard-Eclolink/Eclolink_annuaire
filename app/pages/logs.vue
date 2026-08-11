@@ -19,6 +19,7 @@ const ACTION_LABELS: Record<string, string> = {
 }
 const RESOURCE_LABELS: Record<string, string> = {
   maintenance       : 'Maintenance',
+  intervention      : 'Intervention',
   client            : 'Client',
   site              : 'Site',
   group             : 'Serveur',

@@ -1,5 +1,6 @@
 import { useDb } from '~/server/db'
 import { sites } from '~/server/db/schema'
+import { assertRow } from '~/server/utils/db-crud'
 
 interface SiteCreate {
   name              : string
@@ -40,6 +41,5 @@ export default defineEventHandler(async (event): Promise<Site> => {
     has_maintenance: body.has_maintenance ?? false,
   }).returning()
 
-  if (!row) throw createError({ statusCode: 500, message: 'Erreur lors de la création' })
-  return row
+  return assertRow(row, 'Erreur lors de la création')
 })

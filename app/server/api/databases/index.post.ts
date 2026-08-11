@@ -1,5 +1,6 @@
 import { useDb } from '~/server/db'
 import { databases } from '~/server/db/schema'
+import { assertRow } from '~/server/utils/db-crud'
 
 interface BddCreate {
   name : string
@@ -18,6 +19,5 @@ export default defineEventHandler(async (event): Promise<Bdd> => {
     notes: clampString(body.notes, 5000),
   }).returning()
 
-  if (!row) throw createError({ statusCode: 500, message: 'Erreur lors de la création' })
-  return row
+  return assertRow(row, 'Erreur lors de la création')
 })

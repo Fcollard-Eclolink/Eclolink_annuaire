@@ -1,36 +1,20 @@
-/* ── Filtre plage de dates (trigger button) — partagé annuaire + maintenance ─ */
+/* ── Filtre plage de dates (deux <input type="date">) — partagé annuaire + maintenance ─ */
 .date-range-picker {
-  position: relative;
-  display: inline-flex;
-}
-
-.date-range-trigger {
   display: inline-flex;
   align-items: center;
   gap: var(--sp-8);
-  height: var(--sp-36);
-  padding: 0 var(--sp-12);
-  border: var(--bw) solid var(--border-input);
-  border-radius: var(--sp-8);
-  background: var(--surface);
-  color: var(--text);
-  font-size: var(--fs-12);
-  font-family: inherit;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background var(--t-fast), border-color var(--t-fast);
 
-  &:hover { background: var(--hover); }
+  input[type="date"] { width: auto; }
 
-  .date-range-picker.open & { border-color: #888; }
-  .date-range-picker.active & {
+  &.active input[type="date"] {
     background: var(--hover);
     font-weight: var(--fw-medium);
   }
 }
 
-.date-range-trigger-label {
-  font-variant-numeric: tabular-nums;
+.date-range-sep {
+  color: var(--text-muted);
+  font-size: var(--fs-12);
 }
 
 .date-range-clear {
@@ -47,134 +31,4 @@
   cursor: pointer;
 
   &:hover { background: var(--border); color: var(--text); }
-}
-
-/* ── Calendrier (grille partagée) ────────────────────────────── */
-.calendar-grid {
-  width: 100%;
-}
-
-.calendar-grid-month {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--sp-8);
-}
-
-.calendar-grid-month-label {
-  font-size: var(--fs-14);
-  font-weight: var(--fw-medium);
-  text-transform: capitalize;
-}
-
-.calendar-grid-nav {
-  width: var(--sp-24);
-  height: var(--sp-24);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: var(--fs-16);
-  line-height: 1;
-  color: var(--text-muted);
-  border-radius: var(--sp-4);
-  font-family: inherit;
-
-  &:hover { background: var(--hover); color: var(--text); }
-}
-
-.calendar-grid-weekdays {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: var(--sp-2);
-  margin-bottom: var(--sp-4);
-
-  span {
-    text-align: center;
-    font-size: var(--fs-12);
-    color: var(--text-muted);
-    padding: var(--sp-4) 0;
-  }
-}
-
-.calendar-grid-days {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: var(--sp-2);
-}
-
-.calendar-grid-day {
-  aspect-ratio: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: var(--fs-12);
-  font-family: inherit;
-  color: var(--text);
-  border-radius: var(--sp-4);
-  transition: background var(--t-fast);
-
-  &:hover { background: var(--hover); }
-
-  &.out-month { color: var(--text-muted); opacity: 0.4; }
-
-  &.is-today { font-weight: var(--fw-semi); }
-
-  &.in-range {
-    background: var(--bg);
-    border-radius: 0;
-  }
-
-  &.is-start,
-  &.is-end,
-  &.is-pending {
-    background: var(--text);
-    color: var(--surface);
-    font-weight: var(--fw-medium);
-  }
-
-  &.is-start:not(.is-end) { border-radius: var(--sp-4) 0 0 var(--sp-4); }
-  &.is-end:not(.is-start) { border-radius: 0 var(--sp-4) var(--sp-4) 0; }
-}
-
-/* ── Popover qui wrap la grille (utilisé par AppDateRangeFilter, AppDateInput) ── */
-.calendar-popover {
-  position: absolute;
-  top: calc(100% + var(--sp-4));
-  left: 0;
-  z-index: 300;
-  width: 280px;
-  background: var(--surface);
-  border: var(--bw) solid var(--border);
-  border-radius: var(--sp-8);
-  box-shadow: var(--shadow-sm);
-  padding: var(--sp-12);
-}
-
-.calendar-popover-presets {
-  display: flex;
-  gap: var(--sp-4);
-  padding-bottom: var(--sp-12);
-  margin-bottom: var(--sp-12);
-  border-bottom: var(--bw) solid var(--border);
-}
-
-.calendar-popover-preset {
-  flex: 1;
-  font-size: var(--fs-12);
-  color: var(--text-muted);
-  background: var(--bg);
-  border: var(--bw) solid var(--border);
-  border-radius: var(--sp-4);
-  padding: var(--sp-4);
-  cursor: pointer;
-  font-family: inherit;
-  white-space: nowrap;
-
-  &:hover { background: var(--hover); color: var(--text); }
 }

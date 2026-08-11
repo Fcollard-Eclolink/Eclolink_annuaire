@@ -90,11 +90,8 @@ export function useGroupCrud(
         method: 'PATCH',
         body  : {
           name       : editForm.value.name.trim(),
-          hoster     : editForm.value.hoster.trim()     || null,
-          ip_local   : editForm.value.ip_local.trim()   || null,
-          ip_public  : editForm.value.ip_public.trim()  || null,
-          web_server : editForm.value.web_server.trim() || null,
-          database_id: editForm.value.database_id       || null,
+          ...trimOrNull(editForm.value, ['hoster', 'ip_local', 'ip_public', 'web_server']),
+          database_id: editForm.value.database_id || null,
         },
       })
       if (groups.value) {
@@ -137,11 +134,8 @@ export function useGroupCrud(
         method: 'POST',
         body  : {
           name       : addForm.value.name.trim(),
-          hoster     : addForm.value.hoster.trim()     || null,
-          ip_local   : addForm.value.ip_local.trim()   || null,
-          ip_public  : addForm.value.ip_public.trim()  || null,
-          web_server : addForm.value.web_server.trim() || null,
-          database_id: addForm.value.database_id       || null,
+          ...trimOrNull(addForm.value, ['hoster', 'ip_local', 'ip_public', 'web_server']),
+          database_id: addForm.value.database_id || null,
         },
       })
       if (groups.value) groups.value = [...groups.value, created]

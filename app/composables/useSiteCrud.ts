@@ -27,20 +27,12 @@ const EMPTY_FORM: SiteEditForm = {
 
 function formBody(f: SiteEditForm): Record<string, string | boolean | null> {
   return {
-    name              : f.name.trim(),
-    url               : f.url.trim()          || null,
-    bo_url            : f.bo_url.trim()        || null,
-    gitlab_url        : f.gitlab_url.trim()    || null,
-    agency            : f.agency.trim()        || null,
-    group_id          : f.group_id             || null,
-    php_version       : f.php_version.trim()   || null,
-    dns_zone          : f.dns_zone.trim()      || null,
-    go_live_date      : f.go_live_date         || null,
-    technologies      : f.technologies.trim()  || null,
-    client_id         : f.client_id            || null,
-    registrar         : f.registrar.trim()     || null,
-    notes             : f.notes.trim()         || null,
-    has_maintenance   : f.has_maintenance,
+    name: f.name.trim(),
+    ...trimOrNull(f, ['url', 'bo_url', 'gitlab_url', 'agency', 'php_version', 'dns_zone', 'technologies', 'registrar', 'notes']),
+    group_id       : f.group_id     || null,
+    go_live_date   : f.go_live_date || null,
+    client_id      : f.client_id    || null,
+    has_maintenance: f.has_maintenance,
   }
 }
 

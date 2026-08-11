@@ -10,12 +10,8 @@ function bodyFromForm(f: ClientForm): Record<string, unknown> {
   const quotaH = typeof f.monthly_quota_hours === 'number' ? f.monthly_quota_hours : parseFloat(String(f.monthly_quota_hours))
   const amount = typeof f.monthly_amount === 'number'      ? f.monthly_amount      : parseFloat(String(f.monthly_amount))
   return {
-    name                 : f.name.trim(),
-    agency               : f.agency.trim()        || null,
-    contact_name         : f.contact_name.trim()  || null,
-    contact_email        : f.contact_email.trim() || null,
-    contact_phone        : f.contact_phone.trim() || null,
-    notes                : f.notes.trim()         || null,
+    name: f.name.trim(),
+    ...trimOrNull(f, ['agency', 'contact_name', 'contact_email', 'contact_phone', 'notes']),
     monthly_quota_minutes: !isNaN(quotaH) && quotaH > 0  ? Math.round(quotaH * 60) : null,
     monthly_amount       : !isNaN(amount) && amount >= 0 ? amount : null,
     project_manager_id   : f.project_manager_id || null,

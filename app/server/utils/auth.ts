@@ -9,11 +9,6 @@ export type Role = typeof USER_ROLES[number]
 /** Rôles autorisés à écrire (toutes mutations sauf gestion des comptes). */
 export const WRITE_ROLES: Role[] = ['sysadmin', 'dev', 'pm', 'crea']
 
-/** Utilisateur de la session courante, ou null si non authentifié. */
-export function getSessionUser(event: H3Event): Promise<User | null> {
-  return resolveSessionUser(event)
-}
-
 /** Exige une session valide — throw 401 sinon. */
 export async function requireUser(event: H3Event): Promise<User> {
   const user = await resolveSessionUser(event)

@@ -13,9 +13,5 @@ export default defineNuxtConfig({
     },
   },
 
-  runtimeConfig: {
-    databaseUrl: '',  // surcharge via NUXT_DATABASE_URL — Postgres auto-hébergé (serveur uniquement)
-  },
-
   css: ['~/assets/css/main.css'],
 })

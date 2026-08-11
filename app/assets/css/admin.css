@@ -12,7 +12,7 @@
   border-bottom: var(--bw) solid var(--border);
   margin-bottom: var(--sp-24);
   overflow-x: auto;
-  overflow-y: hidden; /* évite la mini scrollbar verticale induite par overflow-x:auto */
+  overflow-y: hidden; 
 }
 
 /* Cellules de l'onglet Bases de données */

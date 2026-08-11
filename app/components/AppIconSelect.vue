@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import type { SelectOption } from '~/utils/selectOptions'
+interface SelectOption {
+  value: string
+  label: string
+  slug : string | null
+}
 
 const props = defineProps<{
   options    : SelectOption[]
@@ -7,11 +11,7 @@ const props = defineProps<{
 }>()
 
 const modelValue = defineModel<string>({ default: '' })
-const isOpen     = ref(false)
-const wrapRef    = ref<HTMLElement | null>(null)
-const triggerRef = ref<HTMLElement | null>(null)
-
-const { openUp } = useFlipUp(triggerRef, isOpen)
+const { isOpen, wrapRef, triggerRef, openUp } = useDropdown()
 
 const selected = computed(() =>
   props.options.find(o => o.value === modelValue.value) ?? null,
@@ -21,15 +21,6 @@ function select(value: string): void {
   modelValue.value = value
   isOpen.value     = false
 }
-
-function onDocClick(e: MouseEvent): void {
-  if (wrapRef.value && !wrapRef.value.contains(e.target as Node)) {
-    isOpen.value = false
-  }
-}
-
-onMounted(()  => document.addEventListener('click', onDocClick))
-onUnmounted(() => document.removeEventListener('click', onDocClick))
 
 function iconUrl(slug: string | null): string {
   return slug ? `https://cdn.simpleicons.org/${slug}` : ''

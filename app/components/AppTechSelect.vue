@@ -6,36 +6,11 @@ const props = defineProps<{
 }>()
 
 const modelValue = defineModel<string>({ default: '' })
-const isOpen     = ref(false)
-const wrapRef    = ref<HTMLElement | null>(null)
-const triggerRef = ref<HTMLElement | null>(null)
-
-const { openUp } = useFlipUp(triggerRef, isOpen)
+const { isOpen, wrapRef, triggerRef, openUp } = useDropdown()
 
 const techList = computed(() => props.techs ?? [])
 
-/** Parse modelValue (CSV ou JSON array) → labels normalisés */
-const selectedLabels = computed((): string[] => {
-  if (!modelValue.value.trim()) return []
-  const raw = modelValue.value.trim()
-  if (raw.startsWith('[')) {
-    try {
-      const parsed = JSON.parse(raw) as unknown
-      if (Array.isArray(parsed))
-        return (parsed as unknown[]).map(v => String(v).trim()).filter(Boolean)
-    } catch { /* fallback */ }
-  }
-  return raw.split(',').map(t => t.trim()).filter(Boolean)
-})
-
-function findTech(val: string): Technology | undefined {
-  const v = val.toLowerCase()
-  return techList.value.find(t =>
-    t.label.toLowerCase() === v ||
-    (t.simpleicons_slug ?? '').toLowerCase() === v ||
-    v.includes(t.label.toLowerCase())
-  )
-}
+const selectedLabels = computed((): string[] => parseTechField(modelValue.value))
 
 function isSelected(opt: Technology): boolean {
   return selectedLabels.value.some(v => {
@@ -59,14 +34,6 @@ const selectedOpts = computed(() =>
     .map(v => findTech(v))
     .filter((t): t is Technology => t !== undefined),
 )
-
-function onDocClick(e: MouseEvent): void {
-  if (wrapRef.value && !wrapRef.value.contains(e.target as Node))
-    isOpen.value = false
-}
-
-onMounted(()  => document.addEventListener('click', onDocClick))
-onUnmounted(() => document.removeEventListener('click', onDocClick))
 
 function iconUrl(slug: string): string {
   return `https://cdn.simpleicons.org/${slug}`

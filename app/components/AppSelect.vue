@@ -6,13 +6,11 @@ const props = defineProps<{
 }>()
 
 const modelValue = defineModel<string>({ default: '' })
-const isOpen     = ref(false)
 const query      = ref('')
-const wrapRef    = ref<HTMLElement | null>(null)
-const triggerRef = ref<HTMLElement | null>(null)
 const searchRef  = ref<HTMLInputElement | null>(null)
 
-const { openUp } = useFlipUp(triggerRef, isOpen)
+const { isOpen, wrapRef, triggerRef, openUp } = useDropdown()
+watch(isOpen, (open: boolean): void => { if (!open) query.value = '' })
 
 const selected = computed(() =>
   props.options.find(o => o.value === modelValue.value) ?? null,
@@ -33,18 +31,7 @@ function open(): void {
 function select(value: string): void {
   modelValue.value = value
   isOpen.value     = false
-  query.value      = ''
 }
-
-function onDocClick(e: MouseEvent): void {
-  if (wrapRef.value && !wrapRef.value.contains(e.target as Node)) {
-    isOpen.value = false
-    query.value  = ''
-  }
-}
-
-onMounted(()  => document.addEventListener('click', onDocClick))
-onUnmounted(() => document.removeEventListener('click', onDocClick))
 </script>
 
 <template>

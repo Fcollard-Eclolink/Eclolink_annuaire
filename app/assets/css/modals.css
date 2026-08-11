@@ -75,34 +75,6 @@
   }
 }
 
-/* ── Champ date custom ────────────────────────────────────────── */
-.date-input-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: var(--sp-8);
-
-  input[type="text"] { flex: 1; }
-}
-
-.date-cal-btn {
-  flex-shrink: 0;
-  width: var(--sp-36);
-  height: var(--sp-36);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: var(--bw) solid var(--border-input);
-  border-radius: var(--sp-8);
-  background: var(--surface);
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 0;
-
-  &:hover         { background: var(--hover); color: var(--text); }
-  &.active        { background: var(--hover); color: var(--text); border-color: #888; }
-}
-
 /* ── Select avec icône ────────────────────────────────────────── */
 .icon-select {
   position: relative;

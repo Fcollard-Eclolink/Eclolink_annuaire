@@ -1,6 +1,5 @@
-import { eq } from 'drizzle-orm'
-import { useDb } from '~/server/db'
 import { sites } from '~/server/db/schema'
+import { patchOrFetch } from '~/server/utils/db-crud'
 
 interface SitePatch {
   name              ?: string
@@ -24,7 +23,6 @@ export default defineEventHandler(async (event): Promise<Site> => {
   const id = requireId(event)
 
   const body = await readBody<SitePatch>(event)
-  const db   = useDb()
 
   // Seuls les champs fournis sont touchés ; chacun est validé.
   const patch: Partial<typeof sites.$inferInsert> = {}
@@ -43,13 +41,5 @@ export default defineEventHandler(async (event): Promise<Site> => {
   if (body.notes           !== undefined) patch.notes            = clampString(body.notes, 5000)
   if (body.has_maintenance !== undefined) patch.has_maintenance  = !!body.has_maintenance
 
-  if (Object.keys(patch).length === 0) {
-    const [existing] = await db.select().from(sites).where(eq(sites.id, id)).limit(1)
-    if (!existing) throw createError({ statusCode: 404, message: 'Site introuvable' })
-    return existing
-  }
-
-  const [row] = await db.update(sites).set(patch).where(eq(sites.id, id)).returning()
-  if (!row) throw createError({ statusCode: 404, message: 'Site introuvable' })
-  return row
+  return patchOrFetch<Site>(sites, sites.id, id, patch, 'Site introuvable')
 })

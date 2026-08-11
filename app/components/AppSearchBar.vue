@@ -13,22 +13,19 @@
  *
  * - `fields` accepte des clés directes (`keyof T`) ou des fonctions `(item) => string`
  *   pour les valeurs calculées (ex: nom du site via un Map lookup).
- * - Raccourci Ctrl+K activé par défaut (désactivable via `:shortcut="false"`).
+ * - Raccourci Ctrl+K + filtrage débounce 500ms.
  * - Émet en continu les résultats filtrés via `v-model:results`.
  */
 type FieldGetter<T> = keyof T | ((item: T) => string)
+
+const DEBOUNCE_MS = 500
 
 const props = withDefaults(defineProps<{
   items       : T[]
   fields      : FieldGetter<T>[]
   placeholder?: string
-  shortcut   ?: boolean
-  /** Délai (ms) d'inactivité avant que la frappe ne déclenche le filtrage. */
-  debounceMs ?: number
 }>(), {
   placeholder: 'Rechercher',
-  shortcut   : true,
-  debounceMs : 500,
 })
 
 const query    = defineModel<string>('query',   { default: '' })
@@ -58,7 +55,7 @@ watch(query, (q: string): void => {
   debounceTimer = setTimeout((): void => {
     searchQuery.value = q
     debounceTimer = null
-  }, props.debounceMs)
+  }, DEBOUNCE_MS)
 })
 
 // watch (pas watchEffect) : `fields` peut changer de ref à chaque render parent
@@ -98,7 +95,7 @@ function onGlobalKeydown(e: KeyboardEvent): void {
 }
 
 onMounted((): void => {
-  if (props.shortcut) document.addEventListener('keydown', onGlobalKeydown)
+  document.addEventListener('keydown', onGlobalKeydown)
 })
 
 onUnmounted((): void => {
@@ -125,6 +122,6 @@ defineExpose({ focus, clear })
       @keydown.escape="clear"
     >
     <button v-if="isActive" class="search-bar-clear" title="Effacer" @click="clear">&#10005;</button>
-    <kbd v-else-if="shortcut" class="search-kbd">Ctrl K</kbd>
+    <kbd v-else class="search-kbd">Ctrl K</kbd>
   </div>
 </template>

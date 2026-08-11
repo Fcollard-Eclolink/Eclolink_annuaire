@@ -14,9 +14,15 @@ interface UserProfilePatch {
   is_active ?: boolean
 }
 
-// Édition de profil :
-//  - tout utilisateur peut modifier SON propre profil (champs non sensibles) ;
-//  - `role` / `is_active` et l'édition d'un AUTRE compte sont réservés aux sysadmins.
+// Champs éditables par tout utilisateur sur SON PROPRE profil.
+const SELF_FIELDS = ['first_name', 'last_name', 'agency', 'job_title'] as const
+// Champs privilégiés : sysadmin uniquement (rôle, activation, édition d'un AUTRE compte).
+const ADMIN_ONLY_FIELDS = ['role', 'is_active'] as const
+
+// Liste blanche stricte (default-deny) : tout champ du body absent des deux listes
+// ci-dessus est rejeté explicitement, plutôt que d'être silencieusement ignoré —
+// un futur champ ajouté à UserProfilePatch sans être classé ici casse la route au
+// lieu de devenir editable par erreur.
 export default defineEventHandler(async (event): Promise<UserProfile> => {
   const actor = await requireUser(event)
   const id = requireId(event)
@@ -28,11 +34,13 @@ export default defineEventHandler(async (event): Promise<UserProfile> => {
   }
 
   const body = await readBody<UserProfilePatch>(event)
-
-  // Champs privilégiés → sysadmin uniquement.
-  if ((body.role !== undefined || body.is_active !== undefined) && !isAdmin) {
-    throw createError({ statusCode: 403, message: 'Seul un sysadmin peut modifier le rôle ou le statut' })
+  const allowedFields: readonly string[] = isAdmin ? [...SELF_FIELDS, ...ADMIN_ONLY_FIELDS] : SELF_FIELDS
+  for (const key of Object.keys(body)) {
+    if (!allowedFields.includes(key)) {
+      throw createError({ statusCode: 403, message: `Champ non modifiable : ${key}` })
+    }
   }
+
   // Garde anti-verrouillage (sysadmin agissant sur son propre compte).
   if (isSelf && body.role !== undefined && body.role !== 'sysadmin') {
     throw createError({ statusCode: 400, message: 'Vous ne pouvez pas retirer votre propre rôle sysadmin' })

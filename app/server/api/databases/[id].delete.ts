@@ -1,11 +1,10 @@
-import { eq } from 'drizzle-orm'
-import { useDb } from '~/server/db'
 import { databases } from '~/server/db/schema'
+import { deleteAndReturn } from '~/server/utils/db-crud'
 
-export default defineEventHandler(async (event): Promise<{ ok: boolean }> => {
+export default defineEventHandler(async (event): Promise<{ ok: boolean; name?: string }> => {
   await requireRole(event, WRITE_ROLES)
   const id = requireId(event)
 
-  await useDb().delete(databases).where(eq(databases.id, id))
-  return { ok: true }
+  const row = await deleteAndReturn<Bdd>(databases, databases.id, id)
+  return { ok: true, name: row?.name }
 })

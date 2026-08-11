@@ -1,6 +1,6 @@
-import { eq } from 'drizzle-orm'
-import { useDb } from '~/server/db'
 import { maintenances } from '~/server/db/schema'
+import { maintenanceLabel } from '~/server/utils/activity-log'
+import { patchOrFetch } from '~/server/utils/db-crud'
 
 interface MaintenancePatch {
   site_id               ?: string
@@ -14,12 +14,11 @@ interface MaintenancePatch {
   is_monthly_maintenance?: boolean
 }
 
-export default defineEventHandler(async (event): Promise<Maintenance> => {
+export default defineEventHandler(async (event): Promise<Maintenance & { label: string }> => {
   await requireRole(event, WRITE_ROLES)
   const id = requireId(event)
 
   const body = await readBody<MaintenancePatch>(event)
-  const db   = useDb()
 
   const patch: Partial<typeof maintenances.$inferInsert> = {}
   if (body.site_id                !== undefined) patch.site_id                = requireString(body.site_id, 'Site', 50)
@@ -32,13 +31,6 @@ export default defineEventHandler(async (event): Promise<Maintenance> => {
   if (body.duration_minutes       !== undefined) patch.duration_minutes       = validateOptionalNonNegativeNumber(body.duration_minutes, 'Durée')
   if (body.is_monthly_maintenance !== undefined) patch.is_monthly_maintenance = !!body.is_monthly_maintenance
 
-  if (Object.keys(patch).length === 0) {
-    const [existing] = await db.select().from(maintenances).where(eq(maintenances.id, id)).limit(1)
-    if (!existing) throw createError({ statusCode: 404, message: 'Intervention introuvable' })
-    return existing
-  }
-
-  const [row] = await db.update(maintenances).set(patch).where(eq(maintenances.id, id)).returning()
-  if (!row) throw createError({ statusCode: 404, message: 'Intervention introuvable' })
-  return row
+  const updated = await patchOrFetch<Maintenance>(maintenances, maintenances.id, id, patch, 'Intervention introuvable')
+  return { ...updated, label: await maintenanceLabel(updated) }
 })

@@ -198,12 +198,16 @@ function extractError(e: unknown): string {
   return 'Erreur'
 }
 
-function openAdd(): void {
-  form.value = emptyForm()
-  // Auto-fill : dev/sysadmin → pré-remplir son propre nom (modifiable)
+// Auto-fill : dev/sysadmin → pré-remplir son propre nom comme développeur (modifiable)
+function fillDefaultDeveloper(): void {
   if (user.value && ['dev', 'sysadmin'].includes(user.value.role)) {
     form.value.developer_id = user.value.id
   }
+}
+
+function openAdd(): void {
+  form.value = emptyForm()
+  fillDefaultDeveloper()
   addOpen.value = true
   resetModal()
 }
@@ -384,7 +388,11 @@ function openAddForSite(site: Site): void {
   form.value         = emptyForm()
   form.value.site_id = site.id
   form.value.is_monthly_maintenance = true  // marque cette intervention comme validation mensuelle
+  // Type "Maintenance" auto-sélectionné (créer ce type dans Admin s'il n'existe pas encore).
+  const maintenanceType = maintenanceTypes.value.find((t: MaintenanceType) => t.label === 'Maintenance')
+  if (maintenanceType) form.value.types = maintenanceType.id
   // client_id auto-rempli par le watch sur form.site_id
+  fillDefaultDeveloper()
   lockedSiteId.value = site.id
   addOpen.value      = true
   resetModal()

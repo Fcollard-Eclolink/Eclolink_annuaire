@@ -14,7 +14,8 @@ function normalize(s: string): string {
   return s.toLowerCase().replace(/[\s.\-_]/g, '')
 }
 
-function findTech(name: string): Technology | undefined {
+/** Résout un nom brut (label, slug simpleicons, ou legacy id) vers la technologie de référence. */
+export function findTech(name: string): Technology | undefined {
   const n    = name.toLowerCase().trim()
   const nNorm = normalize(n)
   // Correspondance exacte label, slug, ou legacy id
@@ -28,27 +29,24 @@ function findTech(name: string): Technology | undefined {
   })
 }
 
-/** Parse le champ technologies (JSON array ou CSV) en tableau de labels normalisés et dédupliqués. */
-export function techTags(site: Site): string[] {
-  if (!site.technologies) return []
-  const raw = site.technologies.trim()
-  let values: string[]
-  if (raw.startsWith('[')) {
+/** Parse un champ technologies (JSON array ou CSV) en valeurs brutes (non résolues). */
+export function parseTechField(raw: string | null | undefined): string[] {
+  if (!raw?.trim()) return []
+  const trimmed = raw.trim()
+  if (trimmed.startsWith('[')) {
     try {
-      const parsed = JSON.parse(raw) as unknown
-      values = Array.isArray(parsed)
-        ? (parsed as unknown[]).map(v => String(v).trim()).filter(Boolean)
-        : raw.split(',').map(t => t.trim()).filter(Boolean)
-    } catch {
-      values = raw.split(',').map(t => t.trim()).filter(Boolean)
-    }
-  } else {
-    values = raw.split(',').map(t => t.trim()).filter(Boolean)
+      const parsed = JSON.parse(trimmed) as unknown
+      if (Array.isArray(parsed)) return (parsed as unknown[]).map(v => String(v).trim()).filter(Boolean)
+    } catch { /* fallback */ }
   }
-  // Normalise en labels et déduplique (gère les doublons legacy/nouveau)
+  return trimmed.split(',').map(t => t.trim()).filter(Boolean)
+}
+
+/** Parse le champ technologies d'un site en tableau de labels normalisés et dédupliqués. */
+export function techTags(site: Site): string[] {
   const seen = new Set<string>()
   const result: string[] = []
-  for (const v of values) {
+  for (const v of parseTechField(site.technologies)) {
     const label = findTech(v)?.label ?? v
     if (!seen.has(label)) {
       seen.add(label)

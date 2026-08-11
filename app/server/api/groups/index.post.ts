@@ -1,5 +1,6 @@
 import { useDb } from '~/server/db'
 import { groups } from '~/server/db/schema'
+import { assertRow } from '~/server/utils/db-crud'
 
 interface GroupCreate {
   name       : string
@@ -24,6 +25,5 @@ export default defineEventHandler(async (event): Promise<Group> => {
     database_id: body.database_id ?? null,
   }).returning()
 
-  if (!row) throw createError({ statusCode: 500, message: 'Erreur lors de la création' })
-  return row
+  return assertRow(row, 'Erreur lors de la création')
 })

@@ -1,5 +1,6 @@
 import { useDb } from '~/server/db'
 import { maintenanceTypes } from '~/server/db/schema'
+import { assertRow } from '~/server/utils/db-crud'
 
 interface MaintenanceTypeCreate {
   label: string
@@ -15,6 +16,5 @@ export default defineEventHandler(async (event): Promise<MaintenanceType> => {
     label: body.label.trim(),
   }).returning()
 
-  if (!row) throw createError({ statusCode: 500, message: 'Erreur lors de la création' })
-  return row
+  return assertRow(row, 'Erreur lors de la création')
 })
