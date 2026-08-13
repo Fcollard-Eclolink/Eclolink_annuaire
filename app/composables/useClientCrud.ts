@@ -6,7 +6,21 @@ const EMPTY: ClientForm = {
   notes: '', monthly_quota_hours: '', monthly_amount: '', project_manager_id: '',
 }
 
-function bodyFromForm(f: ClientForm): Record<string, unknown> {
+function toForm(c: Client): ClientForm {
+  return {
+    name               : c.name,
+    agency             : c.agency        ?? '',
+    contact_name       : c.contact_name  ?? '',
+    contact_email      : c.contact_email ?? '',
+    contact_phone      : c.contact_phone ?? '',
+    notes              : c.notes         ?? '',
+    monthly_quota_hours: c.monthly_quota_minutes != null ? String(c.monthly_quota_minutes / 60) : '',
+    monthly_amount     : c.monthly_amount        != null ? String(c.monthly_amount)             : '',
+    project_manager_id : c.project_manager_id    ?? '',
+  }
+}
+
+function toBody(f: ClientForm): Record<string, unknown> {
   const quotaH = typeof f.monthly_quota_hours === 'number' ? f.monthly_quota_hours : parseFloat(String(f.monthly_quota_hours))
   const amount = typeof f.monthly_amount === 'number'      ? f.monthly_amount      : parseFloat(String(f.monthly_amount))
   return {
@@ -18,114 +32,40 @@ function bodyFromForm(f: ClientForm): Record<string, unknown> {
   }
 }
 
-function extractError(e: unknown): string {
-  if (e && typeof e === 'object') {
-    const obj = e as { data?: { message?: string; statusMessage?: string }; message?: string }
-    return obj.data?.message ?? obj.data?.statusMessage ?? obj.message ?? 'Erreur'
-  }
-  return 'Erreur'
-}
-
 export function useClientCrud() {
-  const { add: toast }       = useToast()
-  const { refreshClients }   = useReferenceData()
-  const { user }             = useAuth()
+  const { refreshClients } = useReferenceData()
+  const { user }           = useAuth()
 
-  const addOpen      = ref(false)
-  const editTarget   = ref<Client | null>(null)
-  const deleteTarget = ref<Client | null>(null)
-  const form         = ref<ClientForm>({ ...EMPTY })
-  const loading      = ref(false)
-  const error        = ref<string | null>(null)
+  const crud = useCrudModal<Client, ClientForm>({
+    emptyForm: () => ({ ...EMPTY }),
+    toForm,
+    create: async (f) => {
+      const created = await $fetch<Client>('/api/clients', { method: 'POST', body: toBody(f) })
+      await refreshClients()
+      return created
+    },
+    update: async (target, f) => {
+      const updated = await $fetch<Client>(`/api/clients/${target.id}`, { method: 'PATCH', body: toBody(f) })
+      await refreshClients()
+      return updated
+    },
+    remove: async (target) => {
+      await $fetch(`/api/clients/${target.id}`, { method: 'DELETE' })
+      await refreshClients()
+    },
+    createdMsg: 'Client ajouté.',
+    updatedMsg: 'Client mis à jour.',
+    deletedMsg: 'Client supprimé.',
+  })
 
-  function resetState(): void {
-    loading.value = false
-    error.value   = null
-  }
-
+  // Auto-fill : cheffe de projet / sysadmin → pré-remplir son propre compte (modifiable)
   function openAdd(): void {
-    form.value = { ...EMPTY }
-    // Auto-fill : cheffe de projet → pré-remplir son propre compte (modifiable)
-    if (user.value && ['pm', 'sysadmin'].includes(user.value.role)) {
-      form.value.project_manager_id = user.value.id
-    }
-    addOpen.value = true
-    resetState()
+    crud.openAdd(
+      user.value && ['pm', 'sysadmin'].includes(user.value.role)
+        ? { project_manager_id: user.value.id }
+        : undefined,
+    )
   }
 
-  function openEdit(c: Client): void {
-    form.value = {
-      name                : c.name,
-      agency              : c.agency        ?? '',
-      contact_name        : c.contact_name  ?? '',
-      contact_email       : c.contact_email ?? '',
-      contact_phone       : c.contact_phone ?? '',
-      notes               : c.notes         ?? '',
-      monthly_quota_hours : c.monthly_quota_minutes != null ? String(c.monthly_quota_minutes / 60) : '',
-      monthly_amount      : c.monthly_amount        != null ? String(c.monthly_amount)             : '',
-      project_manager_id  : c.project_manager_id    ?? '',
-    }
-    editTarget.value = c
-    resetState()
-  }
-
-  function openDelete(c: Client): void {
-    deleteTarget.value = c
-    resetState()
-  }
-
-  function closeAdd():    void { if (!loading.value) addOpen.value      = false }
-  function closeEdit():   void { if (!loading.value) editTarget.value   = null  }
-  function closeDelete(): void { if (!loading.value) deleteTarget.value = null  }
-
-  async function confirmAdd(): Promise<void> {
-    loading.value = true; error.value = null
-    try {
-      await $fetch<Client>('/api/clients', { method: 'POST', body: bodyFromForm(form.value) })
-      await refreshClients()
-      addOpen.value = false
-      toast('Client ajouté.')
-    } catch (e: unknown) {
-      error.value = extractError(e)
-      toast(error.value, 'error')
-    } finally { loading.value = false }
-  }
-
-  async function confirmEdit(): Promise<void> {
-    if (!editTarget.value) return
-    loading.value = true; error.value = null
-    try {
-      await $fetch<Client>(`/api/clients/${editTarget.value.id}`, { method: 'PATCH', body: bodyFromForm(form.value) })
-      await refreshClients()
-      editTarget.value = null
-      toast('Client mis à jour.')
-    } catch (e: unknown) {
-      error.value = extractError(e)
-      toast(error.value, 'error')
-    } finally { loading.value = false }
-  }
-
-  async function confirmDelete(): Promise<Client | null> {
-    if (!deleteTarget.value) return null
-    const deleted = deleteTarget.value
-    loading.value = true; error.value = null
-    try {
-      await $fetch(`/api/clients/${deleted.id}`, { method: 'DELETE' })
-      await refreshClients()
-      deleteTarget.value = null
-      toast('Client supprimé.')
-      return deleted
-    } catch (e: unknown) {
-      error.value = extractError(e)
-      toast(error.value, 'error')
-      return null
-    } finally { loading.value = false }
-  }
-
-  return {
-    addOpen, editTarget, deleteTarget, form, loading, error,
-    openAdd, openEdit, openDelete,
-    closeAdd, closeEdit, closeDelete,
-    confirmAdd, confirmEdit, confirmDelete,
-  }
+  return { ...crud, openAdd }
 }

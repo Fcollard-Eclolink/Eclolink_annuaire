@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import type { Hoster, WebServer, Bdd } from '~/server/utils/types'
-import type { GroupForm } from '~/composables/useGroupCrud'
+
+export interface GroupForm {
+  name       : string
+  hoster     : string
+  ip_local   : string
+  ip_public  : string
+  web_server : string
+  database_id: string
+}
 
 defineProps<{
   title      : string

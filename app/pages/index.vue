@@ -230,21 +230,22 @@ function clearAllFilters(): void {
 const {
   loading: groupLoading, error: groupError,
   deleteTarget: deleteGroup,
-  openDeleteConfirm: openDeleteGroup, closeDeleteConfirm: closeDeleteGroup, confirmDelete: confirmDeleteGroup,
-  editTarget: editGroup, editForm: editGroupForm,
-  openEditModal: openEditGroupRaw, closeEditModal: closeEditGroup, saveEdit: saveGroupEdit,
-  isAddOpen: isAddGroupOpen, addForm: addGroupForm,
-  openAddModal: openAddGroupRaw, closeAddModal: closeAddGroup, confirmAdd: confirmAddGroup,
+  openDelete: openDeleteGroup, closeDelete: closeDeleteGroup, confirmDelete: confirmDeleteGroup,
+  editTarget: editGroup, form: groupForm,
+  openEdit: openEditGroupRaw, closeEdit: closeEditGroup, confirmEdit: saveGroupEdit,
+  addOpen: isAddGroupOpen,
+  openAdd: openAddGroupRaw, closeAdd: closeAddGroup, confirmAdd: confirmAddGroup,
 } = useGroupCrud(groups, sites)
 
 // ── CRUD sites ────────────────────────────────────────────────────
 const {
-  deleteTarget: deleteSite, deleteLoading: deleteSiteLoading, deleteError: deleteSiteError,
-  openDeleteConfirm: openDeleteSite, closeDeleteConfirm: closeDeleteSite, confirmDelete: confirmDeleteSite,
-  editTarget: editSite, editForm: editSiteForm, editLoading: editSiteLoading, editError: editSiteError,
-  openEditModal: openEditSiteRaw, closeEditModal: closeEditSite, saveEdit: saveSiteEdit,
-  isAddOpen: isAddSiteOpen, addForm: addSiteForm, addLoading: addSiteLoading, addError: addSiteError,
-  openAddModal: openAddSiteRaw, closeAddModal: closeAddSite, confirmAdd: confirmAddSite,
+  loading: siteLoading, error: siteError,
+  deleteTarget: deleteSite,
+  openDelete: openDeleteSite, closeDelete: closeDeleteSite, confirmDelete: confirmDeleteSite,
+  editTarget: editSite, form: siteForm,
+  openEdit: openEditSiteRaw, closeEdit: closeEditSite, confirmEdit: saveSiteEdit,
+  addOpen: isAddSiteOpen,
+  openAdd: openAddSiteRaw, closeAdd: closeAddSite, confirmAdd: confirmAddSite,
 } = useSiteCrud(sites)
 
 // ── Wrappers : load dnsProviders à la 1re ouverture d'une modale site ─
@@ -403,8 +404,8 @@ function openEditSite(s: Parameters<typeof openEditSiteRaw>[0]): void { void ref
         <AppConfirmModal
           v-if="deleteSite"
           title="Supprimer le site"
-          :loading="deleteSiteLoading"
-          :error="deleteSiteError"
+          :loading="siteLoading"
+          :error="siteError"
           @confirm="confirmDeleteSite"
           @cancel="closeDeleteSite"
         >
@@ -421,7 +422,7 @@ function openEditSite(s: Parameters<typeof openEditSiteRaw>[0]): void { void ref
         <AppGroupFormModal
           v-if="editGroup"
           title="Modifier le serveur"
-          :form="editGroupForm"
+          :form="groupForm"
           :error="groupError"
           :loading="groupLoading"
           :hosters="fetchedHosters"
@@ -440,7 +441,7 @@ function openEditSite(s: Parameters<typeof openEditSiteRaw>[0]): void { void ref
         <AppGroupFormModal
           v-if="isAddGroupOpen"
           title="Ajouter un serveur"
-          :form="addGroupForm"
+          :form="groupForm"
           :error="groupError"
           :loading="groupLoading"
           :hosters="fetchedHosters"
@@ -459,9 +460,9 @@ function openEditSite(s: Parameters<typeof openEditSiteRaw>[0]): void { void ref
         <AppSiteFormModal
           v-if="isAddSiteOpen"
           title="Ajouter un site"
-          :form="addSiteForm"
-          :error="addSiteError"
-          :loading="addSiteLoading"
+          :form="siteForm"
+          :error="siteError"
+          :loading="siteLoading"
           :groups="groups"
           :clients="clients"
           :agencies="fetchedAgencies"
@@ -481,9 +482,9 @@ function openEditSite(s: Parameters<typeof openEditSiteRaw>[0]): void { void ref
         <AppSiteFormModal
           v-if="editSite"
           title="Modifier le site"
-          :form="editSiteForm"
-          :error="editSiteError"
-          :loading="editSiteLoading"
+          :form="siteForm"
+          :error="siteError"
+          :loading="siteLoading"
           :groups="groups"
           :clients="clients"
           :agencies="fetchedAgencies"

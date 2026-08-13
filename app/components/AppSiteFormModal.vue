@@ -1,6 +1,23 @@
 <script setup lang="ts">
 import type { Group, Client, Technology, Hoster, DnsProvider, Agency } from '~/server/utils/types'
-import type { SiteEditForm } from '~/composables/useSiteCrud'
+
+export interface SiteEditForm {
+  name              : string
+  url               : string
+  bo_url            : string
+  gitlab_url        : string
+  agency            : string
+  group_id          : string
+  php_version       : string
+  dns_zone          : string
+  go_live_date      : string
+  technologies      : string
+  client_id         : string
+  registrar         : string
+  notes             : string
+  has_maintenance   : boolean
+  wp_api_key        : string
+}
 
 defineProps<{
   title             : string
