@@ -11,7 +11,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 
 /** True si l'URL est http:// ou https:// et bien formée. Refuse javascript:, data:, file:, etc. */
-export function isSafeHttpUrl(url: string): boolean {
+function isSafeHttpUrl(url: string): boolean {
   try {
     const u = new URL(url)
     return u.protocol === 'http:' || u.protocol === 'https:'
