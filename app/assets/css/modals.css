@@ -53,6 +53,13 @@
   margin-top: var(--sp-20);
 }
 
+/* Modale courte à un seul champ : pas de scroll interne, pour ne pas couper
+   le dropdown d'un AppSelect qui déborderait sinon de la zone scrollable. */
+.modal-card--fit {
+  max-height: none;
+  overflow: visible;
+}
+
 /* Modale haute avec scroll interne */
 .modal-card--scroll {
   max-height: calc(100dvh - var(--sp-48));

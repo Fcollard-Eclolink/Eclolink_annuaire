@@ -1,0 +1,286 @@
+/* ── Page MEL (Mise en ligne) ─────────────────────────────────── */
+.mel-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--sp-24);
+}
+
+/* ── Layout façon messagerie : historique à gauche, contenu à droite ── */
+.mel-layout {
+  display: flex;
+  gap: var(--sp-24);
+  align-items: flex-start;
+}
+
+.mel-sidebar {
+  width: 20%;
+  min-width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.mel-new-btn {
+  width: 100%;
+  justify-content: center;
+  margin-bottom: var(--sp-12);
+}
+
+.mel-history-empty {
+  font-size: var(--fs-12);
+  color: var(--text-muted);
+  padding: var(--sp-8) var(--sp-12);
+}
+
+/* Carte d'une mise en ligne dans l'historique — même esprit que les cartes
+   serveur/site de l'annuaire (bordure, fond surface, logos technos). */
+.mel-history-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--sp-8) var(--sp-12);
+  background: var(--surface);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--sp-8);
+  cursor: pointer;
+  transition: background var(--t-fast), border-color var(--t-fast);
+
+  &:hover { background: var(--hover); }
+  &:hover .mel-history-delete { opacity: 1; }
+
+  &.active {
+    border-color: var(--text);
+    font-weight: var(--fw-medium);
+  }
+}
+
+.mel-history-techs { margin-top: var(--sp-4); }
+
+.mel-history-delete {
+  position: absolute;
+  top: var(--sp-8);
+  right: var(--sp-8);
+  opacity: 0;
+  background: var(--surface);
+  transition: opacity var(--t-fast);
+}
+
+/* Pastille de statut : gris = pas commencé, orange = en cours, vert = terminé */
+.mel-status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: var(--sp-4);
+  vertical-align: middle;
+
+  &.mel-status-dot--todo  { background: var(--text-muted); }
+  &.mel-status-dot--doing { background: #f59e0b; }
+  &.mel-status-dot--done  { background: var(--ok-color); }
+}
+
+.mel-history-item {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: var(--sp-8) var(--sp-12);
+  border: none;
+  border-radius: var(--sp-8);
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: background var(--t-fast);
+
+  &:hover { background: var(--hover); }
+
+  &.active {
+    background: var(--hover);
+    font-weight: var(--fw-medium);
+  }
+}
+
+.mel-history-site {
+  font-size: var(--fs-14);
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.mel-history-date {
+  font-size: var(--fs-12);
+  color: var(--text-muted);
+}
+
+.mel-content {
+  width: 80%;
+  min-width: 0;
+  background: var(--surface);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--sp-12);
+  padding: var(--sp-24);
+}
+
+/* ── Vue "Modèle" (home) ──────────────────────────────────────── */
+.mel-template-hint {
+  font-size: var(--fs-12);
+  color: var(--text-muted);
+  margin-bottom: var(--sp-16);
+}
+
+.mel-template-section {
+  margin-bottom: var(--sp-20);
+}
+
+.mel-template-section-title {
+  font-size: var(--fs-12);
+  font-weight: var(--fw-medium);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--sp-8);
+}
+
+.mel-template-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.mel-template-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+  padding: var(--sp-8) var(--sp-12);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--sp-8);
+
+  &.mel-template-row--editing {
+    align-items: stretch;
+    flex-direction: column;
+    padding: var(--sp-16);
+  }
+}
+
+.mel-template-label {
+  flex: 1;
+  font-size: var(--fs-14);
+}
+
+.mel-template-row-actions {
+  display: flex;
+  gap: var(--sp-4);
+  flex-shrink: 0;
+}
+
+.mel-template-row--editing .mel-template-row-actions {
+  justify-content: flex-end;
+  gap: var(--sp-8);
+}
+
+/* Formulaire section (dropdown) + étape, jamais sur la même ligne */
+.mel-template-form {
+  display: flex;
+  flex-direction: column;
+
+  .field { margin-bottom: var(--sp-12); }
+
+  select.field-input { cursor: pointer; }
+
+  /* Champ "nouvelle section" sous le dropdown */
+  .field input[type="text"] { margin-top: var(--sp-8); }
+}
+
+.mel-template-add {
+  margin-top: var(--sp-20);
+  padding-top: var(--sp-20);
+  border-top: var(--bw) solid var(--border);
+}
+
+/* ── Vue détail d'une mise en ligne ──────────────────────────── */
+.mel-detail-loading {
+  color: var(--text-muted);
+  font-size: var(--fs-14);
+}
+
+.mel-detail-title {
+  font-size: var(--fs-18);
+  font-weight: var(--fw-semi);
+  margin-bottom: var(--sp-12);
+}
+
+.mel-detail-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-8);
+  margin-bottom: var(--sp-16);
+}
+
+.mel-detail-server {
+  display: flex;
+  gap: var(--sp-20);
+  padding-bottom: var(--sp-16);
+  margin-bottom: var(--sp-20);
+  border-bottom: var(--bw) solid var(--border);
+}
+
+.mel-detail-body {
+  display: flex;
+  gap: var(--sp-24);
+}
+
+.mel-detail-column {
+  flex: 1;
+  min-width: 0;
+}
+
+.mel-detail-column-title {
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+  margin-bottom: var(--sp-12);
+}
+
+.mel-detail-empty {
+  font-size: var(--fs-12);
+  color: var(--text-muted);
+}
+
+.mel-detail-section {
+  margin-bottom: var(--sp-16);
+}
+
+.mel-detail-section-title {
+  font-size: var(--fs-12);
+  font-weight: var(--fw-medium);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--sp-8);
+}
+
+.mel-detail-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+  padding: var(--sp-4) 0;
+  font-size: var(--fs-14);
+  cursor: pointer;
+
+  input[type="checkbox"] { cursor: pointer; accent-color: var(--text); }
+
+  &.mel-detail-item--done span { color: var(--text-muted); text-decoration: line-through; }
+}
+
+@media (max-width: 800px) {
+  .mel-layout { flex-direction: column; }
+  .mel-sidebar, .mel-content { width: 100%; }
+  .mel-detail-body { flex-direction: column; }
+}
