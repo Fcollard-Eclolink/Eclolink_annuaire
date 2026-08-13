@@ -184,6 +184,37 @@ export const maintenances = pgTable('eclolink_maintenances', {
   created_at             : timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
 })
 
+// ── Mises en ligne (MEL) ───────────────────────────────────────────────────
+// Un template unique (melSteps, ordonné par sort_order) sert de modèle. Chaque
+// mise en ligne (mels, 1 par site) copie l'état courant du template dans
+// melItems au moment de sa création : les MEL passées ne bougent plus si le
+// template est modifié ensuite.
+
+export const melSteps = pgTable('eclolink_mel_steps', {
+  id        : uuid('id').primaryKey().defaultRandom(),
+  section   : text('section').notNull(),
+  label     : text('label').notNull(),
+  sort_order: integer('sort_order').notNull().default(0),
+})
+
+export const mels = pgTable('eclolink_mels', {
+  id        : uuid('id').primaryKey().defaultRandom(),
+  site_id   : text('site_id').notNull().references(() => sites.id),
+  created_at: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+})
+
+export const melItems = pgTable('eclolink_mel_items', {
+  id        : uuid('id').primaryKey().defaultRandom(),
+  mel_id    : uuid('mel_id').notNull().references(() => mels.id, { onDelete: 'cascade' }),
+  section   : text('section').notNull(),
+  label     : text('label').notNull(),
+  sort_order: integer('sort_order').notNull().default(0),
+  is_done   : boolean('is_done').notNull().default(false),
+  done_at   : timestamp('done_at', { withTimezone: true, mode: 'string' }),
+}, (t) => [
+  index('eclolink_mel_items_mel_id_idx').on(t.mel_id),
+])
+
 // ── Journal d'activité ────────────────────────────────────────────────────
 
 export const activityLogs = pgTable('eclolink_activity_logs', {

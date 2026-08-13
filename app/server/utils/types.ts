@@ -2,7 +2,7 @@
 
 import {
   activityLogs, agencies, clients, databases, dnsProviders, groups, hosters,
-  maintenances, maintenanceTypes, sites, technologies, users, webServers,
+  maintenances, maintenanceTypes, melItems, mels, melSteps, sites, technologies, users, webServers,
 } from '~/server/db/schema'
 
 // Contrat public de l'utilisateur authentifié (réponse /api/auth/me).
@@ -34,4 +34,13 @@ export type WebServer        = typeof webServers.$inferSelect
 export type DnsProvider      = typeof dnsProviders.$inferSelect
 export type MaintenanceType  = typeof maintenanceTypes.$inferSelect
 export type Maintenance      = typeof maintenances.$inferSelect
+export type MelStep          = typeof melSteps.$inferSelect
+export type Mel              = typeof mels.$inferSelect
+export type MelItem          = typeof melItems.$inferSelect
+
+/** Mel + compteur d'étapes, pour afficher le statut (pastille) sans charger le détail. */
+export interface MelSummary extends Mel {
+  total_items: number
+  done_items : number
+}
 
