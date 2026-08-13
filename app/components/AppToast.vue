@@ -27,6 +27,13 @@ const { toasts, remove } = useToast()
 
           <span class="toast-msg">{{ t.message }}</span>
 
+          <button
+            v-if="t.action"
+            class="toast-action"
+            type="button"
+            @click.stop="t.action.onClick(); remove(t.id)"
+          >{{ t.action.label }}</button>
+
           <button class="toast-close" type="button" @click.stop="remove(t.id)">
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
                  fill="none" stroke="currentColor" stroke-width="2.5"
@@ -104,6 +111,21 @@ const { toasts, remove } = useToast()
   align-items: center;
 }
 .toast-close:hover { opacity: 1; }
+
+.toast-action {
+  flex-shrink: 0;
+  background: none;
+  border: 0.5px solid currentColor;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font: inherit;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.85;
+}
+.toast-action:hover { opacity: 1; }
 
 /* Transitions */
 .toast-enter-active { transition: all 0.22s ease; }
