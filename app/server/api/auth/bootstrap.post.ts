@@ -15,7 +15,7 @@ interface BootstrapBody {
 // (auto-désactivation ensuite) → sûr à laisser en place.
 export default defineEventHandler(async (event): Promise<{ ok: true }> => {
   const ip = getClientIp(event)
-  checkRateLimit({ key: `bootstrap:${ip}`, limit: 5, windowMs: 15 * 60 * 1000 })
+  checkRateLimit({ key: `bootstrap:${ip}`, limit: 5 })
 
   const body  = await readBody<BootstrapBody>(event)
   const email = validateOptionalEmail(body.email, 'Email')?.toLowerCase()

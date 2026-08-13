@@ -25,8 +25,8 @@ export default defineEventHandler(async (event): Promise<{ ok: true }> => {
   // Double rate-limit : par IP (anti-flood) ET par compte (anti brute-force ciblé,
   // qui reste efficace même si X-Forwarded-For est falsifié).
   const ip = getClientIp(event)
-  checkRateLimit({ key: `login:ip:${ip}`,           limit: 15, windowMs: 15 * 60 * 1000 })
-  checkRateLimit({ key: `login:acct:${normalized}`, limit: 8,  windowMs: 15 * 60 * 1000 })
+  checkRateLimit({ key: `login:ip:${ip}`,           limit: 15 })
+  checkRateLimit({ key: `login:acct:${normalized}`, limit: 8  })
 
   const db   = useDb()
   const rows = await db.select().from(users).where(eq(users.email, normalized)).limit(1)

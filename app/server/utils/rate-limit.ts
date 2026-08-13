@@ -15,14 +15,16 @@ import type { H3Event } from 'h3'
  *   donc clés actives uniquement → acceptable.
  */
 
+const WINDOW_MS = 15 * 60 * 1000
+
 interface Bucket {
   attempts: number[]  // timestamps ms
 }
 
 const buckets = new Map<string, Bucket>()
 
-function purge(bucket: Bucket, windowMs: number): void {
-  const cutoff = Date.now() - windowMs
+function purge(bucket: Bucket): void {
+  const cutoff = Date.now() - WINDOW_MS
   // Trie chronologique → on peut couper en début
   while (bucket.attempts.length > 0 && bucket.attempts[0]! < cutoff) {
     bucket.attempts.shift()
@@ -31,11 +33,9 @@ function purge(bucket: Bucket, windowMs: number): void {
 
 interface RateLimitOptions {
   /** Identifiant unique du bucket (IP, IP+email, etc.) */
-  key      : string
-  /** Nombre max de tentatives sur la fenêtre */
-  limit    : number
-  /** Largeur de la fenêtre en ms */
-  windowMs : number
+  key  : string
+  /** Nombre max de tentatives sur la fenêtre (15 minutes, fixe) */
+  limit: number
 }
 
 /**
@@ -48,10 +48,10 @@ export function checkRateLimit(opts: RateLimitOptions): void {
     bucket = { attempts: [] }
     buckets.set(opts.key, bucket)
   }
-  purge(bucket, opts.windowMs)
+  purge(bucket)
 
   if (bucket.attempts.length >= opts.limit) {
-    const retryAfter = Math.ceil((bucket.attempts[0]! + opts.windowMs - Date.now()) / 1000)
+    const retryAfter = Math.ceil((bucket.attempts[0]! + WINDOW_MS - Date.now()) / 1000)
     throw createError({
       statusCode   : 429,
       statusMessage: 'Too Many Requests',
