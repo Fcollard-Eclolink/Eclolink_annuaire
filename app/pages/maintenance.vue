@@ -719,7 +719,7 @@ function openAddForSite(site: Site): void {
               </div>
               <div class="field">
                 <label>Date d'intervention *</label>
-                <AppDateInput v-model="form.intervention_date" />
+                <input v-model="form.intervention_date" type="date" required>
               </div>
               <div class="field">
                 <label>Durée (minutes)</label>

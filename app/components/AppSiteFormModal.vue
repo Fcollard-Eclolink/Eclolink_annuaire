@@ -77,7 +77,7 @@ function generateWpKey(): string {
           </div>
           <div class="field">
             <label>Mise en ligne</label>
-            <AppDateInput v-model="form.go_live_date" />
+            <input v-model="form.go_live_date" type="date">
           </div>
           <div class="field">
             <label>Zone DNS</label>
