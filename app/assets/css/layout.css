@@ -54,11 +54,6 @@
   gap: var(--sp-8);
 }
 
-.user-email {
-  font-size: var(--fs-14);
-  color: var(--text-muted);
-}
-
 .empty-state {
   text-align: center;
   padding: var(--sp-48);
@@ -206,8 +201,7 @@
   }
 }
 
-/* Icône reload animée */
-@keyframes spin { to { transform: rotate(360deg); } }
+/* Icône reload animée — @keyframes spin défini dans base.css */
 .spinning { animation: spin 0.7s linear infinite; }
 
 /* Bouton icône seule (sans texte) */

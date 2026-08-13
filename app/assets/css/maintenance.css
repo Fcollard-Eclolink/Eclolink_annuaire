@@ -16,15 +16,6 @@
   }
 }
 
-/* ── Filtres ─────────────────────────────────────────────────── */
-.maintenance-filters {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--sp-8);
-  margin: 0 0 var(--sp-16);
-}
-
 .maintenance-incident-toggle {
   display: inline-flex;
   align-items: center;
@@ -115,86 +106,6 @@
   font-variant-numeric: tabular-nums;
   font-size: var(--fs-12);
   color: var(--text-muted);
-}
-
-/* ── Quotas mensuels ─────────────────────────────────────────── */
-.quota-section {
-  margin: 0 0 var(--sp-20);
-  padding: var(--sp-16) var(--sp-20);
-  background: var(--surface);
-  border: var(--bw) solid var(--border);
-  border-radius: var(--sp-8);
-}
-
-.quota-title {
-  font-size: var(--fs-12);
-  font-weight: var(--fw-semi);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
-  margin-bottom: var(--sp-12);
-}
-
-.quota-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: var(--sp-12);
-}
-
-.quota-card {
-  padding: var(--sp-12) var(--sp-16);
-  background: var(--bg);
-  border: var(--bw) solid var(--border);
-  border-radius: var(--sp-8);
-}
-
-.quota-card-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--sp-8);
-  margin-bottom: var(--sp-8);
-}
-
-.quota-client-name {
-  font-size: var(--fs-14);
-  font-weight: var(--fw-medium);
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.quota-time {
-  font-size: var(--fs-12);
-  font-variant-numeric: tabular-nums;
-  color: var(--text-muted);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.quota-bar-wrap {
-  height: var(--sp-8);
-  background: var(--border);
-  border-radius: var(--sp-4);
-  overflow: hidden;
-  margin-bottom: var(--sp-4);
-}
-
-.quota-bar-fill {
-  height: 100%;
-  background: #22c55e;
-  border-radius: var(--sp-4);
-  transition: width 0.3s;
-
-  &.quota-bar-warn { background: #f59e0b; }
-  &.quota-bar-over { background: #ef4444; }
-}
-
-.quota-pct {
-  font-size: var(--fs-12);
-  color: var(--text-muted);
-  text-align: right;
 }
 
 /* ── Onglet "Sites sous maintenance" ─────────────────────────── */

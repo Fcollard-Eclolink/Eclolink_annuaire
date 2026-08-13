@@ -163,11 +163,6 @@
   margin-top: var(--sp-4);
 }
 
-.admin-section-hint {
-  font-size: var(--fs-12);
-  color: var(--text-muted);
-}
-
 /* ── Badge rôle utilisateur ──────────────────────────────────── */
 .admin-role-badge {
   display: inline-block;
