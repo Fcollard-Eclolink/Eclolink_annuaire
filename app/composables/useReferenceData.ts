@@ -2,6 +2,7 @@ import type { Ref } from 'vue'
 import type {
   Technology, Hoster, WebServer, DnsProvider, Agency,
   UserProfile, Client, Site, Group, MaintenanceType, Maintenance, Bdd, ActivityLog,
+  MelStep, MelSummary,
 } from '~/server/utils/types'
 
 export function useReferenceData() {
@@ -17,6 +18,8 @@ export function useReferenceData() {
   const maintenanceTypes = useState<MaintenanceType[]>('ref:mtTypes',  () => [])
   const maintenances     = useState<Maintenance[]>('ref:maintenances', () => [])
   const databases        = useState<Bdd[]>('ref:databases',            () => [])
+  const melSteps         = useState<MelStep[]>('ref:melSteps',         () => [])
+  const mels             = useState<MelSummary[]>('ref:mels',          () => [])
 
   // Vues filtrées par rôle (réactives)
   // Dropdowns : on exclut les comptes désactivés.
@@ -46,6 +49,7 @@ export function useReferenceData() {
     userProfiles, devUsers, pmUsers,
     clients, sites, groups,
     maintenanceTypes, maintenances, databases,
+    melSteps, mels,
 
     loadTechnologies    : (): Promise<void> => load('technologies',  '/api/technologies',      technologies),
     loadHosters         : (): Promise<void> => load('hosters',       '/api/hosters',           hosters),
@@ -59,6 +63,8 @@ export function useReferenceData() {
     loadMaintenanceTypes: (): Promise<void> => load('mtTypes',       '/api/maintenance-types', maintenanceTypes),
     loadMaintenances    : (): Promise<void> => load('maintenances',  '/api/maintenances',      maintenances),
     loadDatabases       : (): Promise<void> => load('databases',     '/api/databases',         databases),
+    loadMelSteps        : (): Promise<void> => load('melSteps',      '/api/mel-steps',         melSteps),
+    loadMels            : (): Promise<void> => load('mels',          '/api/mels',              mels),
 
     refreshTechnologies    : (): Promise<void> => refresh('technologies',  '/api/technologies',      technologies),
     refreshHosters         : (): Promise<void> => refresh('hosters',       '/api/hosters',           hosters),
@@ -72,5 +78,7 @@ export function useReferenceData() {
     refreshMaintenanceTypes: (): Promise<void> => refresh('mtTypes',       '/api/maintenance-types', maintenanceTypes),
     refreshMaintenances    : (): Promise<void> => refresh('maintenances',  '/api/maintenances',      maintenances),
     refreshDatabases       : (): Promise<void> => refresh('databases',     '/api/databases',         databases),
+    refreshMelSteps        : (): Promise<void> => refresh('melSteps',      '/api/mel-steps',         melSteps),
+    refreshMels            : (): Promise<void> => refresh('mels',          '/api/mels',              mels),
   }
 }
