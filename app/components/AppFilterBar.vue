@@ -31,9 +31,8 @@ export interface FilterDef<T> {
  * - Le bouton "Réinitialiser" apparaît dès qu'au moins un filtre est actif.
  */
 const props = defineProps<{
-  items      : T[]
-  filters    : FilterDef<T>[]
-  resetLabel?: string
+  items  : T[]
+  filters: FilterDef<T>[]
 }>()
 
 const results    = defineModel<T[]>('results', { default: () => [] })
@@ -71,8 +70,6 @@ function updateSelection(key: string, value: string[]): void {
 function clear(): void {
   selections.value = {}
 }
-
-defineExpose({ clear })
 </script>
 
 <template>
@@ -89,7 +86,7 @@ defineExpose({ clear })
       <!-- Slot pour ajouter des contrôles personnalisés (toggle, checkbox, etc.) -->
       <slot name="after" />
       <button v-if="hasActive" class="btn" @click="clear">
-        {{ resetLabel ?? 'Réinitialiser' }}
+        Réinitialiser
       </button>
     </div>
   </div>

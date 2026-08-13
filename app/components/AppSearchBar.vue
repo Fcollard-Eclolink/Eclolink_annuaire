@@ -102,8 +102,6 @@ onUnmounted((): void => {
   document.removeEventListener('keydown', onGlobalKeydown)
   if (debounceTimer) clearTimeout(debounceTimer)
 })
-
-defineExpose({ focus, clear })
 </script>
 
 <template>

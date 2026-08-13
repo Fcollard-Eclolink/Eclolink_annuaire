@@ -7,7 +7,6 @@ const props = defineProps<{
   hosters       ?: Hoster[]
   webServers    ?: WebServer[]
   databases     ?: Bdd[]
-  defaultOpen   ?: boolean
   nameIsMuted   ?: boolean
   expandAllTick ?: number
   collapseAllTick?: number
@@ -27,7 +26,7 @@ function storageKey(): string | null {
   return user.value ? `eclolink:srv-open:${user.value.id}:${props.group.id}` : null
 }
 
-const isOpen = ref(props.defaultOpen ?? true)
+const isOpen = ref(true)
 
 onMounted(() => {
   const key = storageKey()
