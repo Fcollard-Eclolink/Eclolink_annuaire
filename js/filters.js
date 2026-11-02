@@ -166,6 +166,69 @@ function updateFilterBtnState() {
   document.getElementById('filter-btn-agency')?.classList.toggle('active',  activeFilters.agencies.length > 0);
 }
 
+// ── Export CSV ────────────────────────────────────────────────────
+// Modale : choix des serveurs à exporter (combiné à la recherche +
+// aux filtres agence/techno déjà actifs dans la barre de filtres)
+function openExportModal() {
+  renderExportBody();
+  document.getElementById('export-wrap')?.classList.add('open');
+}
+
+function closeExportModal() {
+  document.getElementById('export-wrap')?.classList.remove('open');
+}
+
+function renderExportBody() {
+  const body = document.getElementById('export-body');
+  if (!body) return;
+  if (!groups.length) { body.innerHTML = '<div class="filter-dd-empty">Aucun serveur créé</div>'; return; }
+
+  body.innerHTML = [...groups].sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true })).map(g => `
+    <label class="filter-dd-item">
+      <input type="checkbox" class="export-server-cb" value="${g.id}" ${activeFilters.servers.includes(g.id) ? 'checked' : ''}>
+      ${esc(g.name)}
+    </label>`).join('');
+}
+
+function toggleAllExportServers(state) {
+  document.querySelectorAll('.export-server-cb').forEach(cb => cb.checked = state);
+}
+
+function csvEscape(v) {
+  const s = String(v ?? '');
+  return /[;"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+function downloadSitesCSV(list) {
+  const header = ['Site', 'URL', 'Agence', 'Serveur', 'Technologies'];
+  const rows = list.map(s => {
+    const g     = groups.find(g => g.id === s.groupId);
+    const techs = (s.technologies || []).map(id => TECH_BY_ID.get(id)?.label || id).join(', ');
+    return [s.name, s.url, s.agency || '', g ? g.name : '', techs];
+  });
+
+  const csv  = [header, ...rows].map(r => r.map(csvEscape).join(';')).join('\r\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `sites-export-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast(`${list.length} site(s) exporté(s)`);
+}
+
+function confirmExport() {
+  const ids = Array.from(document.querySelectorAll('.export-server-cb:checked')).map(cb => cb.value);
+  if (!ids.length) { toast('Sélectionnez au moins un serveur'); return; }
+
+  const list = getAvailableSites('servers').filter(s => ids.includes(s.groupId));
+  if (!list.length) { toast('Aucun site à exporter'); return; }
+
+  downloadSitesCSV(list);
+  closeExportModal();
+}
+
 // Fermeture des dropdowns au clic extérieur
 document.addEventListener('click', e => {
   ['server', 'tech', 'agency'].forEach(type => {

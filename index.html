@@ -47,6 +47,22 @@
         </div>
       </div>
 
+      <!-- Modale export CSV -->
+      <div id="export-wrap" class="overlay" onclick="if(event.target===this)closeExportModal()">
+        <div class="modal">
+          <h3>Exporter des sites</h3>
+          <div class="export-toolbar">
+            <button type="button" class="filter-clear-all" onclick="toggleAllExportServers(true)">Tout cocher</button>
+            <button type="button" class="filter-clear-all" onclick="toggleAllExportServers(false)">Tout décocher</button>
+          </div>
+          <div id="export-body"></div>
+          <div class="modal-btns">
+            <button class="btn" onclick="closeExportModal()">Annuler</button>
+            <button class="btn primary" onclick="confirmExport()">Exporter</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Modale confirmation suppression -->
       <div id="confirm-wrap" class="overlay" onclick="if(event.target===this)closeConfirm()">
         <div class="modal modal-confirm">
@@ -113,6 +129,7 @@
         <div class="filter-expand-actions">
           <button class="btn" onclick="expandAllServers()" title="Déplier tous les serveurs">Déplier tous</button>
           <button class="btn" onclick="collapseAllServers()" title="Replier tous les serveurs">Replier tous</button>
+          <button class="btn" onclick="openExportModal()" title="Exporter en CSV les sites de serveurs sélectionnés">Exporter</button>
         </div>
       </div>
 
